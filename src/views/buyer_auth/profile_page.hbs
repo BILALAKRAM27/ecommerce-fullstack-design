@@ -36,7 +36,7 @@
     <div class="profile-box">
         <h1 id="welcome">Loading...</h1>
         <h2 id="email">Loading...</h2>
-        <h2 id="role">Loading...</h2>
+        <h2 id="shop_name">Loading...</h2>
         <h2 id="phone">Loading...</h2>
         <button class="logout-btn" id="logoutBtn">Logout</button>
     </div>
@@ -45,20 +45,20 @@
             const token = localStorage.getItem('access_token');
             const welcome = document.getElementById('welcome');
             const email = document.getElementById('email');
-            const role = document.getElementById('role');
+            const shop_name = document.getElementById('shop_name');
             const phone = document.getElementById('phone');
             const logoutBtn = document.getElementById('logoutBtn');
             if (!token) {
-                window.location.href = '/auth/login';
+                window.location.href = '/seller_auth/login';
                 return;
             }
-            fetch('/auth/profile', {
+            fetch('/seller_auth/profile', {
                 headers: { 'Authorization': 'Bearer ' + token }
             })
             .then(res => {
                 if (res.status === 401) {
                     localStorage.removeItem('access_token');
-                    window.location.href = '/auth/login';
+                    window.location.href = '/seller_auth/login';
                     return Promise.reject('Unauthorized');
                 }
                 return res.json();
@@ -66,18 +66,18 @@
             .then(userData => {
                 welcome.textContent = `Welcome, ${userData.name}`;
                 email.textContent = `Email: ${userData.email}`;
-                role.textContent = `Role: ${userData.role}`;
+                shop_name.textContent = `Shop Name: ${userData.shop_name}`;
                 phone.textContent = `Phone: ${userData.phone}`;
             })
             .catch(() => {
                 localStorage.removeItem('access_token');
-                window.location.href = '/auth/login';
+                window.location.href = '/seller_auth/login';
             });
             logoutBtn.addEventListener('click', function() {
                 localStorage.removeItem('access_token');
-                window.location.href = '/auth/login';
+                window.location.href = '/seller_auth/login';
             });
         });
     </script>
 </body>
-</html> 
+</html>

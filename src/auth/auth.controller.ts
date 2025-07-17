@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Res, HttpStatus, HttpException, Req, UseGuards } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { UserService } from '../user/user.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Prisma } from 'generated/prisma';
 import * as bcrypt from 'bcrypt';
+import { SellerService } from 'src/seller/seller.service';
 
 // Define the user object structure from JWT
 interface JwtUser {
@@ -12,21 +12,21 @@ interface JwtUser {
   email: string;
 }
 
-@Controller('auth')
+@Controller('seller_auth')
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
-        private readonly userService: UserService
+        private readonly sellerService: SellerService
     ) {}
 
     @Get('login')
     getLogin(@Res() res: Response) {
-      return res.render('auth/login', { title: 'User Login' });
+      return res.render('seller_auth/login', { title: 'seller Login' }); // update path if you move the view
     }
 
     @Get('register')
     getRegister(@Res() res: Response) {
-      return res.render('auth/register', { title: 'Register Here' });
+      return res.render('seller_auth/register', { title: 'Register Here' }); // update path if you move the view
     }
 
     @Post('login')
@@ -46,7 +46,6 @@ export class AuthController {
                     user_id: user.user_id,
                     email: user.email,
                     name: user.name,
-                    role: user.role
                 }
             });
         } catch (error) {
@@ -62,12 +61,12 @@ export class AuthController {
         name: string;
         email: string;
         phone?: string;
-        role: 'buyer' | 'seller';
+        shop_name: string;
         password: string;
     }, @Res() res: Response) {
         try {
             // Check if user already exists
-            const existingUser = await this.userService.findOne(registerData.email);
+            const existingUser = await this.sellerService.findOne(registerData.email);
             if (existingUser) {
                 throw new HttpException('User with this email already exists', HttpStatus.CONFLICT);
             }
@@ -75,16 +74,16 @@ export class AuthController {
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(registerData.password, saltRounds);
             // Create user data for Prisma
-            const userData: Prisma.UserCreateInput = {
+            const userData: Prisma.SellerCreateInput = {
                 name: registerData.name,
                 email: registerData.email,
                 phone: registerData.phone || null,
-                role: registerData.role,
+                shop_name: registerData.shop_name,
                 password_hash: hashedPassword,
                 status: 'active'
             };
-            // Create the user using the user service
-            const newUser = await this.userService.create(userData);
+            // Create the user using the seller service
+            const newUser = await this.sellerService.create(userData);
             // Remove password from response
             const { password_hash, ...userResponse } = newUser;
             return res.status(HttpStatus.CREATED).json({
@@ -112,22 +111,22 @@ export class AuthController {
     async getProfile(@Req() req: Request & { user: JwtUser }) {
         // Return user data as JSON for SPA usage
         const userEmail = req.user.email;
-        const user = await this.userService.findOne(userEmail);
+        const user = await this.sellerService.findOne(userEmail);
         if (!user) {
             throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
         // You can add more user info here if needed
         return {
-            user_id: user.user_id,
+            seller_id: user.seller_id,
             email: user.email,
             name: user.name,
-            role: user.role,
+            shop_name: user.shop_name,
             phone: user.phone
         };
     }
 
     @Get('profile_page')
     getProfilePage(@Res() res: Response) {
-      return res.render('auth/profile_page', { title: 'User Profile' });
+      return res.render('seller_auth/profile_page', { title: 'seller Profile' }); // update path if you move the view
     }
 }

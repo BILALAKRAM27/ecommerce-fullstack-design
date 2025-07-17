@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .profile-box {
+            background: white;
+            padding: 2rem 3rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .logout-btn {
+            margin-top: 2rem;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-box">
+        <h1 id="welcome">Loading...</h1>
+        <h2 id="email">Loading...</h2>
+        <h2 id="shop_name">Loading...</h2>
+        <h2 id="phone">Loading...</h2>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('access_token');
+            const welcome = document.getElementById('welcome');
+            const email = document.getElementById('email');
+            const shop_name = document.getElementById('shop_name');
+            const phone = document.getElementById('phone');
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (!token) {
+                window.location.href = '/seller_auth/login';
+                return;
+            }
+            fetch('/seller_auth/profile', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    localStorage.removeItem('access_token');
+                    window.location.href = '/seller_auth/login';
+                    return Promise.reject('Unauthorized');
+                }
+                return res.json();
+            })
+            .then(userData => {
+                welcome.textContent = `Welcome, ${userData.name}`;
+                email.textContent = `Email: ${userData.email}`;
+                shop_name.textContent = `Shop Name: ${userData.shop_name}`;
+                phone.textContent = `Phone: ${userData.phone}`;
+            })
+            .catch(() => {
+                localStorage.removeItem('access_token');
+                window.location.href = '/seller_auth/login';
+            });
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('access_token');
+                window.location.href = '/seller_auth/login';
+            });
+        });
+    </script>
+</body>
+</html>

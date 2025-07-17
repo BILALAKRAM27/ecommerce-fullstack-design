@@ -16,17 +16,14 @@ datasource db {
   // uncomment next line if you use Prisma <5.10
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
-enum Role {
-  buyer
-  seller
-  admin
-}
+
 
 enum UserStatus {
   active
   suspended
   banned
 }
+
 enum InputType {
   text
   number
@@ -59,49 +56,54 @@ enum PaymentMethod {
   stripe
 }
 
-model User {
-  user_id       Int       @id @default(autoincrement())
-  name          String
-  email         String    @unique
+model Buyer {
+  buyer_id     Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
   password_hash String
-  phone         String?
-  role          Role
-  status        UserStatus @default(active)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
+  phone        String?
+  status       UserStatus @default(active)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
 
-  seller        Seller?
-  admin         Admin?
-  reviews       ProductReview[]
-  cart          Cart?
-  wishlist      Wishlist[]
-  orders        Order[]
+  reviews      ProductReview[]
+  cart         Cart?
+  wishlist     Wishlist[]
+  orders       Order[]
 }
 
 model Seller {
   seller_id        Int      @id @default(autoincrement())
-  user_id          Int      @unique
-  user             User     @relation(fields: [user_id], references: [user_id])
+  name             String
+  email            String    @unique
+  password_hash    String
+  phone            String?
+  status           UserStatus @default(active)
   shop_name        String
   shop_description String?
   rating           Float?
-  seller_image_url String?  // ← New: Cloud-hosted image URL
+  seller_image_url String?
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
+
   products         Product[]
   orders           Order[]
 }
 
-
 model Admin {
   admin_id     Int      @id @default(autoincrement())
-  user_id      Int      @unique
-  user         User     @relation(fields: [user_id], references: [user_id])
+  name         String
+  email        String    @unique
+  password_hash String
+  phone        String?
+  status       UserStatus @default(active)
   assigned_by  Int?
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
+
   notifications AdminNotification[]
 }
+
 model AdminNotification {
   notification_id Int   @id @default(autoincrement())
   admin_id        Int
@@ -196,9 +198,9 @@ model ProductAttributeValue {
 
 model ProductReview {
   review_id  Int     @id @default(autoincrement())
-  user_id    Int
+  buyer_id   Int
   product_id Int
-  user       User    @relation(fields: [user_id], references: [user_id])
+  buyer      Buyer   @relation(fields: [buyer_id], references: [buyer_id])
   product    Product @relation(fields: [product_id], references: [product_id])
   rating     Int
   comment    String?
@@ -207,8 +209,8 @@ model ProductReview {
 
 model Cart {
   cart_id    Int     @id @default(autoincrement())
-  user_id    Int     @unique
-  user       User    @relation(fields: [user_id], references: [user_id])
+  buyer_id   Int     @unique
+  buyer      Buyer   @relation(fields: [buyer_id], references: [buyer_id])
   items      CartItem[]
   created_at DateTime @default(now())
 }
@@ -224,26 +226,26 @@ model CartItem {
 
 model Wishlist {
   wishlist_id Int     @id @default(autoincrement())
-  user_id     Int
+  buyer_id    Int
   product_id  Int
-  user        User    @relation(fields: [user_id], references: [user_id])
+  buyer       Buyer   @relation(fields: [buyer_id], references: [buyer_id])
   product     Product @relation(fields: [product_id], references: [product_id])
   created_at  DateTime @default(now())
 }
 
 model Order {
-  order_id        Int     @id @default(autoincrement())
-  user_id         Int
-  seller_id       Int
-  status          OrderStatus
-  total_amount    Float
-  payment_status  PaymentStatus
+  order_id         Int     @id @default(autoincrement())
+  buyer_id         Int
+  seller_id        Int
+  status           OrderStatus
+  total_amount     Float
+  payment_status   PaymentStatus
   delivery_address String
-  created_at      DateTime @default(now())
-  user            User     @relation(fields: [user_id], references: [user_id])
-  seller          Seller   @relation(fields: [seller_id], references: [seller_id])
-  items           OrderItem[]
-  payment         Payment?
+  created_at       DateTime @default(now())
+  buyer            Buyer    @relation(fields: [buyer_id], references: [buyer_id])
+  seller           Seller   @relation(fields: [seller_id], references: [seller_id])
+  items            OrderItem[]
+  payment          Payment?
 }
 
 model OrderItem {

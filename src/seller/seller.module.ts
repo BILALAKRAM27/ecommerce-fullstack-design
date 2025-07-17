@@ -1,16 +1,12 @@
 import { Module } from '@nestjs/common';
-import { SellerController } from './seller.controller';
 import { SellerService } from './seller.service';
-import { DatabaseModule } from '../database/database.module';
-import { AuthModule } from '../auth/auth.module';
+import { SellerController } from './seller.controller';
+import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
-  imports: [
-    DatabaseModule,
-    AuthModule
-  ],
   controllers: [SellerController],
   providers: [SellerService],
+  imports: [DatabaseModule],
   exports: [SellerService],
 })
 export class SellerModule {}

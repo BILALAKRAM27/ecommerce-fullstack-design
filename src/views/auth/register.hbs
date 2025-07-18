@@ -395,7 +395,7 @@
         </form>
 
                     <div class="login-link">
-                <p>Already have an account? <a href="/seller_auth/login">Sign in here</a></p>
+                <p>Already have an account? <a href="/auth/login">Sign in here</a></p>
             </div>
     </div>
 
@@ -659,8 +659,8 @@
                         userType: document.querySelector('input[name="userType"]:checked').value
                     };
 
-                    // Make API call to seller_seller_auth register endpoint
-                    const response = await fetch('/seller_auth/register', {
+                    // Make API call to auth register endpoint
+                    const response = await fetch('/auth/register', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -677,9 +677,8 @@
                         
                         // Redirect to login page
                         setTimeout(() => {
-                            window.location.href = '/seller_auth/login';
+                            window.location.href = '/auth/login';
                         }, 2000);
-
                     } else {
                         // Error
                         errorText.textContent = data.message || 'Registration failed. Please try again.';

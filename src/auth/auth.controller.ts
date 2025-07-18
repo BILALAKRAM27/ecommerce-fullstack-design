@@ -6,6 +6,7 @@ import { Prisma } from 'generated/prisma';
 import * as bcrypt from 'bcrypt';
 import { SellerService } from 'src/seller/seller.service';
 import { BuyerService } from 'src/buyer/buyer.service';
+import { LocalAuthGuard } from './local-auth.guard';
 
 // Define the user object structure from JWT
 interface JwtUser {
@@ -13,7 +14,7 @@ interface JwtUser {
   email: string;
 }
 
-@Controller('seller_auth')
+@Controller('auth')
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
@@ -23,37 +24,24 @@ export class AuthController {
 
     @Get('login')
     getLogin(@Res() res: Response) {
-      return res.render('seller_auth/login', { title: 'Login' });
+      return res.render('auth/login', { title: 'user Login' });
     }
 
     @Get('register')
     getRegister(@Res() res: Response) {
-      return res.render('seller_auth/register', { title: 'Register Here' });
+      return res.render('auth/register', { title: 'Create account Here' });
     }
 
+    @UseGuards(LocalAuthGuard)
     @Post('login')
-    async login(
-      @Body() loginData: { email: string; password: string; userType: 'seller' | 'buyer' },
-      @Res() res: Response
-    ) {
+    async login(@Req() req: Request, @Res() res: Response) {
       try {
-        // Validate user credentials based on userType
-        const user = await this.authService.validateUser(
-          loginData.email,
-          loginData.password,
-          loginData.userType
-        );
-        if (!user) {
-          throw new HttpException('Invalid email or password', HttpStatus.UNAUTHORIZED);
-        }
-        // Generate JWT token
-        const result = await this.authService.login(user);
-        // Redirect or respond based on userType
+        const result = await this.authService.login(req.user);
         return res.status(HttpStatus.OK).json({
           message: 'Login successful',
           access_token: result.access_token,
-          userType: loginData.userType,
-          user,
+          userType: req.body.userType, // <-- This will now be correct!
+          user: req.user,
         });
       } catch (error) {
         if (error instanceof HttpException) throw error;
@@ -174,9 +162,9 @@ export class AuthController {
     getProfilePage(@Res() res: Response, @Req() req: Request) {
       const userType = req.query.userType as 'seller' | 'buyer';
       if (userType === 'buyer') {
-        return res.render('buyer_auth/profile_page', { title: 'Profile' });
+        return res.render('buyer/profile_page', { title: 'Profile' });
       } else {
-        return res.render('seller_auth/profile_page', { title: 'Profile' });
+        return res.render('seller/profile_page', { title: 'Profile' });
       }
     }    }
 

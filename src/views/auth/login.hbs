@@ -193,6 +193,16 @@
         .password-field {
             position: relative;
         }
+
+        .user-type {
+            margin-bottom: 1.5rem;
+        }
+
+        .user-type label {
+            margin-right: 1rem;
+            color: #555;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -217,13 +227,21 @@
                 </div>
                 <div class="error-message" id="passwordError"></div>
             </div>
+            <div class="user-type">
+                <label>
+                    <input type="radio" name="userType" value="seller"> Seller
+                </label>
+                <label>
+                    <input type="radio" name="userType" value="buyer" checked> Buyer
+                </label>
+            </div>
             <button type="submit" class="login-btn" id="loginBtn">
                 <span id="btnText">Sign In</span>
                 <div class="loading" id="loading"></div>
             </button>
         </form>
         <div class="register-link">
-            <p>Don't have an account? <a href="/seller_auth/register">Sign up here</a></p>
+            <p>Don't have an account? <a href="/auth/register">Sign up here</a></p>
         </div>
     </div>
     <script>
@@ -268,21 +286,30 @@
                 btnText.style.display = 'none';
                 loading.style.display = 'block';
                 try {
-                    const response = await fetch('/seller_auth/login', {
+                    // For radio buttons:
+                    const userType = document.querySelector('input[name="userType"]:checked').value;
+                    console.log('userType sent:', userType);
+                    
+                    const response = await fetch('/auth/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             email: emailInput.value,
-                            password: passwordInput.value
+                            password: passwordInput.value,
+                            userType: userType
                         })
                     });
+                    
                     const data = await response.json();
+                    console.log('userType in response:', data.userType);
+                    
                     if (response.ok && data.access_token) {
                         localStorage.setItem('access_token', data.access_token);
+                        localStorage.setItem('userType', userType);
                         successMessage.style.display = 'block';
                         loginForm.style.display = 'none';
                         setTimeout(() => {
-                            window.location.href = '/seller_auth/profile_page';
+                            window.location.href = `/auth/profile_page?userType=${userType}`;
                         }, 1000);
                     } else {
                         errorText.textContent = data.message || 'Login failed. Please try again.';

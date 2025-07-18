@@ -30,6 +30,56 @@
             cursor: pointer;
             font-weight: 500;
         }
+        /* Update form styles */
+        #updateForm {
+            background: #f8f8ff;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 1.5rem 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+            max-width: 400px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: stretch;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #updateForm h2 {
+            margin-bottom: 10px;
+            color: #764ba2;
+            font-size: 1.3rem;
+        }
+        #updateForm input,
+        #updateForm textarea {
+            padding: 10px;
+            border: 1px solid #bdbdbd;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+        #updateForm input:focus,
+        #updateForm textarea:focus {
+            border: 1.5px solid #667eea;
+        }
+        #updateForm button[type="submit"] {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        #updateForm button[type="submit"]:hover {
+            background: #217dbb;
+        }
     </style>
 </head>
 <body>
@@ -39,6 +89,17 @@
         <h2 id="shop_name">Loading...</h2>
         <h2 id="phone">Loading...</h2>
         <button class="logout-btn" id="logoutBtn">Logout</button>
+        <form id="updateForm" style="margin-top:2rem; display:none; flex-direction:column; gap:10px; align-items:center;">
+            <h2>Edit Profile</h2>
+            <input type="text" id="name" name="name" placeholder="Name" required />
+            <input type="email" id="email" name="email" placeholder="Email" required />
+            <input type="text" id="shop_name" name="shop_name" placeholder="Shop Name" required />
+            <input type="text" id="phone" name="phone" placeholder="Phone" />
+            <textarea id="shop_description" name="shop_description" placeholder="Shop Description"></textarea>
+            <button type="submit" style="background:#3498db;color:white;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;">Update</button>
+        </form>
+        <button id="editBtn" style="margin-top:1rem;background:#f1c40f;color:#222;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;">Edit Profile</button>
+        <button id="deleteBtn" style="margin-top:1rem;background:#e74c3c;color:white;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;">Delete Account</button>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -81,6 +142,14 @@
                 email.textContent = `Email: ${userData.email}`;
                 shop_name.textContent = `Shop Name: ${userData.shop_name}`;
                 phone.textContent = `Phone: ${userData.phone || 'Not provided'}`;
+                // Pre-fill update form
+                document.getElementById('name').value = userData.name;
+                document.getElementById('email').value = userData.email;
+                document.getElementById('shop_name').value = userData.shop_name;
+                document.getElementById('phone').value = userData.phone || '';
+                document.getElementById('shop_description').value = userData.shop_description || '';
+                // Store seller_id for update/delete
+                window.seller_id = userData.seller_id;
             })
             .catch((error) => {
                 console.error('Error fetching profile:', error);
@@ -91,6 +160,61 @@
             logoutBtn.addEventListener('click', function() {
                 localStorage.removeItem('access_token');
                 window.location.href = '/auth/login';
+            });
+            // Edit button logic
+            document.getElementById('editBtn').addEventListener('click', function() {
+                document.getElementById('updateForm').style.display = 'flex';
+            });
+            // Update form submit
+            document.getElementById('updateForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const token = localStorage.getItem('access_token');
+                const seller_id = window.seller_id;
+                const data = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    shop_name: document.getElementById('shop_name').value,
+                    phone: document.getElementById('phone').value,
+                    shop_description: document.getElementById('shop_description').value
+                };
+                fetch(`/seller/${seller_id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(res => {
+                    if (!res.ok) return res.json().then(err => { throw new Error(err.message || 'Failed to update profile'); });
+                    return res.json();
+                })
+                .then(() => {
+                    alert('Profile updated successfully!');
+                    window.location.reload();
+                })
+                .catch(err => alert(err.message));
+            });
+            // Delete button logic
+            document.getElementById('deleteBtn').addEventListener('click', function() {
+                if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+                const token = localStorage.getItem('access_token');
+                const seller_id = window.seller_id;
+                fetch(`/seller/${seller_id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to delete account');
+                    alert('Account deleted successfully!');
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('userType');
+                    window.location.href = '/auth/register';
+                })
+                .catch(err => alert(err.message));
             });
         });
     </script>

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Put } from '@nestjs/common';
 import { SellerService } from './seller.service';
 import { Prisma } from 'generated/prisma';
 
@@ -23,9 +23,16 @@ export class SellerController {
     return this.sellerService.findOne(email);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSeller: Prisma.SellerUpdateInput) {
-    return this.sellerService.update(+id, updateSeller);
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() updateSeller: Prisma.SellerUpdateInput) {
+    try {
+      return await this.sellerService.update(+id, updateSeller);
+    } catch (error) {
+      if (error.code === 'P2002') { // Prisma unique constraint failed
+        throw new HttpException(`Duplicate value for unique field: ${error.meta?.target?.join(', ') || 'unknown'}`, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException(error.message || 'Update failed', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Delete(':id')

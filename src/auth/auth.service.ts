@@ -14,18 +14,30 @@ export class AuthService {
 
   async validateUser(email: string, password: string, userType: 'seller' | 'buyer'): Promise<any> {
     let user;
-    if (userType === 'seller') {
-      user = await this.sellerService.findOne(email);
-    } else if (userType === 'buyer') {
-      user = await this.buyerService.findByEmail(email);
-    } else {
+    try {
+      if (userType === 'seller') {
+        user = await this.sellerService.findOne(email);
+      } else if (userType === 'buyer') {
+        user = await this.buyerService.findByEmail(email);
+      } else {
+        return null;
+      }
+
+      if (!user) {
+        return null;
+      }
+
+      const passwordMatch = await bcrypt.compare(password, user.password_hash);
+      
+      if (passwordMatch) {
+        const { password_hash, ...result } = user;
+        return result;
+      }
+
+      return null;
+    } catch (error) {
       return null;
     }
-    if (user && await bcrypt.compare(password, user.password_hash)) {
-      const { password_hash, ...result } = user;
-      return result;
-    }
-    return null;
   }
 
   async login(user: any) {

@@ -13,14 +13,12 @@ export class BuyerService {
   }
 
   async create(createUser: Prisma.BuyerCreateInput) {
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(createUser.password_hash, saltRounds);
+  
 
       // Replace the plain password with the hashed one
       return this.database.buyer.create({
         data: {
-          ...createUser,
-          password_hash: hashedPassword, // or whatever your field is called
+            ...createUser,
         },
       });
     }

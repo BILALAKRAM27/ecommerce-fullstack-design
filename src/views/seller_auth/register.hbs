@@ -250,6 +250,49 @@
             text-decoration: underline;
         }
 
+        .user-type {
+            margin-bottom: 2rem;
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e1e5e9;
+        }
+
+        .user-type label {
+            margin-right: 2rem;
+            color: #555;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .user-type label:hover {
+            background: #e9ecef;
+        }
+
+        .user-type input[type="radio"] {
+            width: auto;
+            margin-right: 0.5rem;
+            transform: scale(1.2);
+        }
+
+        .shop-name-field {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .shop-name-field.show {
+            max-height: 100px;
+            opacity: 1;
+            margin-bottom: 1.5rem;
+        }
+
         @media (max-width: 600px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -264,12 +307,12 @@
 <body>
     <div class="register-container">
         <div class="register-header">
-            <h1>{{title}}</h1>
-            <p>Create your account to get started</p>
+            <h1>Create Account</h1>
+            <p>Choose your account type and create your account</p>
         </div>
 
         <div class="success-message" id="successMessage">
-            Registration successful! Redirecting to login...
+            Account created successfully! Redirecting to login...
         </div>
 
         <div class="error-alert" id="errorAlert">
@@ -277,6 +320,15 @@
         </div>
 
         <form id="registerForm">
+            <div class="user-type">
+                <label>
+                    <input type="radio" name="userType" value="buyer" checked> Buyer
+                </label>
+                <label>
+                    <input type="radio" name="userType" value="seller"> Seller
+                </label>
+            </div>
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="firstName">First Name</label>
@@ -303,9 +355,9 @@
                 <div class="error-message" id="phoneError"></div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group shop-name-field" id="shopNameField">
                 <label for="shop">Shop Name</label>
-                <input type="text" id="shop_name" name="shop_name" placeholder="Enter your shop name" required />
+                <input type="text" id="shop_name" name="shop_name" placeholder="Enter your shop name" />
                 <div class="error-message" id="shopError"></div>
             </div>
 
@@ -342,9 +394,9 @@
             </button>
         </form>
 
-        <div class="login-link">
-            <p>Already have an account? <a href="/seller_auth/login">Sign in here</a></p>
-        </div>
+                    <div class="login-link">
+                <p>Already have an account? <a href="/seller_auth/login">Sign in here</a></p>
+            </div>
     </div>
 
     <script>
@@ -354,7 +406,6 @@
             const lastNameInput = document.getElementById('lastName');
             const emailInput = document.getElementById('email');
             const phoneInput = document.getElementById('phone');
-            const shopInput = document.getElementById('shop_name');
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const termsInput = document.getElementById('terms');
@@ -367,6 +418,9 @@
             const passwordStrength = document.getElementById('passwordStrength');
             const passwordToggle = document.getElementById('passwordToggle');
             const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
+            const userTypeRadios = document.querySelectorAll('input[name="userType"]');
+            const shopNameField = document.getElementById('shopNameField');
+            const shopInput = document.getElementById('shop_name');
 
             // Password toggle functionality
             passwordToggle.addEventListener('click', function() {
@@ -379,6 +433,30 @@
                 const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 confirmPasswordInput.setAttribute('type', type);
                 confirmPasswordToggle.textContent = type === 'password' ? '👁️' : '🙈';
+            });
+
+            // Function to toggle shop name field visibility
+            function toggleShopNameField(userType) {
+                if (userType === 'seller') {
+                    shopNameField.classList.add('show');
+                    shopInput.setAttribute('required', 'required');
+                } else {
+                    shopNameField.classList.remove('show');
+                    shopInput.removeAttribute('required');
+                    shopInput.value = '';
+                    hideError(document.getElementById('shopError'));
+                }
+            }
+
+            // Check initial user type selection
+            const initialUserType = document.querySelector('input[name="userType"]:checked').value;
+            toggleShopNameField(initialUserType);
+
+            // User type radio button functionality
+            userTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    toggleShopNameField(this.value);
+                });
             });
 
             // Password strength checker
@@ -476,7 +554,8 @@
             });
 
             shopInput.addEventListener('blur', function() {
-                if (!shopInput.value.trim()) {
+                const selectedUserType = document.querySelector('input[name="userType"]:checked').value;
+                if (selectedUserType === 'seller' && !shopInput.value.trim()) {
                     showError(document.getElementById('shopError'), 'Shop name is required');
                 } else {
                     hideError(document.getElementById('shopError'));
@@ -535,7 +614,8 @@
                     isValid = false;
                 }
 
-                if (!shopInput.value.trim()) {
+                const selectedUserType = document.querySelector('input[name="userType"]:checked').value;
+                if (selectedUserType === 'seller' && !shopInput.value.trim()) {
                     showError(document.getElementById('shopError'), 'Shop name is required');
                     isValid = false;
                 }
@@ -574,12 +654,13 @@
                         name: `${firstNameInput.value.trim()} ${lastNameInput.value.trim()}`,
                         email: emailInput.value,
                         phone: phoneInput.value || null,
-                        shop_name: shopInput.value.trim(),
-                        password_hash: passwordInput.value
+                        shop_name: shopInput.value.trim() || undefined,
+                        password: passwordInput.value,
+                        userType: document.querySelector('input[name="userType"]:checked').value
                     };
 
-                    // Make API call to register endpoint
-                    const response = await fetch('/seller', {
+                    // Make API call to seller_seller_auth register endpoint
+                    const response = await fetch('/seller_auth/register', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

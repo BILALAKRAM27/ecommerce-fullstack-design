@@ -9,14 +9,11 @@ export class SellerService {
   constructor(private readonly database: DatabaseService) {}
 
   async create(createUser: Prisma.SellerCreateInput) {
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(createUser.password_hash, saltRounds);
 
     // Replace the plain password with the hashed one
     return this.database.seller.create({
       data: {
         ...createUser,
-        password_hash: hashedPassword, // or whatever your field is called
       },
     });
   }

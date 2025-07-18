@@ -193,6 +193,16 @@
         .password-field {
             position: relative;
         }
+
+        .user-type {
+            margin-bottom: 1.5rem;
+        }
+
+        .user-type label {
+            margin-right: 1rem;
+            color: #555;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -216,6 +226,14 @@
                     <button type="button" class="password-toggle" id="passwordToggle">👁️</button>
                 </div>
                 <div class="error-message" id="passwordError"></div>
+            </div>
+            <div class="user-type">
+                <label>
+                    <input type="radio" name="userType" value="seller" checked> Seller
+                </label>
+                <label>
+                    <input type="radio" name="userType" value="buyer"> Buyer
+                </label>
             </div>
             <button type="submit" class="login-btn" id="loginBtn">
                 <span id="btnText">Sign In</span>
@@ -268,21 +286,26 @@
                 btnText.style.display = 'none';
                 loading.style.display = 'block';
                 try {
+                    // For radio buttons:
+                    const userType = document.querySelector('input[name="userType"]:checked').value;
+
                     const response = await fetch('/seller_auth/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             email: emailInput.value,
-                            password: passwordInput.value
+                            password: passwordInput.value,
+                            userType: userType // <-- send userType
                         })
                     });
                     const data = await response.json();
                     if (response.ok && data.access_token) {
                         localStorage.setItem('access_token', data.access_token);
+                        localStorage.setItem('userType', data.userType); // Save userType for later use
                         successMessage.style.display = 'block';
                         loginForm.style.display = 'none';
                         setTimeout(() => {
-                            window.location.href = '/seller_auth/profile_page';
+                            window.location.href = `/seller_auth/profile_page?userType=${data.userType}`;
                         }, 1000);
                     } else {
                         errorText.textContent = data.message || 'Login failed. Please try again.';

@@ -43,6 +43,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('access_token');
+            const userType = localStorage.getItem('userType');
             const welcome = document.getElementById('welcome');
             const email = document.getElementById('email');
             const shop_name = document.getElementById('shop_name');
@@ -52,7 +53,10 @@
                 window.location.href = '/seller_auth/login';
                 return;
             }
-            fetch('/seller_auth/profile', {
+            if (userType !== 'seller') {
+                window.location.href = `/seller_auth/profile_page?userType=${userType}`;
+            }
+            fetch(`/seller_auth/profile?userType=${userType}`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             })
             .then(res => {

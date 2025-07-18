@@ -35,24 +35,26 @@
 <body>
     <div class="profile-box">
         <h1 id="welcome">Loading...</h1>
-        <h2 id="email">Loading...</h2>
-        <h2 id="shop_name">Loading...</h2>
+        <h2 id="email">Loading...</h2>  
         <h2 id="phone">Loading...</h2>
         <button class="logout-btn" id="logoutBtn">Logout</button>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('access_token');
+            const userType = localStorage.getItem('userType');
             const welcome = document.getElementById('welcome');
             const email = document.getElementById('email');
-            const shop_name = document.getElementById('shop_name');
             const phone = document.getElementById('phone');
             const logoutBtn = document.getElementById('logoutBtn');
             if (!token) {
                 window.location.href = '/seller_auth/login';
                 return;
             }
-            fetch('/seller_auth/profile', {
+            if (userType !== 'buyer') {
+                window.location.href = `/seller_auth/profile_page?userType=${userType}`;
+            }
+            fetch(`/seller_auth/profile?userType=${userType}`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             })
             .then(res => {
@@ -66,7 +68,7 @@
             .then(userData => {
                 welcome.textContent = `Welcome, ${userData.name}`;
                 email.textContent = `Email: ${userData.email}`;
-                shop_name.textContent = `Shop Name: ${userData.shop_name}`;
+
                 phone.textContent = `Phone: ${userData.phone}`;
             })
             .catch(() => {

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from 'generated/prisma';
 import { DatabaseService } from 'src/database/database.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class BuyerService {
@@ -10,11 +11,19 @@ export class BuyerService {
       where: { email },
     });
   }
-  async create(createBuyer: Prisma.BuyerCreateInput) {
-    return this.database.buyer.create({
-      data: createBuyer,
-    });
-  }
+
+  async create(createUser: Prisma.BuyerCreateInput) {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(createUser.password_hash, saltRounds);
+
+      // Replace the plain password with the hashed one
+      return this.database.buyer.create({
+        data: {
+          ...createUser,
+          password_hash: hashedPassword, // or whatever your field is called
+        },
+      });
+    }
 
   async findAll() {
     return this.database.buyer.findMany();

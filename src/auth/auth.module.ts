@@ -7,8 +7,9 @@ import { JwtStrategy } from './jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { SellerModule } from 'src/seller/seller.module';
+import { BuyerModule } from 'src/buyer/buyer.module';
 @Module({
-  imports: [SellerModule, JwtModule.register({
+  imports: [SellerModule,BuyerModule,JwtModule.register({
     secret: jwtConstants.secret,
     signOptions: { expiresIn: '1 hour' },
   }), PassportModule],

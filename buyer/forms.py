@@ -22,6 +22,7 @@ class BuyerRegistrationForm(forms.ModelForm):
 
 class BuyerUpdateForm(forms.ModelForm):
     image = forms.FileField(required=False)
+    email = forms.EmailField(disabled=True, required=False)  # Make email read-only
 
     class Meta:
         model = Buyer
@@ -29,6 +30,8 @@ class BuyerUpdateForm(forms.ModelForm):
 
     def save(self, commit=True):
         buyer = super().save(commit=False)
+        # Don't update the email field
+        buyer.email = self.instance.email  # Keep the original email
         if self.cleaned_data.get('image'):
             image_file = self.cleaned_data['image']
             buyer.set_image(image_file.read())

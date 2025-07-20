@@ -11,6 +11,8 @@ urlpatterns = [
     path('profile/update/', views.update_seller_view, name='seller_update'),
     path('profile/delete/', views.delete_seller_view, name='seller_delete'),
 
+   
+
     #auth
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),

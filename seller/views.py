@@ -5,39 +5,60 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 from .models import Seller
-from .forms import SellerRegisterForm, SellerUpdateForm, SellerLoginForm
+from .forms import UserRegisterForm, SellerUpdateForm, SellerLoginForm
 from django.utils import timezone
+from buyer.models import Buyer 
 
 
 def index_view(request):
     return render(request, "index.html")
 
-# CREATE Seller
+# CREATE User (Buyer or Seller)
 def create_seller_view(request):
     if request.method == 'POST':
-        form = SellerRegisterForm(request.POST, request.FILES)
+        form = UserRegisterForm(request.POST, request.FILES)
         if form.is_valid():
             # Create the User account
             user = form.save()
+            user_type = form.cleaned_data['user_type']
             
-            # Create the Seller profile
-            seller = Seller.objects.create(
-                user=user,
-                name=user.username,  # You might want to add a name field to the form
-                email=user.email,
-                shop_name=user.username,  # Default shop name, you can add this to form later
-                created_at=timezone.now()
-            )
+            if user_type == 'seller':
+                # Create the Seller profile
+                seller = Seller.objects.create(
+                    user=user,
+                    name=form.cleaned_data['name'],
+                    email=user.email,
+                    shop_name=form.cleaned_data['shop_name'],
+                    shop_description=form.cleaned_data.get('shop_description', ''),
+                    created_at=timezone.now()
+                )
+                
+                # Handle image if provided
+                if 'image' in request.FILES:
+                    seller.image = request.FILES['image'].read()
+                    seller.save()
+                
+                messages.success(request, 'Seller account created successfully!')
+            else:
+                # Create the Buyer profile
+                buyer = Buyer.objects.create(
+                    name=form.cleaned_data['name'],
+                    email=user.email,
+                    phone=form.cleaned_data.get('phone', ''),
+                    address=form.cleaned_data.get('address', ''),
+                    created_at=timezone.now()
+                )
+                
+                # Handle image if provided
+                if 'image' in request.FILES:
+                    buyer.image = request.FILES['image'].read()
+                    buyer.save()
+                
+                messages.success(request, 'Buyer account created successfully!')
             
-            # Handle image if provided
-            if 'image' in request.FILES:
-                seller.image = request.FILES['image'].read()
-                seller.save()
-            
-            messages.success(request, 'Seller account created successfully!')
-            return redirect('sellers:login')  # Update this to your login route
+            return redirect('sellers:login')
     else:
-        form = SellerRegisterForm()
+        form = UserRegisterForm()
     
     return render(request, 'seller/register.html', {'form': form, 'title': 'Register'})
 
@@ -58,7 +79,14 @@ def login_view(request):
             if user_type == 'seller':
                 return redirect('sellers:seller_profile')
             else:
-                return redirect('sellers:buyer_profile')  # Create this view for buyers
+                # Check if buyer exists
+                try:
+                    buyer = Buyer.objects.get(email=user.email)
+                    return redirect('buyer:buyer_profile')  # You'll need to create this view
+                except Buyer.DoesNotExist:
+                    messages.error(request, 'This email is not registered as a buyer.')
+                    logout(request)
+                    return redirect('sellers:login')
     else:
         form = SellerLoginForm()
     
@@ -82,6 +110,10 @@ def seller_profile_view(request):
         'image_base64': seller.get_image_base64()
     }
     return render(request, 'seller/seller_profile.html', context)
+
+
+# READ Buyer Profile
+
 
 
 # UPDATE Seller

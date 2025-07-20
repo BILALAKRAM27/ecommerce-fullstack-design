@@ -231,16 +231,33 @@ class DynamicProductForm(forms.ModelForm):
         return product
 
     def save_dynamic_attributes(self, product):
-        """Save dynamic attributes from form data"""
+        """Save dynamic attributes from form data and create options if new"""
+        from .models import AttributeOption
+        
         for field_name, value in self.data.items():
             if field_name.startswith('attribute_') and value:
                 attribute_id = field_name.replace('attribute_', '')
                 try:
                     attribute = CategoryAttribute.objects.get(id=attribute_id)
-                    ProductAttributeValue.objects.create(
+                    
+                    # Check if this value already exists as an option
+                    existing_option = AttributeOption.objects.filter(
+                        attribute=attribute, 
+                        value=value
+                    ).first()
+                    
+                    # Create new option if it doesn't exist
+                    if not existing_option:
+                        AttributeOption.objects.create(
+                            attribute=attribute,
+                            value=value
+                        )
+                    
+                    # Create or update the product attribute value
+                    ProductAttributeValue.objects.update_or_create(
                         product=product,
                         attribute=attribute,
-                        value=value
+                        defaults={'value': value}
                     )
                 except CategoryAttribute.DoesNotExist:
                     pass

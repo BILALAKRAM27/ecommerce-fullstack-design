@@ -327,7 +327,7 @@ def get_category_children(request):
 
 @csrf_exempt
 def get_category_attributes(request):
-    """Get attributes for a selected category"""
+    """Get attributes for a selected category with existing options"""
     if request.method == 'POST':
         data = json.loads(request.body)
         category_id = data.get('category_id')
@@ -346,13 +346,44 @@ def get_category_attributes(request):
                     'options': []
                 }
                 
-                # Get options for dropdown attributes
-                if attr.input_type == 'dropdown':
-                    options = AttributeOption.objects.filter(attribute=attr)
-                    attr_data['options'] = [{'id': opt.id, 'value': opt.value} for opt in options]
+                # Get existing options for all attribute types (not just dropdown)
+                options = AttributeOption.objects.filter(attribute=attr)
+                attr_data['options'] = [{'id': opt.id, 'value': opt.value} for opt in options]
                 
                 attributes_data.append(attr_data)
             
             return JsonResponse({'attributes': attributes_data})
     
     return JsonResponse({'attributes': []})
+
+
+@csrf_exempt
+def save_attribute_value(request):
+    """Save attribute value and create option if new"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        attribute_id = data.get('attribute_id')
+        value = data.get('value')
+        
+        if attribute_id and value:
+            try:
+                attribute = CategoryAttribute.objects.get(id=attribute_id)
+                
+                # Check if this value already exists as an option
+                existing_option = AttributeOption.objects.filter(
+                    attribute=attribute, 
+                    value=value
+                ).first()
+                
+                if not existing_option:
+                    # Create new option
+                    AttributeOption.objects.create(
+                        attribute=attribute,
+                        value=value
+                    )
+                
+                return JsonResponse({'success': True})
+            except CategoryAttribute.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Attribute not found'})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'})

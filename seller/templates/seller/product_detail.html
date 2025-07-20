@@ -315,7 +315,7 @@
             background-color: white;
             margin: 2% auto;
             padding: 0;
-            border-radius: 15px;
+            border-radius: 32px; /* More pronounced roundness */
             width: 90%;
             max-width: 600px;
             max-height: 90vh;
@@ -340,7 +340,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
-            border-radius: 15px 15px 0 0;
+            border-radius: 32px 32px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -379,6 +379,7 @@
             gap: 15px;
             flex-shrink: 0;
             background: #f8f9fa;
+            border-radius: 0 0 32px 32px;
         }
 
         .modal-footer .btn {
@@ -570,7 +571,7 @@
             <div class="header">
                 <h1>{{ product.name }}</h1>
                 <div class="header-actions">
-                    <a href="{% url 'sellers:product_list' %}" class="btn btn-primary">Back to Products</a>
+                    <a href="{% url 'seller:product_list' %}" class="btn btn-primary">Back to Products</a>
                     <button onclick="openUpdateModal({{ product.id }}, '{{ product.name|escapejs }}')" class="btn btn-primary">Edit Product</button>
                     <button onclick="openDeleteModal({{ product.id }}, '{{ product.name|escapejs }}')" class="btn btn-danger">Delete</button>
                 </div>
@@ -981,6 +982,8 @@
                 attributesContainer.innerHTML = '<div class="loading">Loading attributes...</div>';
             }
             
+            console.log('Loading attributes for category:', categoryId);
+            
             fetch('{% url "sellers:get_category_attributes" %}', {
                 method: 'POST',
                 headers: {
@@ -991,6 +994,7 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log('Received attributes data:', data);
                 attributesData = data.attributes;
                 renderAttributes(data.attributes);
             })
@@ -1008,6 +1012,8 @@
             
             if (!attributesContainer) return;
             
+            console.log('Rendering attributes:', attributes);
+            
             if (attributes.length === 0) {
                 attributesContainer.innerHTML = '<div style="color: #666;">No attributes found for this category</div>';
                 return;
@@ -1015,6 +1021,7 @@
 
             let html = '';
             attributes.forEach(attr => {
+                console.log('Rendering attribute:', attr.name, 'with options:', attr.options);
                 html += `
                     <div class="attribute-group">
                         <div class="attribute-label">
@@ -1035,11 +1042,14 @@
             const inputName = `attribute_${attr.id}`;
             const required = attr.is_required ? 'required' : '';
             
+            console.log('Rendering input for attribute:', attr.name, 'type:', attr.input_type, 'options:', attr.options);
+            
             switch (attr.input_type) {
                 case 'dropdown':
                     let options = '<option value="">Select ' + attr.name + '</option>';
                     attr.options.forEach(option => {
-                        options += `<option value="${option.id}">${option.value}</option>`;
+                        console.log('Adding dropdown option:', option.value);
+                        options += `<option value="${option.value}">${option.value}</option>`;
                     });
                     return `<select name="${inputName}" ${required} class="form-control">${options}</select>`;
                 
@@ -1054,7 +1064,22 @@
                     </select>`;
                 
                 default: // text
-                    return `<input type="text" name="${inputName}" ${required} class="form-control" placeholder="Enter ${attr.name}">`;
+                    let inputHtml = `<input type="text" name="${inputName}" ${required} class="form-control" placeholder="Enter ${attr.name}" list="options_${attr.id}">`;
+                    
+                    // Add datalist for existing options
+                    if (attr.options.length > 0) {
+                        console.log('Adding datalist with options for:', attr.name);
+                        inputHtml += `<datalist id="options_${attr.id}">`;
+                        attr.options.forEach(option => {
+                            console.log('Adding datalist option:', option.value);
+                            inputHtml += `<option value="${option.value}">`;
+                        });
+                        inputHtml += `</datalist>`;
+                    } else {
+                        console.log('No options found for attribute:', attr.name);
+                    }
+                    
+                    return inputHtml;
             }
         }
 

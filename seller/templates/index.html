@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ecommerce landing page with trending electronic deals, quotes, and supplier listings.">
+  <title>Brand - Electronic Items & More</title>
+   <link rel="stylesheet" href="{% static 'seller/css/index.css' %}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+  <link rel="icon" type="image/x-icon" href="{% static 'seller/assets/icon.png' %}">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="header-top">
+        <h1 class="logo" aria-label="Brand logo">
+          <i class="fas fa-cube" aria-hidden="true"></i> Brand
+        </h1>
+
+        <form class="search-bar" role="search">
+          <input type="text" placeholder="Search..." aria-label="Search products">
+          <select class="search-category" aria-label="Search category">
+            <option>All category</option>
+            <option>Electronics</option>
+            <option>Fashion</option>
+            <option>Home</option>
+          </select>
+          <button class="search-btn" type="submit">Search</button>
+        </form>
+
+        <div class="header-actions">
+          <button class="icon-btn" aria-label="User account"><i class="fas fa-user"></i></button>
+          <button class="icon-btn" aria-label="Favorites"><i class="fas fa-heart"></i></button>
+          <button class="icon-btn" aria-label="Cart"><i class="fas fa-shopping-cart"></i></button>
+          <span aria-label="Language and currency">English, USD <i class="fas fa-chevron-down"></i></span>
+          <span aria-label="Shipping location">Ship to <i class="fas fa-map-marker-alt"></i></span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav" role="navigation">
+      <div class="container">
+        <div class="nav-menu">
+          <a href="#" class="nav-item active"><i class="fas fa-bars"></i> All category</a>
+          <a href="#" class="nav-item">Hot offers</a>
+          <a href="#" class="nav-item">Gift boxes</a>
+          <a href="#" class="nav-item">Projects</a>
+          <a href="#" class="nav-item">Menu item</a>
+          <a href="#" class="nav-item">Help <i class="fas fa-chevron-down"></i></a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="main-wrapper">
+        <aside class="sidebar" aria-label="Product categories">
+          <nav class="category-list">
+            <a href="#" class="category-item">Automobiles</a>
+            <a href="#" class="category-item">Clothes and wear</a>
+            <a href="#" class="category-item">Home interiors</a>
+            <a href="#" class="category-item">Computer and tech</a>
+            <a href="#" class="category-item">Tools, equipments</a>
+            <a href="#" class="category-item">Sports and outdoor</a>
+            <a href="#" class="category-item">Animal and pets</a>
+            <a href="#" class="category-item">Machinery tools</a>
+            <a href="#" class="category-item">More category</a>
+          </nav>
+
+          <section class="user-welcome" aria-labelledby="welcome-heading">
+            <h2 id="welcome-heading">Hi, user let's get started</h2>
+            <button class="welcome-btn">Join now</button>
+            <a href="#" class="login-link">Log in</a>
+          </section>
+
+          <div class="promo-cards">
+            <div class="promo-card">Get US $10 off<br>with a new<br>supplier</div>
+            <div class="promo-card blue">Send quotes with<br>supplier<br>preferences</div>
+          </div>
+        </aside>
+
+        <section class="content">
+          <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-content">
+              <h2 id="hero-title">Latest trending<br>Electronic items</h2>
+              <button class="hero-btn">Learn more</button>
+            </div>
+            <div class="hero-image" role="img" aria-label="Electronic devices image"></div>
+          </section>
+
+          <!-- Continue content sections (deals, categories, quote, recommended, services, suppliers, newsletter)... -->
+
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-content">
+        <section class="footer-section">
+          <h3>About</h3>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Find store</a></li>
+            <li><a href="#">Categories</a></li>
+            <li><a href="#">Blogs</a></li>
+          </ul>
+        </section>
+        <section class="footer-section">
+          <h3>Partnership</h3>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Find store</a></li>
+            <li><a href="#">Categories</a></li>
+            <li><a href="#">Blogs</a></li>
+          </ul>
+        </section>
+        <section class="footer-section">
+          <h3>Information</h3>
+          <ul>
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Money Refund</a></li>
+            <li><a href="#">Shipping</a></li>
+            <li><a href="#">Contact us</a></li>
+          </ul>
+        </section>
+        <section class="footer-section">
+          <h3>For users</h3>
+          <ul>
+            <li><a href="#">Login</a></li>
+            <li><a href="#">Register</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">My Orders</a></li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-logo">
+          <div class="logo">
+            <i class="fas fa-cube"></i> Brand
+          </div>
+          <p>Best information about the company goes here but now lorem ipsum is</p>
+          <div class="social-links">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-end">
+          <span>© 2023 Ecommerce.</span>
+          <span>🇺🇸 English</span>
+          <div class="app-downloads">
+            <div class="app-btn"><i class="fab fa-apple"></i> App Store</div>
+            <div class="app-btn"><i class="fab fa-google-play"></i> Google Play</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'seller/js/index.js' %}"></script>
+</body>
+</html>

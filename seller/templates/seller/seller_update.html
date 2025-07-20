@@ -1,0 +1,135 @@
+<!-- templates/seller_update.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Update Seller Profile</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    form { max-width: 500px; margin: auto; }
+    input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; }
+    button { padding: 10px 20px; }
+    img { max-width: 200px; display: block; margin: 10px 0; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+    .errorlist { color: red; list-style: none; padding: 0; margin: 5px 0; }
+  </style>
+  <script>
+    function previewImage(input) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('imgPreview').src = e.target.result;
+      };
+      if (input.files && input.files[0]) {
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+  </script>
+</head>
+<body>
+  <h2>Update Profile</h2>
+  
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div class="message {{ message.tags }}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Name Field -->
+    <div class="form-group">
+      <label for="{{ form.name.id_for_label }}">Name:</label>
+      {{ form.name }}
+      {% if form.name.errors %}
+      <ul class="errorlist">
+        {% for error in form.name.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <!-- Email Field -->
+    <div class="form-group">
+      <label for="{{ form.email.id_for_label }}">Email Address (Read-only):</label>
+      {{ form.email }}
+      <small style="color: #666; font-size: 0.9rem;">Email address cannot be changed for security reasons.</small>
+      {% if form.email.errors %}
+      <ul class="errorlist">
+        {% for error in form.email.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <!-- Shop Name Field -->
+    <div class="form-group">
+      <label for="{{ form.shop_name.id_for_label }}">Shop Name:</label>
+      {{ form.shop_name }}
+      {% if form.shop_name.errors %}
+      <ul class="errorlist">
+        {% for error in form.shop_name.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <!-- Shop Description Field -->
+    <div class="form-group">
+      <label for="{{ form.shop_description.id_for_label }}">Shop Description:</label>
+      {{ form.shop_description }}
+      {% if form.shop_description.errors %}
+      <ul class="errorlist">
+        {% for error in form.shop_description.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <!-- Image Field -->
+    <div class="form-group">
+      <label for="{{ form.image.id_for_label }}">Profile Image:</label>
+      {{ form.image }}
+      {% if form.image.errors %}
+      <ul class="errorlist">
+        {% for error in form.image.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <!-- Current Image Preview -->
+    {% if seller.get_image_base64 %}
+    <div class="form-group">
+      <label>Current Image:</label>
+      <img id="imgPreview" src="data:image/jpeg;base64,{{ seller.get_image_base64 }}" alt="Current Image">
+    </div>
+    {% endif %}
+
+    <button type="submit">Update Profile</button>
+  </form>
+
+  <script>
+    // Add preview functionality to the form's image field
+    document.addEventListener('DOMContentLoaded', function() {
+      const imageInput = document.querySelector('input[type="file"]');
+      if (imageInput) {
+        imageInput.addEventListener('change', function() {
+          previewImage(this);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!-- templates/seller_profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Seller Profile</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 20px; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      margin: 0;
+    }
+    .profile-box { 
+      max-width: 600px; 
+      margin: 50px auto; 
+      border: 1px solid #ccc; 
+      padding: 30px; 
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    img { 
+      max-width: 200px; 
+      border-radius: 8px; 
+      display: block;
+      margin: 20px 0;
+    }
+    h2, p { margin: 10px 0; }
+    .actions { 
+      margin-top: 30px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .actions a, .actions button { 
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .edit-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .edit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+    }
+    .delete-btn:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+    }
+    .logout-btn {
+      background: #95a5a6;
+      color: white;
+    }
+    .logout-btn:hover {
+      background: #7f8c8d;
+      transform: translateY(-2px);
+    }
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    .profile-info {
+      margin-bottom: 20px;
+    }
+    .info-row {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .info-label {
+      font-weight: bold;
+      min-width: 120px;
+      color: #555;
+    }
+    .info-value {
+      color: #333;
+    }
+    .messages {
+      margin-bottom: 20px;
+    }
+    .message {
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-box">
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+      <div class="message {{ message.tags }}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="profile-header">
+      <h2>{{ seller.shop_name }}</h2>
+      <form method="post" action="{% url 'sellers:logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Logout</button>
+      </form>
+    </div>
+
+    <div class="profile-info">
+      <div class="info-row">
+        <span class="info-label">Name:</span>
+        <span class="info-value">{{ seller.name }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email:</span>
+        <span class="info-value">{{ seller.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Description:</span>
+        <span class="info-value">{{ seller.shop_description|default:"No description provided" }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Rating:</span>
+        <span class="info-value">{{ seller.rating|default:"N/A" }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Created:</span>
+        <span class="info-value">{{ seller.created_at|date:"F j, Y" }}</span>
+      </div>
+    </div>
+
+    {% if seller.get_image_base64 %}
+      <img src="data:image/jpeg;base64,{{ seller.get_image_base64 }}" alt="Seller Image">
+    {% endif %}
+
+    <div class="actions">
+      <a href="{% url 'sellers:seller_update' %}" class="edit-btn">Edit Profile</a>
+      <a href="{% url 'sellers:seller_delete' %}" class="delete-btn">Delete Account</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!-- templates/seller_delete.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Delete Seller Account</title>
+  <style>
+    body { font-family: Arial; padding: 20px; text-align: center; }
+    button { padding: 10px 20px; margin: 10px; }
+    form { display: inline-block; }
+  </style>
+</head>
+<body>
+  <h2>Are you sure you want to delete your seller account?</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <button type="submit">Yes, Delete</button>
+  </form>
+  <a href="{% url 'seller:seller_profile' %}"><button type="button">Cancel</button></a>
+</body>
+</html>

@@ -26,33 +26,23 @@ def create_seller_view(request):
                 # Create the Seller profile
                 seller = Seller.objects.create(
                     user=user,
-                    name=form.cleaned_data['name'],
+                    name=user.username,  # Use username as name
                     email=user.email,
-                    shop_name=form.cleaned_data['shop_name'],
-                    shop_description=form.cleaned_data.get('shop_description', ''),
+                    shop_name=form.cleaned_data.get('shop_name', ''),
+                    shop_description='',
                     created_at=timezone.now()
                 )
-                
-                # Handle image if provided
-                if 'image' in request.FILES:
-                    seller.image = request.FILES['image'].read()
-                    seller.save()
                 
                 messages.success(request, 'Seller account created successfully!')
             else:
                 # Create the Buyer profile
                 buyer = Buyer.objects.create(
-                    name=form.cleaned_data['name'],
+                    name=user.username,  # Use username as name
                     email=user.email,
                     phone=form.cleaned_data.get('phone', ''),
-                    address=form.cleaned_data.get('address', ''),
+                    address='',  # Empty address
                     created_at=timezone.now()
                 )
-                
-                # Handle image if provided
-                if 'image' in request.FILES:
-                    buyer.image = request.FILES['image'].read()
-                    buyer.save()
                 
                 messages.success(request, 'Buyer account created successfully!')
             

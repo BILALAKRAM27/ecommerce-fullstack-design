@@ -250,6 +250,64 @@
             text-decoration: underline;
         }
 
+        .password-security {
+            display: block;
+            margin-top: 12px;
+            padding: 15px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border: 2px solid #bbdefb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #1565c0;
+            line-height: 1.6;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+        }
+
+        .password-security::before {
+            content: "🔒";
+            position: absolute;
+            top: -8px;
+            left: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .password-security strong {
+            color: #1565c0;
+            font-weight: 700;
+            font-size: 1rem;
+            display: block;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .password-security ul {
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .password-security li {
+            margin-bottom: 6px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .password-security li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
         /* User type radio styling */
         .user-type-group {
             margin-bottom: 2rem;
@@ -459,37 +517,12 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="id_name">Full Name</label>
-                    {{ form.name }}
-                    {% if form.name.errors %}
-                    <ul class="errorlist">
-                        {% for error in form.name.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="id_phone">Phone (Optional)</label>
-                    {{ form.phone }}
-                    {% if form.phone.errors %}
-                    <ul class="errorlist">
-                        {% for error in form.phone.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-
             <div class="form-group">
-                <label for="id_address">Address (Optional)</label>
-                {{ form.address }}
-                {% if form.address.errors %}
+                <label for="id_phone">Phone (Optional)</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
                 <ul class="errorlist">
-                    {% for error in form.address.errors %}
+                    {% for error in form.phone.errors %}
                     <li>{{ error }}</li>
                     {% endfor %}
                 </ul>
@@ -498,29 +531,16 @@
 
             <!-- Seller-specific fields -->
             <div class="conditional-field" id="seller-fields">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="id_shop_name">Shop Name *</label>
-                        {{ form.shop_name }}
-                        {% if form.shop_name.errors %}
-                        <ul class="errorlist">
-                            {% for error in form.shop_name.errors %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_shop_description">Shop Description (Optional)</label>
-                        {{ form.shop_description }}
-                        {% if form.shop_description.errors %}
-                        <ul class="errorlist">
-                            {% for error in form.shop_description.errors %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
+                <div class="form-group">
+                    <label for="id_shop_name">Shop Name (Optional)</label>
+                    {{ form.shop_name }}
+                    {% if form.shop_name.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.shop_name.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
                 </div>
             </div>
 
@@ -549,19 +569,20 @@
                     {% endif %}
                 </div>
             </div>
-
-            <!-- Image Upload -->
-            <div class="form-group">
-                <label for="id_image">Profile Image (Optional)</label>
-                {{ form.image }}
-                {% if form.image.errors %}
-                <ul class="errorlist">
-                    {% for error in form.image.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
+            
+            <!-- Password Security Tips -->
+            <div class="password-security">
+                <strong>Password Security Tips</strong>
+                <ul>
+                    <li>Use at least 8 characters</li>
+                    <li>Include uppercase and lowercase letters</li>
+                    <li>Add numbers and special characters</li>
+                    <li>Avoid common words or personal info</li>
+                    <li>Don't reuse passwords from other sites</li>
                 </ul>
-                {% endif %}
             </div>
+
+
 
             <div class="terms-checkbox">
                 <input type="checkbox" id="terms" name="terms" required />
@@ -597,18 +618,8 @@
                 const selectedType = document.querySelector('input[name="user_type"]:checked').value;
                 if (selectedType === 'seller') {
                     sellerFields.classList.add('show');
-                    // Make shop name required
-                    const shopNameField = document.getElementById('id_shop_name');
-                    if (shopNameField) {
-                        shopNameField.required = true;
-                    }
                 } else {
                     sellerFields.classList.remove('show');
-                    // Make shop name not required
-                    const shopNameField = document.getElementById('id_shop_name');
-                    if (shopNameField) {
-                        shopNameField.required = false;
-                    }
                 }
             }
 
@@ -660,16 +671,7 @@
                     return;
                 }
 
-                // Validate seller fields if seller is selected
-                const selectedType = document.querySelector('input[name="user_type"]:checked').value;
-                if (selectedType === 'seller') {
-                    const shopNameField = document.getElementById('id_shop_name');
-                    if (!shopNameField.value.trim()) {
-                        e.preventDefault();
-                        alert('Shop name is required for sellers');
-                        return;
-                    }
-                }
+
 
                 // Show loading state
                 registerBtn.disabled = true;

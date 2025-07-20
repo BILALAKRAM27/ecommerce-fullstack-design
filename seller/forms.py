@@ -56,12 +56,8 @@ class UserRegisterForm(UserCreationForm):
         widget=forms.RadioSelect,
         initial='buyer'
     )
-    name = forms.CharField(max_length=100, required=True)
     phone = forms.CharField(max_length=20, required=False)
-    address = forms.CharField(required=False)
     shop_name = forms.CharField(max_length=100, required=False)
-    shop_description = forms.CharField(required=False)
-    image = forms.FileField(required=False)
     
     class Meta:
         model = User
@@ -72,16 +68,6 @@ class UserRegisterForm(UserCreationForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('This email is already registered.')
         return email
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        user_type = cleaned_data.get('user_type')
-        shop_name = cleaned_data.get('shop_name')
-        
-        if user_type == 'seller' and not shop_name:
-            raise forms.ValidationError("Shop name is required for sellers")
-        
-        return cleaned_data
     
     def save(self, commit=True):
         user = super().save(commit=False)

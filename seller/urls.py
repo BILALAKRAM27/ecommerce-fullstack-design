@@ -17,6 +17,7 @@ urlpatterns = [
     path('products/create/', views.create_product_view, name='product_create'),
     path('products/<int:product_id>/', views.product_detail_view, name='product_detail'),
     path('products/<int:product_id>/update/', views.update_product_view, name='product_update'),
+    path('products/<int:product_id>/update/form/', views.update_product_form_view, name='product_update_form'),
     path('products/<int:product_id>/delete/', views.delete_product_view, name='product_delete'),
     
     # AJAX URLs for dynamic form

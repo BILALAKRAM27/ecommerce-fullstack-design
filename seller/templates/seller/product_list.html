@@ -211,6 +211,8 @@
                 flex-direction: column;
             }
         }
+
+
     </style>
 </head>
 <body>
@@ -266,9 +268,7 @@
                     </div>
                     
                     <div class="product-actions">
-                        <a href="{% url 'sellers:product_detail' product.id %}" class="btn btn-primary btn-sm">View</a>
-                        <a href="{% url 'sellers:product_update' product.id %}" class="btn btn-secondary btn-sm">Edit</a>
-                        <a href="{% url 'sellers:product_delete' product.id %}" class="btn btn-danger btn-sm">Delete</a>
+                        <a href="{% url 'sellers:product_detail' product.id %}" class="btn btn-primary btn-sm">View Details</a>
                     </div>
                 </div>
             </div>

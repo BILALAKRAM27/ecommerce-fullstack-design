@@ -250,6 +250,46 @@ def update_product_view(request, product_id):
     return render(request, 'seller/product_form.html', context)
 
 
+# AJAX Update Product Form
+@login_required
+def update_product_form_view(request, product_id):
+    """AJAX view to load update form in modal"""
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    form = DynamicProductForm(instance=product)
+    
+    # Get parent categories (categories with no parent)
+    parent_categories = Category.objects.filter(parent__isnull=True)
+    
+    # Get current category hierarchy for pre-selection
+    current_category = product.category
+    parent_category = None
+    child_category = None
+    
+    if current_category.parent:
+        parent_category = current_category.parent
+        child_category = current_category
+    else:
+        parent_category = current_category
+    
+    # Get existing attribute values for pre-population
+    existing_attributes = {}
+    for attr_value in product.attribute_values.all():
+        existing_attributes[f'attribute_{attr_value.attribute.id}'] = attr_value.value
+    
+    context = {
+        'form': form,
+        'product': product,
+        'seller': seller,
+        'parent_categories': parent_categories,
+        'current_parent_category': parent_category,
+        'current_child_category': child_category,
+        'existing_attributes': existing_attributes
+    }
+    return render(request, 'seller/product_form_modal.html', context)
+
+
 # DELETE Product
 @login_required
 def delete_product_view(request, product_id):

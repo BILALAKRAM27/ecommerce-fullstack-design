@@ -297,6 +297,271 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+            max-height: calc(90vh - 140px); /* Account for header and footer */
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            flex-shrink: 0;
+            background: #f8f9fa;
+        }
+
+        .modal-footer .btn {
+            padding: 12px 24px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .modal-footer .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .modal-footer .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal-footer .btn-secondary {
+            background: #6c757d;
+            border: none;
+            color: white;
+        }
+
+        .modal-footer .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .modal-footer .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .modal-footer .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-box ul {
+            color: #856404;
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .warning-box li {
+            margin-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .errorlist {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+            object-fit: contain;
+            border: 2px solid #e1e5e9;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .attribute-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid #e1e5e9;
+        }
+
+        .attribute-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .attribute-group {
+            margin-bottom: 15px;
+        }
+
+        .attribute-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .attribute-required {
+            color: #e74c3c;
+            font-size: 0.8rem;
+        }
+
+        .attribute-unit {
+            color: #666;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -306,8 +571,8 @@
                 <h1>{{ product.name }}</h1>
                 <div class="header-actions">
                     <a href="{% url 'sellers:product_list' %}" class="btn btn-primary">Back to Products</a>
-                    <a href="{% url 'sellers:product_update' product.id %}" class="btn btn-primary">Edit Product</a>
-                    <a href="{% url 'sellers:product_delete' product.id %}" class="btn btn-danger">Delete</a>
+                    <button onclick="openUpdateModal({{ product.id }}, '{{ product.name|escapejs }}')" class="btn btn-primary">Edit Product</button>
+                    <button onclick="openDeleteModal({{ product.id }}, '{{ product.name|escapejs }}')" class="btn btn-danger">Delete</button>
                 </div>
             </div>
 
@@ -412,5 +677,515 @@
             </div>
         </div>
     </div>
+
+    <!-- Update Product Modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Product</h3>
+                <span class="close" onclick="closeUpdateModal()">&times;</span>
+            </div>
+            <form method="POST" enctype="multipart/form-data" id="updateForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div id="updateFormContent">
+                        <!-- Dynamic form content will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Product Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Product</h3>
+                <span class="close" onclick="closeDeleteModal()">&times;</span>
+            </div>
+            <form method="POST" id="deleteForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="warning-box">
+                        <h4>⚠️ Warning</h4>
+                        <ul>
+                            <li>This action will permanently delete the product</li>
+                            <li>All product information will be lost</li>
+                            <li>This action cannot be undone</li>
+                        </ul>
+                    </div>
+                    <p>Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, Delete Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentCategoryId = null;
+        let attributesData = [];
+        let currentProductId = null;
+
+        // DOM elements
+        const updateModal = document.getElementById('updateModal');
+        const deleteModal = document.getElementById('deleteModal');
+        const updateFormContent = document.getElementById('updateFormContent');
+        const deleteProductName = document.getElementById('deleteProductName');
+        const updateForm = document.getElementById('updateForm');
+        const deleteForm = document.getElementById('deleteForm');
+
+        // Handle update form submission
+        updateForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(updateForm);
+            formData.append('product_id', currentProductId);
+            
+            fetch(`{% url 'sellers:product_update' 0 %}`.replace('0', currentProductId), {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    closeUpdateModal();
+                    location.reload(); // Refresh the page to show updated data
+                } else {
+                    console.error('Update failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating product:', error);
+            });
+        });
+
+        // Modal functions
+        function openUpdateModal(productId, productName) {
+            currentProductId = productId;
+            updateFormContent.innerHTML = '<div class="loading">Loading product form...</div>';
+            updateModal.style.display = 'block';
+            
+            // Load the update form via AJAX
+            fetch(`{% url 'sellers:product_update_form' 0 %}`.replace('0', productId), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                updateFormContent.innerHTML = html;
+                initializeUpdateForm();
+            })
+            .catch(error => {
+                console.error('Error loading update form:', error);
+                updateFormContent.innerHTML = '<div style="color: #e74c3c;">Error loading form</div>';
+            });
+        }
+
+        function closeUpdateModal() {
+            updateModal.style.display = 'none';
+            updateFormContent.innerHTML = '';
+        }
+
+        function openDeleteModal(productId, productName) {
+            currentProductId = productId;
+            deleteProductName.textContent = productName;
+            deleteForm.action = `{% url 'sellers:product_delete' 0 %}`.replace('0', productId);
+            deleteModal.style.display = 'block';
+        }
+
+        function closeDeleteModal() {
+            deleteModal.style.display = 'none';
+        }
+
+        // Initialize update form with dynamic functionality
+        function initializeUpdateForm() {
+            const parentCategorySelect = document.getElementById('parent_category');
+            const childCategorySelect = document.getElementById('child_category');
+            const finalCategorySelect = document.getElementById('id_category');
+            const attributesSection = document.getElementById('attributesSection');
+            const attributesContainer = document.getElementById('attributesContainer');
+
+            if (parentCategorySelect) {
+                parentCategorySelect.addEventListener('change', handleParentCategoryChange);
+            }
+            if (childCategorySelect) {
+                childCategorySelect.addEventListener('change', handleChildCategoryChange);
+            }
+            if (finalCategorySelect) {
+                finalCategorySelect.addEventListener('change', handleFinalCategoryChange);
+            }
+
+            // Auto-calculate final price
+            const basePriceField = document.getElementById('id_base_price');
+            const discountField = document.getElementById('id_discount_percentage');
+            const finalPriceField = document.getElementById('id_final_price');
+
+            if (basePriceField && discountField && finalPriceField) {
+                function calculateFinalPrice() {
+                    const basePrice = parseFloat(basePriceField.value) || 0;
+                    const discount = parseFloat(discountField.value) || 0;
+                    
+                    if (basePrice > 0 && discount > 0) {
+                        const finalPrice = basePrice * (1 - discount / 100);
+                        finalPriceField.value = finalPrice.toFixed(2);
+                    }
+                }
+
+                basePriceField.addEventListener('input', calculateFinalPrice);
+                discountField.addEventListener('input', calculateFinalPrice);
+            }
+
+            // Initialize image preview
+            initializeImagePreview();
+        }
+
+        // Handle parent category change
+        function handleParentCategoryChange() {
+            const parentCategorySelect = document.getElementById('parent_category');
+            const childCategorySelect = document.getElementById('child_category');
+            const finalCategorySelect = document.getElementById('id_category');
+            const attributesSection = document.getElementById('attributesSection');
+            
+            const parentId = parentCategorySelect.value;
+            
+            // Reset child category
+            childCategorySelect.innerHTML = '<option value="">Select Child Category (if any)</option>';
+            childCategorySelect.disabled = !parentId;
+            
+            // Reset final category
+            finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+            finalCategorySelect.disabled = true;
+            
+            // Hide attributes section
+            if (attributesSection) {
+                attributesSection.style.display = 'none';
+            }
+            
+            if (parentId) {
+                // Load child categories
+                loadChildCategories(parentId);
+            }
+        }
+
+        // Handle child category change
+        function handleChildCategoryChange() {
+            const childCategorySelect = document.getElementById('child_category');
+            const parentCategorySelect = document.getElementById('parent_category');
+            const finalCategorySelect = document.getElementById('id_category');
+            
+            const childId = childCategorySelect.value;
+            const parentId = parentCategorySelect.value;
+            
+            // Reset final category
+            finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+            
+            if (childId) {
+                // Set final category to child
+                setFinalCategory(childId, childCategorySelect.options[childCategorySelect.selectedIndex].text);
+            } else if (parentId) {
+                // Set final category to parent
+                setFinalCategory(parentId, parentCategorySelect.options[parentCategorySelect.selectedIndex].text);
+            }
+        }
+
+        // Handle final category change
+        function handleFinalCategoryChange() {
+            const finalCategorySelect = document.getElementById('id_category');
+            const attributesSection = document.getElementById('attributesSection');
+            
+            const categoryId = finalCategorySelect.value;
+            
+            if (categoryId) {
+                currentCategoryId = categoryId;
+                loadCategoryAttributes(categoryId);
+            } else {
+                if (attributesSection) {
+                    attributesSection.style.display = 'none';
+                }
+            }
+        }
+
+        // Load child categories via AJAX
+        function loadChildCategories(parentId) {
+            const childCategorySelect = document.getElementById('child_category');
+            const parentCategorySelect = document.getElementById('parent_category');
+            const finalCategorySelect = document.getElementById('id_category');
+            
+            fetch('{% url "sellers:get_category_children" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ parent_id: parentId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.children.length > 0) {
+                    data.children.forEach(child => {
+                        const option = document.createElement('option');
+                        option.value = child.id;
+                        option.textContent = child.name;
+                        childCategorySelect.appendChild(option);
+                    });
+                    childCategorySelect.disabled = false;
+                } else {
+                    // No children, set parent as final category
+                    setFinalCategory(parentId, parentCategorySelect.options[parentCategorySelect.selectedIndex].text);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading child categories:', error);
+            });
+        }
+
+        // Set final category
+        function setFinalCategory(categoryId, categoryName) {
+            const finalCategorySelect = document.getElementById('id_category');
+            
+            finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+            
+            const option = document.createElement('option');
+            option.value = categoryId;
+            option.textContent = categoryName;
+            finalCategorySelect.appendChild(option);
+            
+            finalCategorySelect.value = categoryId;
+            finalCategorySelect.disabled = false;
+            
+            // Trigger change event to load attributes
+            finalCategorySelect.dispatchEvent(new Event('change'));
+        }
+
+        // Load category attributes via AJAX
+        function loadCategoryAttributes(categoryId) {
+            const attributesSection = document.getElementById('attributesSection');
+            const attributesContainer = document.getElementById('attributesContainer');
+            
+            // Show loading
+            if (attributesSection) {
+                attributesSection.style.display = 'block';
+            }
+            if (attributesContainer) {
+                attributesContainer.innerHTML = '<div class="loading">Loading attributes...</div>';
+            }
+            
+            fetch('{% url "sellers:get_category_attributes" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ category_id: categoryId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                attributesData = data.attributes;
+                renderAttributes(data.attributes);
+            })
+            .catch(error => {
+                console.error('Error loading attributes:', error);
+                if (attributesContainer) {
+                    attributesContainer.innerHTML = '<div style="color: #e74c3c;">Error loading attributes</div>';
+                }
+            });
+        }
+
+        // Render attributes
+        function renderAttributes(attributes) {
+            const attributesContainer = document.getElementById('attributesContainer');
+            
+            if (!attributesContainer) return;
+            
+            if (attributes.length === 0) {
+                attributesContainer.innerHTML = '<div style="color: #666;">No attributes found for this category</div>';
+                return;
+            }
+
+            let html = '';
+            attributes.forEach(attr => {
+                html += `
+                    <div class="attribute-group">
+                        <div class="attribute-label">
+                            ${attr.name}
+                            ${attr.is_required ? '<span class="attribute-required">*</span>' : ''}
+                            ${attr.unit ? `<span class="attribute-unit">(${attr.unit})</span>` : ''}
+                        </div>
+                        ${renderAttributeInput(attr)}
+                    </div>
+                `;
+            });
+            
+            attributesContainer.innerHTML = html;
+        }
+
+        // Render attribute input based on type
+        function renderAttributeInput(attr) {
+            const inputName = `attribute_${attr.id}`;
+            const required = attr.is_required ? 'required' : '';
+            
+            switch (attr.input_type) {
+                case 'dropdown':
+                    let options = '<option value="">Select ' + attr.name + '</option>';
+                    attr.options.forEach(option => {
+                        options += `<option value="${option.id}">${option.value}</option>`;
+                    });
+                    return `<select name="${inputName}" ${required} class="form-control">${options}</select>`;
+                
+                case 'number':
+                    return `<input type="number" name="${inputName}" ${required} class="form-control" placeholder="Enter ${attr.name}">`;
+                
+                case 'boolean':
+                    return `<select name="${inputName}" ${required} class="form-control">
+                        <option value="">Select ${attr.name}</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>`;
+                
+                default: // text
+                    return `<input type="text" name="${inputName}" ${required} class="form-control" placeholder="Enter ${attr.name}">`;
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target === updateModal) {
+                closeUpdateModal();
+            }
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        }
+
+        // Initialize image preview functionality
+        function initializeImagePreview() {
+            const imageInput = document.getElementById('id_image');
+            if (!imageInput) return;
+
+            // Create preview container if it doesn't exist
+            let previewContainer = document.getElementById('image-preview-container');
+            if (!previewContainer) {
+                previewContainer = document.createElement('div');
+                previewContainer.id = 'image-preview-container';
+                previewContainer.className = 'image-preview-container';
+                previewContainer.style.cssText = `
+                    margin-top: 15px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                `;
+                imageInput.parentNode.appendChild(previewContainer);
+            }
+
+            // Remove current image preview - only show new image preview
+
+            // Create new image section
+            const newImageSection = document.createElement('div');
+            newImageSection.style.cssText = `
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 150px;
+            `;
+
+            const newImageLabel = document.createElement('div');
+            newImageLabel.textContent = 'New Image Preview';
+            newImageLabel.style.cssText = `
+                font-size: 0.9rem;
+                color: #667eea;
+                margin-bottom: 10px;
+                font-weight: 600;
+                text-align: center;
+            `;
+            newImageSection.appendChild(newImageLabel);
+
+            const newImagePlaceholder = document.createElement('div');
+            newImagePlaceholder.style.cssText = `
+                width: 150px;
+                height: 150px;
+                border: 2px dashed #667eea;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #667eea;
+                font-size: 0.9rem;
+            `;
+            newImagePlaceholder.textContent = 'Select Image';
+            newImageSection.appendChild(newImagePlaceholder);
+
+            const fileInfo = document.createElement('div');
+            fileInfo.id = 'file-info';
+            fileInfo.style.cssText = `
+                font-size: 0.8rem;
+                color: #666;
+                margin-top: 10px;
+                text-align: center;
+                min-height: 20px;
+            `;
+            newImageSection.appendChild(fileInfo);
+
+            previewContainer.appendChild(newImageSection);
+
+            // Handle new image selection
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    newImagePlaceholder.innerHTML = '<div style="color: #e74c3c;">Invalid file type</div>';
+                    fileInfo.textContent = '';
+                    return;
+                }
+
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    newImagePlaceholder.innerHTML = '<div style="color: #e74c3c;">File too large</div>';
+                    fileInfo.textContent = '';
+                    return;
+                }
+
+                // Create preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    newImagePlaceholder.innerHTML = '';
+                                    const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Selected Image Preview';
+                img.style.cssText = `
+                    width: 150px;
+                    height: 150px;
+                    border-radius: 8px;
+                    border: 2px solid #667eea;
+                    object-fit: contain;
+                `;
+                newImagePlaceholder.appendChild(img);
+                    
+                    fileInfo.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeUpdateModal();
+                closeDeleteModal();
+            }
+        });
+    </script>
 </body>
 </html> 

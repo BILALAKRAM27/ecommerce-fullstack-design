@@ -54,6 +54,9 @@ class Category(models.Model):
     description = models.TextField(null=True, blank=True)
     icon_url = models.URLField(null=True, blank=True)
 
+    def __str__(self):
+        return self.name
+
 class CategoryAttribute(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='attributes')
     name = models.CharField(max_length=100)
@@ -61,13 +64,22 @@ class CategoryAttribute(models.Model):
     is_required = models.BooleanField(default=False)
     unit = models.CharField(max_length=20, null=True, blank=True)
 
+    def __str__(self):
+        return f"{self.category.name} - {self.name}"
+
 class AttributeOption(models.Model):
     attribute = models.ForeignKey(CategoryAttribute, on_delete=models.CASCADE, related_name='options')
     value = models.CharField(max_length=100)
 
+    def __str__(self):
+        return f"{self.attribute.name} - {self.value}"
+
 class Brand(models.Model):
     name = models.CharField(max_length=100)
     logo_url = models.URLField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 class Product(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='products')
@@ -82,16 +94,44 @@ class Product(models.Model):
     condition = models.CharField(max_length=20, choices=ProductCondition.choices)
     rating_avg = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
+    order_count = models.IntegerField(default=0)
+    image = models.BinaryField(blank=True, null=True, editable=True)  # Storing image as binary data (BLOB)
+
+    def __str__(self):
+        return self.name
+
+
+    def set_image(self, data):
+        """Set the image field as raw binary data"""
+        self.image = data
+
+    def get_image(self):
+        """Get the raw binary image data"""
+        return self.image
+
+    def get_image_base64(self):
+        """Returns the base64 string to display in templates"""
+        if self.image:
+            return base64.b64encode(self.image).decode('utf-8')
+        return None
+
+    image_data = property(get_image_base64)
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     image_url = models.URLField()
     is_primary = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f"{self.product.name} - Image"
+
 class ProductAttributeValue(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='attribute_values')
     attribute = models.ForeignKey(CategoryAttribute, on_delete=models.CASCADE)
     value = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.attribute.name}: {self.value}"
 
 class ProductReview(models.Model):
     buyer = models.ForeignKey("buyer.Buyer", on_delete=models.CASCADE)
@@ -99,3 +139,6 @@ class ProductReview(models.Model):
     rating = models.PositiveIntegerField()
     comment = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.buyer.name} - {self.product.name} ({self.rating}/5)"

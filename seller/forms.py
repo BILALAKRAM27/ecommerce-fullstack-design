@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from .models import Seller, Product, ProductImage, Brand, Category
 from buyer.models import Buyer
+from .models import CategoryAttribute, ProductAttributeValue
 
 
 class SellerLoginForm(AuthenticationForm):
@@ -143,6 +144,8 @@ class SellerUpdateForm(forms.ModelForm):
 
 
 class ProductForm(forms.ModelForm):
+    image = forms.FileField(required=False, label="Product Image")
+    
     class Meta:
         model = Product
         fields = [
@@ -150,12 +153,97 @@ class ProductForm(forms.ModelForm):
             'base_price', 'discount_percentage', 'final_price',
             'stock', 'condition'
         ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'base_price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'discount_percentage': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
+            'final_price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'stock': forms.NumberInput(attrs={'min': '0'}),
+        }
+
+    def save(self, commit=True):
+        product = super().save(commit=False)
+        
+        # Handle image upload
+        if self.cleaned_data.get('image'):
+            image_file = self.cleaned_data['image']
+            product.set_image(image_file.read())
+        
+        # Calculate final price if discount is provided
+        if product.discount_percentage and product.base_price:
+            product.final_price = product.base_price * (1 - product.discount_percentage / 100)
+        
+        if commit:
+            product.save()
+        return product
 
 
 class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
         fields = ['image_url', 'is_primary']
+        widgets = {
+            'image_url': forms.URLInput(attrs={'placeholder': 'Enter image URL'}),
+        }
+
+
+class DynamicProductForm(forms.ModelForm):
+    image = forms.FileField(required=False, label="Product Image")
+    
+    class Meta:
+        model = Product
+        fields = [
+            'category', 'brand', 'name', 'description',
+            'base_price', 'discount_percentage', 'final_price',
+            'stock', 'condition'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'base_price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'discount_percentage': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
+            'final_price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'stock': forms.NumberInput(attrs={'min': '0'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make category field hidden initially
+        self.fields['category'].widget = forms.HiddenInput()
+
+    def save(self, commit=True):
+        product = super().save(commit=False)
+        
+        # Handle image upload
+        if self.cleaned_data.get('image'):
+            image_file = self.cleaned_data['image']
+            product.set_image(image_file.read())
+        
+        # Calculate final price if discount is provided
+        if product.discount_percentage and product.base_price:
+            product.final_price = product.base_price * (1 - product.discount_percentage / 100)
+        
+        if commit:
+            product.save()
+            
+            # Handle dynamic attributes
+            self.save_dynamic_attributes(product)
+        
+        return product
+
+    def save_dynamic_attributes(self, product):
+        """Save dynamic attributes from form data"""
+        for field_name, value in self.data.items():
+            if field_name.startswith('attribute_') and value:
+                attribute_id = field_name.replace('attribute_', '')
+                try:
+                    attribute = CategoryAttribute.objects.get(id=attribute_id)
+                    ProductAttributeValue.objects.create(
+                        product=product,
+                        attribute=attribute,
+                        value=value
+                    )
+                except CategoryAttribute.DoesNotExist:
+                    pass
 
 
 class BrandForm(forms.ModelForm):

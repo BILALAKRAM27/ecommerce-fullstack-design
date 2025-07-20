@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - {{ seller.shop_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input.error,
+        .form-group select.error,
+        .form-group textarea.error {
+            border-color: #e74c3c;
+        }
+
+        .errorlist {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+            object-fit: contain;
+            border: 2px solid #e1e5e9;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .attribute-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid #e1e5e9;
+        }
+
+        .attribute-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .attribute-group {
+            margin-bottom: 15px;
+        }
+
+        .attribute-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .attribute-required {
+            color: #e74c3c;
+            font-size: 0.8rem;
+        }
+
+        .attribute-unit {
+            color: #666;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Django Messages -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="form-container">
+            <div class="header">
+                <h1>{{ title }}</h1>
+                <p>Fill in the details below to {{ title|lower }} your product</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" id="dynamicProductForm">
+                {% csrf_token %}
+                
+                <!-- Basic Product Information -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}">Product Name *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.name.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.brand.id_for_label }}">Brand</label>
+                        {{ form.brand }}
+                        {% if form.brand.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.brand.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Category Selection -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="parent_category">Parent Category *</label>
+                        <select id="parent_category" name="parent_category" required>
+                            <option value="">Select Parent Category</option>
+                            {% for category in parent_categories %}
+                            <option value="{{ category.id }}" {% if current_parent_category and current_parent_category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="child_category">Child Category</label>
+                        <select id="child_category" name="child_category">
+                            <option value="">Select Child Category (if any)</option>
+                            {% if current_child_category %}
+                            <option value="{{ current_child_category.id }}" selected>{{ current_child_category.name }}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Final Category Selection -->
+                <div class="form-group">
+                    <label for="{{ form.category.id_for_label }}">Final Category *</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.category.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Dynamic Attributes Section -->
+                <div id="attributesSection" class="attribute-section" style="display: none;">
+                    <h3>Product Attributes</h3>
+                    <div id="attributesContainer">
+                        <!-- Dynamic attributes will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Product Description -->
+                <div class="form-group full-width">
+                    <label for="{{ form.description.id_for_label }}">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.description.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Pricing -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.base_price.id_for_label }}">Base Price *</label>
+                        {{ form.base_price }}
+                        <div class="help-text">Enter the original price of the product</div>
+                        {% if form.base_price.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.base_price.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.discount_percentage.id_for_label }}">Discount Percentage</label>
+                        {{ form.discount_percentage }}
+                        <div class="help-text">Enter discount as percentage (e.g., 10 for 10%)</div>
+                        {% if form.discount_percentage.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.discount_percentage.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.final_price.id_for_label }}">Final Price</label>
+                        {{ form.final_price }}
+                        <div class="help-text">Will be calculated automatically if discount is provided</div>
+                        {% if form.final_price.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.final_price.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.stock.id_for_label }}">Stock Quantity *</label>
+                        {{ form.stock }}
+                        {% if form.stock.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.stock.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Condition and Image -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.condition.id_for_label }}">Condition *</label>
+                        {{ form.condition }}
+                        {% if form.condition.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.condition.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.image.id_for_label }}">Product Image</label>
+                        {{ form.image }}
+                        {% if product and product.get_image_base64 %}
+                        <div style="margin-top: 10px;">
+                            <label>Current Image:</label>
+                            <img src="data:image/jpeg;base64,{{ product.get_image_base64 }}" alt="Current Product Image" class="image-preview">
+                        </div>
+                        {% endif %}
+                        {% if form.image.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.image.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'sellers:product_list' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if product %}Update Product{% else %}Create Product{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentCategoryId = null;
+        let attributesData = [];
+
+        // DOM elements
+        const parentCategorySelect = document.getElementById('parent_category');
+        const childCategorySelect = document.getElementById('child_category');
+        const finalCategorySelect = document.getElementById('{{ form.category.id_for_label }}');
+        const attributesSection = document.getElementById('attributesSection');
+        const attributesContainer = document.getElementById('attributesContainer');
+
+        // Event listeners
+        parentCategorySelect.addEventListener('change', handleParentCategoryChange);
+        childCategorySelect.addEventListener('change', handleChildCategoryChange);
+        finalCategorySelect.addEventListener('change', handleFinalCategoryChange);
+
+        // Handle parent category change
+        function handleParentCategoryChange() {
+            const parentId = parentCategorySelect.value;
+            
+            // Reset child category
+            childCategorySelect.innerHTML = '<option value="">Select Child Category (if any)</option>';
+            childCategorySelect.disabled = !parentId;
+            
+            // Reset final category
+            finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+            finalCategorySelect.disabled = true;
+            
+            // Hide attributes section
+            attributesSection.style.display = 'none';
+            
+            if (parentId) {
+                // Load child categories
+                loadChildCategories(parentId);
+            }
+        }
+
+        // Handle child category change
+        function handleChildCategoryChange() {
+            const childId = childCategorySelect.value;
+            const parentId = parentCategorySelect.value;
+            
+            // Reset final category
+            finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+            
+            if (childId) {
+                // Set final category to child
+                setFinalCategory(childId, childCategorySelect.options[childCategorySelect.selectedIndex].text);
+            } else if (parentId) {
+                // Set final category to parent
+                setFinalCategory(parentId, parentCategorySelect.options[parentCategorySelect.selectedIndex].text);
+            }
+        }
+
+        // Handle final category change
+        function handleFinalCategoryChange() {
+            const categoryId = finalCategorySelect.value;
+            
+            if (categoryId) {
+                currentCategoryId = categoryId;
+                loadCategoryAttributes(categoryId);
+            } else {
+                attributesSection.style.display = 'none';
+            }
+        }
+
+        // Load child categories via AJAX
+        function loadChildCategories(parentId) {
+            fetch('{% url "sellers:get_category_children" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ parent_id: parentId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.children.length > 0) {
+                    data.children.forEach(child => {
+                        const option = document.createElement('option');
+                        option.value = child.id;
+                        option.textContent = child.name;
+                        childCategorySelect.appendChild(option);
+                    });
+                    childCategorySelect.disabled = false;
+                } else {
+                    // No children, set parent as final category
+                    setFinalCategory(parentId, parentCategorySelect.options[parentCategorySelect.selectedIndex].text);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading child categories:', error);
+            });
+        }
+
+        // Set final category
+        function setFinalCategory(categoryId, categoryName) {
+            finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+            
+            const option = document.createElement('option');
+            option.value = categoryId;
+            option.textContent = categoryName;
+            finalCategorySelect.appendChild(option);
+            
+            finalCategorySelect.value = categoryId;
+            finalCategorySelect.disabled = false;
+            
+            // Trigger change event to load attributes
+            finalCategorySelect.dispatchEvent(new Event('change'));
+        }
+
+        // Load category attributes via AJAX
+        function loadCategoryAttributes(categoryId) {
+            // Show loading
+            attributesSection.style.display = 'block';
+            attributesContainer.innerHTML = '<div class="loading">Loading attributes...</div>';
+            
+            fetch('{% url "sellers:get_category_attributes" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ category_id: categoryId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                attributesData = data.attributes;
+                renderAttributes(data.attributes);
+            })
+            .catch(error => {
+                console.error('Error loading attributes:', error);
+                attributesContainer.innerHTML = '<div style="color: #e74c3c;">Error loading attributes</div>';
+            });
+        }
+
+        // Render attributes
+        function renderAttributes(attributes) {
+            if (attributes.length === 0) {
+                attributesContainer.innerHTML = '<div style="color: #666;">No attributes found for this category</div>';
+                return;
+            }
+
+            let html = '';
+            attributes.forEach(attr => {
+                html += `
+                    <div class="attribute-group">
+                        <div class="attribute-label">
+                            ${attr.name}
+                            ${attr.is_required ? '<span class="attribute-required">*</span>' : ''}
+                            ${attr.unit ? `<span class="attribute-unit">(${attr.unit})</span>` : ''}
+                        </div>
+                        ${renderAttributeInput(attr)}
+                    </div>
+                `;
+            });
+            
+            attributesContainer.innerHTML = html;
+        }
+
+        // Render attribute input based on type
+        function renderAttributeInput(attr) {
+            const inputName = `attribute_${attr.id}`;
+            const required = attr.is_required ? 'required' : '';
+            
+            // Get existing value if in edit mode
+            const existingValue = typeof existingAttributes !== 'undefined' ? existingAttributes[inputName] : '';
+            {% if existing_attributes %}
+            const existingAttributes = {{ existing_attributes|safe }};
+            {% endif %}
+            
+            switch (attr.input_type) {
+                case 'dropdown':
+                    let options = '<option value="">Select ' + attr.name + '</option>';
+                    attr.options.forEach(option => {
+                        const selected = existingValue == option.id ? 'selected' : '';
+                        options += `<option value="${option.id}" ${selected}>${option.value}</option>`;
+                    });
+                    return `<select name="${inputName}" ${required} class="form-control">${options}</select>`;
+                
+                case 'number':
+                    return `<input type="number" name="${inputName}" ${required} class="form-control" placeholder="Enter ${attr.name}" value="${existingValue || ''}">`;
+                
+                case 'boolean':
+                    let boolOptions = '<option value="">Select ' + attr.name + '</option>';
+                    boolOptions += `<option value="true" ${existingValue === 'true' ? 'selected' : ''}>Yes</option>`;
+                    boolOptions += `<option value="false" ${existingValue === 'false' ? 'selected' : ''}>No</option>`;
+                    return `<select name="${inputName}" ${required} class="form-control">${boolOptions}</select>`;
+                
+                default: // text
+                    return `<input type="text" name="${inputName}" ${required} class="form-control" placeholder="Enter ${attr.name}" value="${existingValue || ''}">`;
+            }
+        }
+
+        // Auto-calculate final price when discount changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const basePriceField = document.getElementById('{{ form.base_price.id_for_label }}');
+            const discountField = document.getElementById('{{ form.discount_percentage.id_for_label }}');
+            const finalPriceField = document.getElementById('{{ form.final_price.id_for_label }}');
+
+            function calculateFinalPrice() {
+                const basePrice = parseFloat(basePriceField.value) || 0;
+                const discount = parseFloat(discountField.value) || 0;
+                
+                if (basePrice > 0 && discount > 0) {
+                    const finalPrice = basePrice * (1 - discount / 100);
+                    finalPriceField.value = finalPrice.toFixed(2);
+                }
+            }
+
+            basePriceField.addEventListener('input', calculateFinalPrice);
+            discountField.addEventListener('input', calculateFinalPrice);
+
+
+        });
+    </script>
+</body>
+</html> 

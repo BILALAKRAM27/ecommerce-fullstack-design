@@ -406,55 +406,139 @@
         background-color: #f8f9fa;
     }
 
-    @media (max-width: 768px) {
-        .modal {
-            padding: 5px;
+            @media (max-width: 768px) {
+            .modal {
+                padding: 5px;
+            }
+            
+            .modal-content {
+                width: 100%;
+                margin: 5px auto;
+                max-height: calc(100vh - 10px);
+            }
+            
+            .modal-header {
+                padding: 15px;
+            }
+            
+            .modal-header h3 {
+                font-size: 1.2rem;
+            }
+            
+            .modal-body {
+                padding: 15px;
+            }
+            
+            .modal-footer {
+                padding: 15px;
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 5px;
+                min-width: auto;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .nav-links {
+                justify-content: center;
+            }
         }
-        
-        .modal-content {
-            width: 100%;
-            margin: 5px auto;
-            max-height: calc(100vh - 10px);
+
+        /* Product Management Styles */
+        .product-management {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 2px solid #e1e5e9;
         }
-        
-        .modal-header {
-            padding: 15px;
+
+        .product-management h3 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
         }
-        
-        .modal-header h3 {
-            font-size: 1.2rem;
+
+        .product-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
-        
-        .modal-body {
-            padding: 15px;
-        }
-        
-        .modal-footer {
-            padding: 15px;
-            flex-direction: column;
-        }
-        
-        .btn {
-            width: 100%;
-            margin-bottom: 5px;
-            min-width: auto;
-        }
-        
-        .form-row {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        .header {
-            flex-direction: column;
-            gap: 1rem;
+
+        .product-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            min-width: 180px;
             text-align: center;
         }
 
-        .nav-links {
-            justify-content: center;
+        .product-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
-    }
+
+        .product-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .product-btn.success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .product-btn.success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .product-btn.info {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+        }
+
+        .product-btn.info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .product-btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .product-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .product-btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
   </style>
 </head>
 <body>
@@ -508,6 +592,15 @@
     <div class="actions">
       <button class="edit-btn" onclick="openUpdateModal()">Edit Profile</button>
       <button class="delete-btn" onclick="openDeleteModal()">Delete Account</button>
+    </div>
+
+    <!-- Product Management Section -->
+    <div class="product-management">
+      <h3>Product Management</h3>
+      <div class="product-actions">
+        <a href="{% url 'sellers:product_list' %}" class="product-btn primary">View My Products</a>
+        <a href="{% url 'sellers:product_create' %}" class="product-btn success">Add New Product</a>
+      </div>
     </div>
   </div>
 

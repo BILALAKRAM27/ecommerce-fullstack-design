@@ -4,10 +4,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
-from .models import Seller
-from .forms import UserRegisterForm, SellerUpdateForm, SellerLoginForm
+from .models import Seller, Product, ProductImage, Brand, Category, CategoryAttribute, AttributeOption
+from .forms import UserRegisterForm, SellerUpdateForm, SellerLoginForm, ProductForm, ProductImageForm, DynamicProductForm
 from django.utils import timezone
 from buyer.models import Buyer 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 
 def index_view(request):
@@ -141,3 +144,175 @@ def delete_seller_view(request):
         messages.success(request, 'Your seller account has been deleted.')
         return redirect('sellers:login')
     return render(request, 'seller/seller_delete.html')
+
+
+# ========== PRODUCT CRUD VIEWS ==========
+
+# CREATE Product
+@login_required
+def create_product_view(request):
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    if request.method == 'POST':
+        form = DynamicProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.seller = seller
+            product.save()
+            messages.success(request, 'Product created successfully!')
+            return redirect('sellers:product_list')
+    else:
+        form = DynamicProductForm()
+    
+    # Get parent categories (categories with no parent)
+    parent_categories = Category.objects.filter(parent__isnull=True)
+    
+    context = {
+        'form': form,
+        'title': 'Add New Product',
+        'seller': seller,
+        'parent_categories': parent_categories
+    }
+    return render(request, 'seller/product_form.html', context)
+
+
+# READ Product List
+@login_required
+def product_list_view(request):
+    seller = get_object_or_404(Seller, user=request.user)
+    products = Product.objects.filter(seller=seller).order_by('-created_at')
+    
+    context = {
+        'products': products,
+        'seller': seller
+    }
+    return render(request, 'seller/product_list.html', context)
+
+
+# READ Product Detail
+@login_required
+def product_detail_view(request, product_id):
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    context = {
+        'product': product,
+        'seller': seller,
+        'image_base64': product.get_image_base64()
+    }
+    return render(request, 'seller/product_detail.html', context)
+
+
+# UPDATE Product
+@login_required
+def update_product_view(request, product_id):
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    if request.method == 'POST':
+        form = DynamicProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            product = form.save()
+            messages.success(request, 'Product updated successfully!')
+            return redirect('sellers:product_detail', product_id=product.id)
+    else:
+        form = DynamicProductForm(instance=product)
+    
+    # Get parent categories (categories with no parent)
+    parent_categories = Category.objects.filter(parent__isnull=True)
+    
+    # Get current category hierarchy for pre-selection
+    current_category = product.category
+    parent_category = None
+    child_category = None
+    
+    if current_category.parent:
+        parent_category = current_category.parent
+        child_category = current_category
+    else:
+        parent_category = current_category
+    
+    # Get existing attribute values for pre-population
+    existing_attributes = {}
+    for attr_value in product.attribute_values.all():
+        existing_attributes[f'attribute_{attr_value.attribute.id}'] = attr_value.value
+    
+    context = {
+        'form': form,
+        'product': product,
+        'title': 'Update Product',
+        'seller': seller,
+        'parent_categories': parent_categories,
+        'current_parent_category': parent_category,
+        'current_child_category': child_category,
+        'existing_attributes': existing_attributes
+    }
+    return render(request, 'seller/product_form.html', context)
+
+
+# DELETE Product
+@login_required
+def delete_product_view(request, product_id):
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, 'Product deleted successfully!')
+        return redirect('sellers:product_list')
+    
+    context = {
+        'product': product,
+        'seller': seller
+    }
+    return render(request, 'seller/product_delete.html', context)
+
+
+# ========== AJAX VIEWS FOR DYNAMIC FORM ==========
+
+@csrf_exempt
+def get_category_children(request):
+    """Get child categories for a selected parent category"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        parent_id = data.get('parent_id')
+        
+        if parent_id:
+            children = Category.objects.filter(parent_id=parent_id)
+            children_data = [{'id': child.id, 'name': child.name} for child in children]
+            return JsonResponse({'children': children_data})
+        
+    return JsonResponse({'children': []})
+
+
+@csrf_exempt
+def get_category_attributes(request):
+    """Get attributes for a selected category"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        category_id = data.get('category_id')
+        
+        if category_id:
+            attributes = CategoryAttribute.objects.filter(category_id=category_id)
+            attributes_data = []
+            
+            for attr in attributes:
+                attr_data = {
+                    'id': attr.id,
+                    'name': attr.name,
+                    'input_type': attr.input_type,
+                    'is_required': attr.is_required,
+                    'unit': attr.unit,
+                    'options': []
+                }
+                
+                # Get options for dropdown attributes
+                if attr.input_type == 'dropdown':
+                    options = AttributeOption.objects.filter(attribute=attr)
+                    attr_data['options'] = [{'id': opt.id, 'value': opt.value} for opt in options]
+                
+                attributes_data.append(attr_data)
+            
+            return JsonResponse({'attributes': attributes_data})
+    
+    return JsonResponse({'attributes': []})

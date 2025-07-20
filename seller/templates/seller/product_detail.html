@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} - {{ seller.shop_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .product-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .product-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .product-image-section {
+            text-align: center;
+        }
+
+        .product-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            object-fit: contain;
+            border: 2px solid #e1e5e9;
+            background: #f8f9fa;
+        }
+
+        .no-image {
+            width: 100%;
+            height: 300px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 1.1rem;
+            background: #f8f9fa;
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-section {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 15px;
+        }
+
+        .info-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .product-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product-category {
+            color: #667eea;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .price-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .price-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .final-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .base-price {
+            font-size: 1.2rem;
+            color: #6c757d;
+            text-decoration: line-through;
+        }
+
+        .discount-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .stock-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .stock-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stock-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stock-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .description {
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .attribute-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .attribute-label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .attribute-value {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .attribute-unit {
+            color: #999;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .product-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="product-container">
+            <div class="header">
+                <h1>{{ product.name }}</h1>
+                <div class="header-actions">
+                    <a href="{% url 'sellers:product_list' %}" class="btn btn-primary">Back to Products</a>
+                    <a href="{% url 'sellers:product_update' product.id %}" class="btn btn-primary">Edit Product</a>
+                    <a href="{% url 'sellers:product_delete' product.id %}" class="btn btn-danger">Delete</a>
+                </div>
+            </div>
+
+            <div class="product-content">
+                <div class="product-image-section">
+                    {% if product.get_image_base64 %}
+                    <img src="data:image/jpeg;base64,{{ product.get_image_base64 }}" alt="{{ product.name }}" class="product-image">
+                    {% else %}
+                    <div class="no-image">No Image Available</div>
+                    {% endif %}
+                </div>
+
+                <div class="product-info">
+                    <div class="info-section">
+                        <h2 class="product-name">{{ product.name }}</h2>
+                        <div class="product-category">{{ product.category.name }}</div>
+                        {% if product.brand %}
+                        <div class="info-label">Brand</div>
+                        <div class="info-value">{{ product.brand.name }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="price-section">
+                        <div class="price-display">
+                            {% if product.final_price %}
+                            <span class="final-price">${{ product.final_price|floatformat:2 }}</span>
+                            {% if product.discount_percentage %}
+                            <span class="base-price">${{ product.base_price|floatformat:2 }}</span>
+                            <span class="discount-badge">{{ product.discount_percentage }}% OFF</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="final-price">${{ product.base_price|floatformat:2 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-label">Condition</div>
+                        <div class="info-value">{{ product.condition|title }}</div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-label">Stock Status</div>
+                        <div class="info-value">
+                            {% if product.stock > 10 %}
+                            <span class="stock-status stock-available">{{ product.stock }} units available</span>
+                            {% elif product.stock > 0 %}
+                            <span class="stock-status stock-low">Only {{ product.stock }} units left</span>
+                            {% else %}
+                            <span class="stock-status stock-out">Out of stock</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if product.description %}
+                    <div class="info-section">
+                        <div class="info-label">Description</div>
+                        <div class="description">{{ product.description }}</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Dynamic Attributes -->
+                    {% if product.attribute_values.all %}
+                    <div class="info-section">
+                        <div class="info-label">Product Specifications</div>
+                        <div class="attributes-grid">
+                            {% for attr_value in product.attribute_values.all %}
+                            <div class="attribute-item">
+                                <span class="attribute-label">{{ attr_value.attribute.name }}:</span>
+                                <span class="attribute-value">{{ attr_value.value }}</span>
+                                {% if attr_value.attribute.unit %}
+                                <span class="attribute-unit">{{ attr_value.attribute.unit }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-value">{{ product.order_count }}</div>
+                            <div class="metric-label">Orders</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">
+                                {% if product.rating_avg %}
+                                {{ product.rating_avg|floatformat:1 }}/5
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </div>
+                            <div class="metric-label">Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-label">Created</div>
+                        <div class="info-value">{{ product.created_at|date:"F j, Y" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -252,11 +252,26 @@ def product_list_view(request):
 
 # READ Product Detail
 def product_page_view(request, product_id):
-    seller = get_object_or_404(Seller, user=request.user) if request.user.is_authenticated else None
+    user = request.user if request.user.is_authenticated else None
+    seller = None
+    user_type = None
+    if user:
+        try:
+            seller = Seller.objects.get(user=user)
+            user_type = 'seller'
+        except Seller.DoesNotExist:
+            from buyer.models import Buyer
+            try:
+                buyer = Buyer.objects.get(email=user.email)
+                user_type = 'buyer'
+            except Buyer.DoesNotExist:
+                pass
     product = get_object_or_404(Product, id=product_id)
     context = {
         'product': product,
         'seller': seller,
+        'user_type': user_type,
+        # add 'user' if you use it in the template
     }
     return render(request, 'seller/product_page.html', context)
 
@@ -271,8 +286,29 @@ def update_product_view(request, product_id):
         form = DynamicProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             product = form.save()
+            # --- Image upload logic ---
+            image_files = request.FILES.getlist('image_file')
+            image_mode = request.POST.get('image_mode', 'add')
+            if image_files:
+                if image_mode == 'replace':
+                    # Delete all existing images for this product
+                    product.images.all().delete()
+                # Handle new images
+                thumbnail_index = int(request.POST.get('thumbnail', 0))
+                for idx, image_file in enumerate(image_files):
+                    ProductImage.objects.create(
+                        product=product,
+                        image=image_file.read(),
+                        is_thumbnail=(idx == thumbnail_index)
+                    )
+            # Handle existing images (if editing)
+            existing_thumbnail_id = request.POST.get('existing_thumbnail')
+            if existing_thumbnail_id:
+                for img in product.images.all():
+                    img.is_thumbnail = (str(img.id) == existing_thumbnail_id)
+                    img.save()
             messages.success(request, 'Product updated successfully!')
-            return redirect('sellers:product_detail', product_id=product.id)
+            return redirect('sellers:product_page', product_id=product.id)
     else:
         form = DynamicProductForm(instance=product)
     

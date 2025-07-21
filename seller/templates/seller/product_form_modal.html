@@ -158,16 +158,95 @@
             {% endif %}
         </div>
         
-        <div class="form-group">
-            <label for="{{ form.image.id_for_label }}">Product Image</label>
-            {{ form.image }}
-            {% if form.image.errors %}
+        <div class="form-group full-width">
+            <label for="id_image_file">Product Images</label>
+            <div id="imageModeOptions" style="margin-bottom:10px;">
+                <label style="font-weight:600;display:block;margin-bottom:6px;">Image Upload Mode:</label>
+                <label style="margin-right:18px;"><input type="radio" name="image_mode" value="add" checked> Add to existing images</label>
+                <label><input type="radio" name="image_mode" value="replace"> Replace all images with new ones</label>
+            </div>
+            <input type="file" name="image_file" id="id_image_file" multiple onchange="previewImages(event)">
+            <div id="imagePreviews"></div>
+            <div id="thumbnailSelector" style="margin-top:10px;"></div>
+            {% if product and product.images.all %}
+            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                {% for img in product.images.all %}
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <img src="data:image/jpeg;base64,{{ img.image|b64encode }}" alt="Product Image" class="image-preview">
+                        <input type="radio" name="existing_thumbnail" value="{{ img.id }}" {% if img.is_thumbnail %}checked{% endif %}> Thumbnail
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if form.images.errors %}
             <ul class="errorlist">
-                {% for error in form.image.errors %}
+                {% for error in form.images.errors %}
                 <li>{{ error }}</li>
                 {% endfor %}
             </ul>
             {% endif %}
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update Product</button>
+            </div>
         </div>
     </div>
 </form> 
+<script>
+function previewImages(event) {
+    const files = event.target.files;
+    const previewContainer = document.getElementById('imagePreviews');
+    const thumbnailSelector = document.getElementById('thumbnailSelector');
+    // Hide existing thumbnail radios if new images are selected
+    const existingThumbRadios = document.querySelectorAll('input[name="existing_thumbnail"]');
+    if (files.length > 0) {
+        existingThumbRadios.forEach(radio => {
+            radio.disabled = true;
+            radio.closest('div').style.opacity = 0.5; // visually indicate disabled
+        });
+    } else {
+        existingThumbRadios.forEach(radio => {
+            radio.disabled = false;
+            radio.closest('div').style.opacity = 1;
+        });
+    }
+    previewContainer.innerHTML = '';
+    thumbnailSelector.innerHTML = '';
+    if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.style.display = 'inline-block';
+                div.style.marginRight = '10px';
+                div.style.textAlign = 'center';
+                div.innerHTML = `<img src="${e.target.result}" alt="Preview" class="image-preview"><br><input type='radio' name='thumbnail' value='${i}' ${i===0?'checked':''}> Thumbnail`;
+                previewContainer.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+}
+// Attach previewImages to the file input after DOM is loaded
+function attachPreviewImagesListener() {
+    const fileInput = document.getElementById('id_image_file');
+    if (fileInput) {
+        fileInput.removeEventListener('change', previewImages); // Prevent duplicate
+        fileInput.addEventListener('change', previewImages);
+    }
+}
+document.addEventListener('DOMContentLoaded', attachPreviewImagesListener);
+</script> 
+<style>
+.image-preview {
+    max-width: 100px;
+    max-height: 100px;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    margin-top: 10px;
+    object-fit: contain;
+    border: 2px solid #e1e5e9;
+}
+</style> 

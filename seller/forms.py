@@ -187,8 +187,7 @@ class ProductImageForm(forms.ModelForm):
 
 
 class DynamicProductForm(forms.ModelForm):
-    image = forms.FileField(required=False, label="Product Image")
-    
+    # Do NOT define any image or images field here. The file input is handled in the template and processed in the view.
     class Meta:
         model = Product
         fields = [
@@ -211,48 +210,31 @@ class DynamicProductForm(forms.ModelForm):
 
     def save(self, commit=True):
         product = super().save(commit=False)
-        
-        # Handle image upload
-        if self.cleaned_data.get('image'):
-            image_file = self.cleaned_data['image']
-            product.set_image(image_file.read())
-        
         # Calculate final price if discount is provided
         if product.discount_percentage and product.base_price:
             product.final_price = product.base_price * (1 - product.discount_percentage / 100)
-        
         if commit:
             product.save()
-            
             # Handle dynamic attributes
             self.save_dynamic_attributes(product)
-        
         return product
 
     def save_dynamic_attributes(self, product):
-        """Save dynamic attributes from form data and create options if new"""
         from .models import AttributeOption
-        
         for field_name, value in self.data.items():
             if field_name.startswith('attribute_') and value:
                 attribute_id = field_name.replace('attribute_', '')
                 try:
                     attribute = CategoryAttribute.objects.get(id=attribute_id)
-                    
-                    # Check if this value already exists as an option
                     existing_option = AttributeOption.objects.filter(
                         attribute=attribute, 
                         value=value
                     ).first()
-                    
-                    # Create new option if it doesn't exist
                     if not existing_option:
                         AttributeOption.objects.create(
                             attribute=attribute,
                             value=value
                         )
-                    
-                    # Create or update the product attribute value
                     ProductAttributeValue.objects.update_or_create(
                         product=product,
                         attribute=attribute,

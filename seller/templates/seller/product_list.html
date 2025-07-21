@@ -1,3 +1,4 @@
+{% load b64filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -240,10 +241,10 @@
         <div class="products-grid">
             {% for product in products %}
             <div class="product-card">
-                {% if product.get_image_base64 %}
-                <img src="data:image/jpeg;base64,{{ product.get_image_base64 }}" alt="{{ product.name }}" class="product-image">
+                {% if product.thumbnail_image %}
+                    <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" class="product-image">
                 {% else %}
-                <div class="product-image">No Image</div>
+                    <div class="product-image">No Image</div>
                 {% endif %}
                 
                 <div class="product-info">

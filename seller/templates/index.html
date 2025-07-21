@@ -1,4 +1,5 @@
 {% load static %}
+{% load b64filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1215,10 +1216,10 @@
                             <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
                                 <div class="item-image">
-                                    {% if product.image_data %}
-                                        <img src="data:image/png;base64,{{ product.image_data }}" alt="{{ product.name }}" />
+                                    {% if product.thumbnail_image %}
+                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
                                     {% else %}
-                                        {{ product.name }}
+                                        <div class="item-image">No Image</div>
                                     {% endif %}
                                 </div>
                                 <div class="item-title">{{ product.name }}</div>
@@ -1242,10 +1243,10 @@
                             <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
                                 <div class="item-image">
-                                    {% if product.image_data %}
-                                        <img src="data:image/png;base64,{{ product.image_data }}" alt="{{ product.name }}" />
+                                    {% if product.thumbnail_image %}
+                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
                                     {% else %}
-                                        {{ product.name }}
+                                        <div class="item-image">No Image</div>
                                     {% endif %}
                                 </div>
                                 <div class="item-title">{{ product.name }}</div>
@@ -1259,10 +1260,10 @@
                             <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
                                 <div class="item-image">
-                                    {% if product.image_data %}
-                                        <img src="data:image/png;base64,{{ product.image_data }}" alt="{{ product.name }}" />
+                                    {% if product.thumbnail_image %}
+                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
                                     {% else %}
-                                        {{ product.name }}
+                                        <div class="item-image">No Image</div>
                                     {% endif %}
                                 </div>
                                 <div class="item-title">{{ product.name }}</div>

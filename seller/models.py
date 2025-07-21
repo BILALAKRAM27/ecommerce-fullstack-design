@@ -119,10 +119,17 @@ class Product(models.Model):
 
     image_data = property(get_image_base64)
 
+    @property
+    def thumbnail_image(self):
+        thumb = self.images.filter(is_thumbnail=True).first()
+        if thumb:
+            return thumb
+        return self.images.first()
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     image = models.BinaryField(blank=True, null=True, editable=True)  # Store image as BLOB
-    is_primary = models.BooleanField(default=False)
+    is_thumbnail = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.product.name} - Image"

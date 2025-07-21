@@ -205,8 +205,21 @@ def create_product_view(request):
             product = form.save(commit=False)
             product.seller = seller
             product.save()
-            for image_file in request.FILES.getlist('image_file'):
-                ProductImage.objects.create(product=product, image=image_file.read())
+            # Handle new images
+            thumbnail_index = int(request.POST.get('thumbnail', 0))
+            image_files = request.FILES.getlist('image_file')
+            for idx, image_file in enumerate(image_files):
+                ProductImage.objects.create(
+                    product=product,
+                    image=image_file.read(),
+                    is_thumbnail=(idx == thumbnail_index)
+                )
+            # Handle existing images (if editing)
+            existing_thumbnail_id = request.POST.get('existing_thumbnail')
+            if existing_thumbnail_id:
+                for img in product.images.all():
+                    img.is_thumbnail = (str(img.id) == existing_thumbnail_id)
+                    img.save()
             messages.success(request, 'Product created successfully!')
             return redirect('sellers:product_list')
     else:

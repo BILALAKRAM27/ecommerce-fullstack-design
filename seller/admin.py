@@ -73,7 +73,7 @@ class BrandAdmin(admin.ModelAdmin):
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
-    fields = ('image_url', 'is_primary')
+    fields = ('image_url', 'is_thumbnail')
 
 class ProductAttributeValueInline(admin.TabularInline):
     model = ProductAttributeValue
@@ -114,8 +114,8 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ('product', 'is_primary')
-    list_filter = ('is_primary', 'product__category')
+    list_display = ('product', 'is_thumbnail')
+    list_filter = ('is_thumbnail', 'product__category')
     search_fields = ('product__name',)
 
 # ========== PRODUCT ATTRIBUTE VALUE ADMIN ==========

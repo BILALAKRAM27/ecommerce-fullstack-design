@@ -1,4 +1,6 @@
+{% extends "index.html" %}
 {% load b64filters %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1018,6 +1020,86 @@
                 min-width: 90px;
             }
         }
+        /* Add modern grid for modal form fields */
+        .modal-form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: stretch;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 600px) {
+            .modal-form-grid {
+                gap: 10px;
+            }
+        }
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .image-upload-mode {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px 12px 8px 12px;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        .image-upload-mode label {
+            margin-right: 18px;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        input[type="file"] {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        /* --- Specs Table Styles --- */
+        .specs-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            margin-bottom: 24px;
+        }
+        .specs-table th, .specs-table td {
+            padding: 16px 18px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 1rem;
+        }
+        .specs-table th {
+            background: #f8f9fa;
+            color: #764ba2;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+        .specs-table tr:last-child td {
+            border-bottom: none;
+        }
+        .specs-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .specs-table tbody tr:hover {
+            background: #e9ecef;
+            transition: background 0.2s;
+        }
+        @media (max-width: 600px) {
+            .specs-table th, .specs-table td {
+                padding: 10px 8px;
+                font-size: 0.97rem;
+            }
+            .specs-table {
+                font-size: 0.97rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1113,23 +1195,9 @@
                         <span class="spec-label">Created:</span>
                         <span class="spec-value">{{ product.created_at|date:"F j, Y" }}</span>
                     </div>
-                </div>
-                {% if product.description %}
-                    <div class="spec-row">
-                    <span class="spec-label">Description:</span>
-                    <span class="spec-value">{{ product.description }}</span>
                     </div>
-                {% endif %}
-                {% if product.attribute_values.all %}
-                <div class="spec-table">
-                    {% for attr_value in product.attribute_values.all %}
-                    <div class="spec-row">
-                        <span class="spec-label">{{ attr_value.attribute.name }}{% if attr_value.attribute.unit %} ({{ attr_value.attribute.unit }}){% endif %}:</span>
-                        <span class="spec-value">{{ attr_value.value }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+                
+                
                 <div style="margin-top: 20px; display: flex; gap: 15px;">
                     {% if user_type == 'buyer' %}
                         <form method="post" action="#">
@@ -1147,10 +1215,14 @@
             <!-- Sidebar -->
             <div class="sidebar">
                 <div class="supplier-info">
-                    <div class="supplier-avatar">{{ seller.shop_name|first|default:'S' }}</div>
+                    {% if product.seller.image %}
+                        <img src="data:image/jpeg;base64,{{ product.seller.image|b64encode }}" alt="{{ product.seller.shop_name }}" class="supplier-avatar" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">
+                    {% else %}
+                        <div class="supplier-avatar">{{ product.seller.shop_name|first|default:'S' }}</div>
+                    {% endif %}
                     <div class="supplier-details">
                         <h3>Supplier</h3>
-                        <p>{{ seller.shop_name }}</p>
+                        <p>{{ product.seller.shop_name }}</p>
                     </div>
                 </div>
                 <div class="supplier-location">
@@ -1160,7 +1232,7 @@
                     ✓ Verified Seller
                 </div>
                 <div class="worldwide-shipping">
-                    �� Worldwide shipping
+                    🌐 Worldwide shipping
                 </div>
                 <br>
                 <a href="#" class="btn btn-primary">Send inquiry</a>
@@ -1180,33 +1252,25 @@
             
             <div class="tab-content">
                 <div id="description" class="tab-pane active">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-                    
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisl ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-
-                    <div class="spec-grid">
-                        <div class="spec-item">
-                            <span>Model</span>
-                            <span>#9786867</span>
-                        </div>
-                        <div class="spec-item">
-                            <span>Style</span>
-                            <span>Classic style</span>
-                        </div>
-                        <div class="spec-item">
-                            <span>Certificate</span>
-                            <span>ISO-898212T2</span>
-                        </div>
-                        <div class="spec-item">
-                            <span>Size</span>
-                            <span>34mm x 450mm x 19mm</span>
-                        </div>
-                        <div class="spec-item">
-                            <span>Memory</span>
-                            <span>36GB RAM</span>
-                        </div>
-                    </div>
-
+                    {% if product.description %}
+                        <p>{{ product.description }}</p>
+                    {% else %}
+                        <p>No Description of the product provided by the supplier</p>
+                    {% endif %}
+                    <table class="specs-table">
+                        <tbody>
+                            <tr>
+                                <th>Product ID</th>
+                                <td>{{ product.unique_id }}</td>
+                            </tr>
+                            {% for attr_value in product.attribute_values.all %}
+                            <tr>
+                                <th>{{ attr_value.attribute.name }}{% if attr_value.attribute.unit %} ({{ attr_value.attribute.unit }}){% endif %}</th>
+                                <td>{{ attr_value.value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                     <ul class="product-features">
                         <li>Some great feature name here</li>
                         <li>Lorem ipsum dolor sit amet, consectetur</li>
@@ -1560,6 +1624,19 @@
             }
         }
         // --- End dynamic form logic ---
+
+        // --- Tab switching logic ---
+        function showTab(event, tabId) {
+            // Remove 'active' from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            // Activate the clicked tab button
+            event.currentTarget.classList.add('active');
+            // Show the selected tab pane
+            const tabPane = document.getElementById(tabId);
+            if (tabPane) tabPane.classList.add('active');
+        }
     </script>
     <script>
 function previewImages(event) {
@@ -1605,5 +1682,4 @@ function attachPreviewImagesListener() {
     }
 }
     </script>
-</body>
-</html>
+{% endblock %}

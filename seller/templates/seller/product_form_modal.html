@@ -3,57 +3,47 @@
 <form method="POST" enctype="multipart/form-data" id="updateProductForm">
     {% csrf_token %}
     
-    <div class="form-row">
-        <div class="form-group">
-            <label for="{{ form.name.id_for_label }}">Product Name *</label>
-            {{ form.name }}
-            {% if form.name.errors %}
-            <ul class="errorlist">
-                {% for error in form.name.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="{{ form.brand.id_for_label }}">Brand</label>
-            {{ form.brand }}
-            {% if form.brand.errors %}
-            <ul class="errorlist">
-                {% for error in form.brand.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
+    <div class="form-group">
+        <label for="{{ form.name.id_for_label }}">Product Name *</label>
+        {{ form.name }}
+        {% if form.name.errors %}
+        <ul class="errorlist">
+            {% for error in form.name.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     </div>
-
-    <!-- Category Selection -->
+    <div class="form-group">
+        <label for="{{ form.brand.id_for_label }}">Brand</label>
+        {{ form.brand }}
+        {% if form.brand.errors %}
+        <ul class="errorlist">
+            {% for error in form.brand.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
     {% if parent_categories %}
-    <div class="form-row">
-        <div class="form-group">
-            <label for="parent_category">Parent Category *</label>
-            <select id="parent_category" name="parent_category" required>
-                <option value="">Select Parent Category</option>
-                {% for category in parent_categories %}
-                <option value="{{ category.id }}" {% if current_parent_category and current_parent_category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label for="child_category">Child Category</label>
-            <select id="child_category" name="child_category">
-                <option value="">Select Child Category (if any)</option>
-                {% if current_child_category %}
-                <option value="{{ current_child_category.id }}" selected>{{ current_child_category.name }}</option>
-                {% endif %}
-            </select>
-        </div>
+    <div class="form-group">
+        <label for="parent_category">Parent Category *</label>
+        <select id="parent_category" name="parent_category" required>
+            <option value="">Select Parent Category</option>
+            {% for category in parent_categories %}
+            <option value="{{ category.id }}" {% if current_parent_category and current_parent_category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+        </select>
     </div>
-
-    <!-- Final Category Selection -->
+    <div class="form-group">
+        <label for="child_category">Child Category</label>
+        <select id="child_category" name="child_category">
+            <option value="">Select Child Category (if any)</option>
+            {% if current_child_category %}
+            <option value="{{ current_child_category.id }}" selected>{{ current_child_category.name }}</option>
+            {% endif %}
+        </select>
+    </div>
     <div class="form-group">
         <label for="{{ form.category.id_for_label }}">Final Category *</label>
         {{ form.category }}
@@ -65,8 +55,6 @@
         </ul>
         {% endif %}
     </div>
-
-    <!-- Dynamic Attributes Section -->
     <div id="attributesSection" class="attribute-section" style="display: none;">
         <h3>Product Attributes</h3>
         <div id="attributesContainer">
@@ -74,8 +62,6 @@
         </div>
     </div>
     {% endif %}
-
-    <!-- Product Description -->
     <div class="form-group full-width">
         <label for="{{ form.description.id_for_label }}">Description</label>
         {{ form.description }}
@@ -87,109 +73,95 @@
         </ul>
         {% endif %}
     </div>
-
-    <!-- Pricing -->
-    <div class="form-row">
-        <div class="form-group">
-            <label for="{{ form.base_price.id_for_label }}">Base Price *</label>
-            {{ form.base_price }}
-            <div class="help-text">Enter the original price of the product</div>
-            {% if form.base_price.errors %}
-            <ul class="errorlist">
-                {% for error in form.base_price.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="{{ form.discount_percentage.id_for_label }}">Discount Percentage</label>
-            {{ form.discount_percentage }}
-            <div class="help-text">Enter discount as percentage (e.g., 10 for 10%)</div>
-            {% if form.discount_percentage.errors %}
-            <ul class="errorlist">
-                {% for error in form.discount_percentage.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
+    <div class="form-group">
+        <label for="{{ form.base_price.id_for_label }}">Base Price *</label>
+        {{ form.base_price }}
+        <div class="help-text">Enter the original price of the product</div>
+        {% if form.base_price.errors %}
+        <ul class="errorlist">
+            {% for error in form.base_price.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     </div>
-
-    <div class="form-row">
-        <div class="form-group">
-            <label for="{{ form.final_price.id_for_label }}">Final Price</label>
-            {{ form.final_price }}
-            <div class="help-text">Will be calculated automatically if discount is provided</div>
-            {% if form.final_price.errors %}
-            <ul class="errorlist">
-                {% for error in form.final_price.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
-        
-        <div class="form-group">
-            <label for="{{ form.stock.id_for_label }}">Stock Quantity *</label>
-            {{ form.stock }}
-            {% if form.stock.errors %}
-            <ul class="errorlist">
-                {% for error in form.stock.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
+    <div class="form-group">
+        <label for="{{ form.discount_percentage.id_for_label }}">Discount Percentage</label>
+        {{ form.discount_percentage }}
+        <div class="help-text">Enter discount as percentage (e.g., 10 for 10%)</div>
+        {% if form.discount_percentage.errors %}
+        <ul class="errorlist">
+            {% for error in form.discount_percentage.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     </div>
-
-    <!-- Condition and Image -->
-    <div class="form-row">
-        <div class="form-group">
-            <label for="{{ form.condition.id_for_label }}">Condition *</label>
-            {{ form.condition }}
-            {% if form.condition.errors %}
-            <ul class="errorlist">
-                {% for error in form.condition.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
+    <div class="form-group">
+        <label for="{{ form.final_price.id_for_label }}">Final Price</label>
+        {{ form.final_price }}
+        <div class="help-text">Will be calculated automatically if discount is provided</div>
+        {% if form.final_price.errors %}
+        <ul class="errorlist">
+            {% for error in form.final_price.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="{{ form.stock.id_for_label }}">Stock Quantity *</label>
+        {{ form.stock }}
+        {% if form.stock.errors %}
+        <ul class="errorlist">
+            {% for error in form.stock.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="{{ form.condition.id_for_label }}">Condition *</label>
+        {{ form.condition }}
+        {% if form.condition.errors %}
+        <ul class="errorlist">
+            {% for error in form.condition.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    <div class="form-group full-width">
+        <label for="id_image_file">Product Images</label>
+        <div id="imageModeOptions" style="margin-bottom:10px;">
+            <label style="font-weight:600;display:block;margin-bottom:6px;">Image Upload Mode:</label>
+            <label style="margin-right:18px;"><input type="radio" name="image_mode" value="add" checked> Add to existing images</label>
+            <label><input type="radio" name="image_mode" value="replace"> Replace all images with new ones</label>
         </div>
-        
-        <div class="form-group full-width">
-            <label for="id_image_file">Product Images</label>
-            <div id="imageModeOptions" style="margin-bottom:10px;">
-                <label style="font-weight:600;display:block;margin-bottom:6px;">Image Upload Mode:</label>
-                <label style="margin-right:18px;"><input type="radio" name="image_mode" value="add" checked> Add to existing images</label>
-                <label><input type="radio" name="image_mode" value="replace"> Replace all images with new ones</label>
-            </div>
-            <input type="file" name="image_file" id="id_image_file" multiple onchange="previewImages(event)">
-            <div id="imagePreviews"></div>
-            <div id="thumbnailSelector" style="margin-top:10px;"></div>
-            {% if product and product.images.all %}
-            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                {% for img in product.images.all %}
-                    <div style="display: flex; flex-direction: column; align-items: center;">
-                        <img src="data:image/jpeg;base64,{{ img.image|b64encode }}" alt="Product Image" class="image-preview">
-                        <input type="radio" name="existing_thumbnail" value="{{ img.id }}" {% if img.is_thumbnail %}checked{% endif %}> Thumbnail
-                    </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% if form.images.errors %}
-            <ul class="errorlist">
-                {% for error in form.images.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Update Product</button>
-            </div>
+        <input type="file" name="image_file" id="id_image_file" multiple onchange="previewImages(event)">
+        <div id="imagePreviews"></div>
+        <div id="thumbnailSelector" style="margin-top:10px;"></div>
+        {% if product and product.images.all %}
+        <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+            {% for img in product.images.all %}
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <img src="data:image/jpeg;base64,{{ img.image|b64encode }}" alt="Product Image" class="image-preview">
+                    <input type="radio" name="existing_thumbnail" value="{{ img.id }}" {% if img.is_thumbnail %}checked{% endif %}> Thumbnail
+                </div>
+            {% endfor %}
         </div>
+        {% endif %}
+        {% if form.images.errors %}
+        <ul class="errorlist">
+            {% for error in form.images.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Product</button>
     </div>
 </form> 
 <script>

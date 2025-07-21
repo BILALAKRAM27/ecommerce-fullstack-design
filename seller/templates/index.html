@@ -235,31 +235,72 @@
             padding: 20px;
             margin-bottom: 20px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }
 
         .user-welcome h3 {
             color: #666;
             font-size: 16px;
-            margin-bottom: 10px;
+            margin-bottom: 16px;
         }
 
         .welcome-btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
             background: #4285f4;
             color: white;
-            padding: 8px 20px;
             border: none;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 10px 0;
             cursor: pointer;
-            margin-bottom: 10px;
+            transition: background 0.18s, box-shadow 0.18s;
+            box-shadow: 0 1px 4px rgba(66,133,244,0.08);
+        }
+
+        .welcome-btn a {
+            color: white;
+            text-decoration: none;
+            display: block;
             width: 100%;
+            height: 100%;
+        }
+
+        .welcome-btn:hover, .welcome-btn:focus {
+            background: #3367d6;
+            box-shadow: 0 2px 8px rgba(66,133,244,0.18);
+        }
+
+        .welcome-btn.login-alt {
+            background: #fff;
+            color: #4285f4;
+            border: 1px solid #4285f4;
+            margin-bottom: 0;
+        }
+
+        .welcome-btn.login-alt a {
+            color: #4285f4;
+        }
+
+        .welcome-btn.login-alt:hover, .welcome-btn.login-alt:focus {
+            background: #f5f7fa;
+            color: #3367d6;
+            border-color: #3367d6;
         }
 
         .login-link {
             color: #4285f4;
-            font-size: 14px;
+            font-size: 15px;
             text-decoration: none;
+            display: inline-block;
+            margin-top: 0;
+        }
+
+        .login-link:hover, .login-link:focus {
+            text-decoration: underline;
+            color: #3367d6;
         }
 
         /* Promo Cards */
@@ -850,15 +891,159 @@
             }
         }
     </style>
+    <style>
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 24px;
+        margin-bottom: 20px;
+    }
+    .category-item-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(66,133,244,0.08), 0 1.5px 4px rgba(0,0,0,0.04);
+        padding: 18px 14px 16px 14px;
+        text-align: center;
+        transition: box-shadow 0.2s, transform 0.2s;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .category-item-card:hover {
+        box-shadow: 0 6px 24px rgba(66,133,244,0.18), 0 2px 8px rgba(0,0,0,0.08);
+        transform: translateY(-4px) scale(1.03);
+        z-index: 2;
+    }
+    .category-item-card .item-image {
+        width: 100%;
+        height: 120px;
+        background: linear-gradient(135deg, #e3f0fc 60%, #f8f9fa 100%);
+        border-radius: 8px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .category-item-card .item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+    .category-item-card .item-title {
+        font-size: 16px;
+        font-weight: 500;
+        color: #222;
+        margin-bottom: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .category-item-card .item-price {
+        color: #4285f4;
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+    @media (max-width: 600px) {
+        .category-grid {
+            grid-template-columns: 1fr;
+        }
+        .category-item-card {
+            padding: 14px 8px 12px 8px;
+        }
+        .category-item-card .item-image {
+            height: 90px;
+        }
+    }
+    </style>
 </head>
 <body>
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:2000;"></div>
+    <!-- Slide-in Sidebar -->
+    <aside id="slide-sidebar" style="position:fixed; top:0; left:-320px; width:320px; max-width:90vw; height:100vh; background:#fff; z-index:2100; box-shadow:2px 0 8px rgba(0,0,0,0.08); transition:left 0.3s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column; overflow-y:auto; overscroll-behavior:contain;">
+        <div style="background:#f5f7fa; padding:32px 24px 16px 24px; display:flex; flex-direction:column; align-items:flex-start; position:relative; flex-shrink:0; width:100%;">
+            {% if not user.is_authenticated %}
+                <div style="width:48px; height:48px; border-radius:50%; background:#e0e4ea; display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
+                    <i class="fas fa-user" style="font-size:28px; color:#b0b4bb;"></i>
+                </div>
+                <div style="font-size:18px; color:#222; margin-bottom:0;">
+                    <a href="{% url 'seller:login' %}" style="text-decoration:none; color:#222;">Sign in</a> <span style="color:#b0b4bb;">|</span> <a href="{% url 'seller:register' %}" style="text-decoration:none; color:#222;">Register</a>
+                </div>
+            {% elif user_type == 'buyer' and buyer %}
+                <div style="width:48px; height:48px; border-radius:50%; background:#e0e4ea; display:flex; align-items:center; justify-content:center; margin-bottom:8px; overflow:hidden;">
+                    {% if image_base64 %}
+                        <img src="data:image/png;base64,{{ image_base64 }}" alt="Profile" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
+                    {% else %}
+                        <i class="fas fa-user" style="font-size:28px; color:#b0b4bb;"></i>
+                    {% endif %}
+                </div>
+                <div style="font-size:18px; color:#222; margin-bottom:0;">
+                    {{ buyer.name }}<br>
+                    <a href="{% url 'buyer:buyer_profile' %}" style="font-size:14px; color:#4285f4; text-decoration:none;">Profile</a>
+                </div>
+                
+            {% elif user_type == 'seller' and seller %}
+                <div style="width:48px; height:48px; border-radius:50%; background:#e0e4ea; display:flex; align-items:center; justify-content:center; margin-bottom:8px; overflow:hidden;">
+                    {% if image_base64 %}
+                        <img src="data:image/png;base64,{{ image_base64 }}" alt="Profile" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
+                    {% else %}
+                        <i class="fas fa-user" style="font-size:28px; color:#b0b4bb;"></i>
+                    {% endif %}
+                </div>
+                <div style="font-size:18px; color:#222; margin-bottom:0;">
+                    {{ seller.shop_name }}<br>
+                    <a href="{% url 'seller:seller_profile' %}" style="font-size:14px; color:#4285f4; text-decoration:none;">Profile</a>
+                </div>
+            {% endif %}
+            <button id="sidebar-close" style="position:absolute; top:18px; right:18px; background:none; border:none; font-size:22px; color:#b0b4bb; cursor:pointer;"><i class="fas fa-times"></i></button>
+        </div>
+        <nav style="flex:1; padding:24px 0 0 0; min-height:0;">
+            <ul style="list-style:none; padding:0 0 0 0; margin:0;">
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-home" style="color:#b0b4bb; font-size:20px;"></i> Home</li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-list" style="color:#b0b4bb; font-size:20px;"></i> Categories</li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-heart" style="color:#b0b4bb; font-size:20px;"></i> Favorites</li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-box" style="color:#b0b4bb; font-size:20px;"></i> My orders</li>
+            </ul>
+            <hr style="margin:18px 0; border:none; border-top:1px solid #ececec;">
+            <ul style="list-style:none; padding:0; margin:0;">
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-globe" style="color:#b0b4bb; font-size:20px;"></i> English | USD</li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-headset" style="color:#b0b4bb; font-size:20px;"></i> Contact us</li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-building" style="color:#b0b4bb; font-size:20px;"></i> About</li>
+            </ul>
+            <hr style="margin:18px 0; border:none; border-top:1px solid #ececec;">
+            <ul style="list-style:none; padding:0; margin:0;">
+                <li style="padding:12px 32px; font-size:18px; color:#222;">User agreement</li>
+                <li style="padding:12px 32px; font-size:18px; color:#222;">Partnership</li>
+                <li style="padding:12px 32px; font-size:18px; color:#222;">Privacy policy</li>
+                {% if user.is_authenticated %}
+                <li style="padding:12px 32px; font-size:18px; color:#222;"><a href="{% url 'seller:logout' %}" style=" color:#d32f2f; text-decoration:none;">Logout</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </aside>
+    <style>
+    @media (max-width: 600px) {
+        #slide-sidebar {
+            width: 90vw !important;
+            min-width: 0 !important;
+            left: -90vw;
+        }
+        #slide-sidebar.open {
+            left: 0 !important;
+        }
+    }
+    </style>
     <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="header-top">
                 <div class="logo">
-                    <i class="fas fa-cube"></i>
-                    Brand
+                    <img class="fas fa-cube" src="{% static 'seller/assets/icon.png' %}"></img>
+                    MarketVibe
                 </div>
                 
                 <div class="search-bar">
@@ -885,10 +1070,10 @@
         <nav class="nav">
             <div class="container">
                 <div class="nav-menu">
-                    <a href="#" class="nav-item active">
+                    <a href="#" class="nav-item active" id="sidebar-open">
                         <i class="fas fa-bars"></i>
-                        All category
                     </a>
+                    <a href="#" class="nav-item">All Categories</a>
                     <a href="#" class="nav-item">Hot offers</a>
                     <a href="#" class="nav-item">Gift boxes</a>
                     <a href="#" class="nav-item">Projects</a>
@@ -919,11 +1104,13 @@
                     </div>
 
                     <!-- User Welcome -->
+                    {% if not user.is_authenticated %}
                     <div class="user-welcome">
                         <h3>Hi, user<br>let's get started</h3>
-                        <button class="welcome-btn">Join now</button>
-                        <a href="#" class="login-link">Log in</a>
+                        <button class="welcome-btn"><a href="{% url 'seller:register' %}">Join now</a></button>
+                        <button class="welcome-btn login-alt"><a href="{% url 'seller:login' %}" class="login-link">Log in</a></button>
                     </div>
+                    {% endif %}
 
                     <!-- Promo Cards -->
                     <div class="promo-cards">
@@ -1017,55 +1204,74 @@
                         </div>
                     </section>
 
-                    <!-- Consumer Electronics Section -->
+                    <!-- Electronics and Gadgets Section (dynamic) -->
                     <section class="category-section">
                         <div class="category-header">
                             <h3 class="category-title">Consumer electronics and gadgets</h3>
                             <button class="source-btn">Source now</button>
                         </div>
                         <div class="category-grid">
+                            {% for product in electronics_products %}
+                            <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
-                                <div class="item-image">Smart watches</div>
-                                <div class="item-title">Smart watches</div>
-                                <div class="item-price">From USD 19</div>
+                                <div class="item-image">
+                                    {% if product.image_data %}
+                                        <img src="data:image/png;base64,{{ product.image_data }}" alt="{{ product.name }}" />
+                                    {% else %}
+                                        {{ product.name }}
+                                    {% endif %}
+                                </div>
+                                <div class="item-title">{{ product.name }}</div>
+                                <div class="item-price">${{ product.final_price|default:product.base_price }}</div>
                             </div>
-                            <div class="category-item-card">
-                                <div class="item-image">Cameras</div>
-                                <div class="item-title">Cameras</div>
-                                <div class="item-price">From USD 89</div>
-                            </div>
-                            <div class="category-item-card">
-                                <div class="item-image">Headphones</div>
-                                <div class="item-title">Headphones</div>
-                                <div class="item-price">From USD 10</div>
-                            </div>
-                            <div class="category-item-card">
-                                <div class="item-image">Smart watches</div>
-                                <div class="item-title">Smart watches</div>
-                                <div class="item-price">From USD 90</div>
-                            </div>
-                            <div class="category-item-card">
-                                <div class="item-image">Gaming set</div>
-                                <div class="item-title">Gaming set</div>
-                                <div class="item-price">From USD 231</div>
-                            </div>
+                            </a>
+                            {% empty %}
+                            <div>No electronics products found.</div>
+                            {% endfor %}
                         </div>
-                        <div class="category-grid" style="margin-top: 20px;">
+                    </section>
+
+                    <!-- Furniture and Clothing Section (dynamic) -->
+                    <section class="category-section">
+                        <div class="category-header">
+                            <h3 class="category-title">Furniture and Clothing</h3>
+                            <button class="source-btn">Source now</button>
+                        </div>
+                        <div class="category-grid">
+                            {% for product in furniture_products %}
+                            <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
-                                <div class="item-image">Laptops & PC</div>
-                                <div class="item-title">Laptops & PC</div>
-                                <div class="item-price">From USD 340</div>
+                                <div class="item-image">
+                                    {% if product.image_data %}
+                                        <img src="data:image/png;base64,{{ product.image_data }}" alt="{{ product.name }}" />
+                                    {% else %}
+                                        {{ product.name }}
+                                    {% endif %}
+                                </div>
+                                <div class="item-title">{{ product.name }}</div>
+                                <div class="item-price">${{ product.final_price|default:product.base_price }}</div>
                             </div>
+                            </a>
+                            {% empty %}
+                            <div>No furniture products found.</div>
+                            {% endfor %}
+                            {% for product in clothing_products %}
+                            <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
-                                <div class="item-image">Smartphones</div>
-                                <div class="item-title">Smartphones</div>
-                                <div class="item-price">From USD 19</div>
+                                <div class="item-image">
+                                    {% if product.image_data %}
+                                        <img src="data:image/png;base64,{{ product.image_data }}" alt="{{ product.name }}" />
+                                    {% else %}
+                                        {{ product.name }}
+                                    {% endif %}
+                                </div>
+                                <div class="item-title">{{ product.name }}</div>
+                                <div class="item-price">${{ product.final_price|default:product.base_price }}</div>
                             </div>
-                            <div class="category-item-card">
-                                <div class="item-image">Electric kettle</div>
-                                <div class="item-title">Electric kettle</div>
-                                <div class="item-price">From USD 240</div>
-                            </div>
+                            </a>
+                            {% empty %}
+                            <div>No clothing products found.</div>
+                            {% endfor %}
                         </div>
                     </section>
 
@@ -1288,8 +1494,8 @@
                 <div class="footer-section">
                     <h4>For users</h4>
                     <ul>
-                        <li><a href="#">Login</a></li>
-                        <li><a href="#">Register</a></li>
+                        <li><a href="{% url 'seller:login' %}">Login</a></li>
+                        <li><a href="{% url 'seller:register' %}">Register</a></li>
                         <li><a href="#">Settings</a></li>
                         <li><a href="#">My Orders</a></li>
                     </ul>
@@ -1299,8 +1505,8 @@
             <div class="footer-bottom">
                 <div style="display: flex; align-items: center; gap: 20px;">
                     <div class="logo">
-                        <i class="fas fa-cube"></i>
-                        Brand
+                        <img class="fas fa-cube" src="{% static 'seller/assets/icon.png' %}"></img>
+                        MarketVibe
                     </div>
                     <p style="color: #666; margin: 0; font-size: 14px;">
                         Best information about the company gies here but now lorem ipsum is
@@ -1315,7 +1521,7 @@
                 </div>
                 
                 <div style="display: flex; align-items: center; gap: 15px;">
-                    <span style="color: #666; font-size: 14px;">© 2023 Ecommerce.</span>
+                    <span style="color: #666; font-size: 14px;">© 2025 Ecommerce.</span>
                     <span style="color: #666; font-size: 14px;">🇺🇸 English</span>
                     <div class="app-downloads">
                         <div class="app-btn">
@@ -1400,6 +1606,43 @@
                 });
             });
         });
+    </script>
+    <script>
+        // Sidebar open/close logic
+        const sidebar = document.getElementById('slide-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const openBtn = document.getElementById('sidebar-open');
+        const closeBtn = document.getElementById('sidebar-close');
+
+        function openSidebar() {
+            if (window.innerWidth <= 600) {
+                sidebar.classList.add('open');
+                sidebar.style.left = '0';
+            } else {
+                sidebar.style.left = '0';
+            }
+            overlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSidebar() {
+            if (window.innerWidth <= 600) {
+                sidebar.classList.remove('open');
+                sidebar.style.left = '-90vw';
+            } else {
+                sidebar.style.left = '-320px';
+            }
+            overlay.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        openBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSidebar();
+        });
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeSidebar();
+        });
+        overlay.addEventListener('click', closeSidebar);
     </script>
     {% endblock %}
 </body>

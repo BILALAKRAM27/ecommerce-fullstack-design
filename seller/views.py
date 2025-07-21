@@ -14,7 +14,53 @@ import json
 
 
 def index_view(request):
-    return render(request, "index.html")
+    user = request.user if request.user.is_authenticated else None
+    seller = None
+    buyer = None
+    image_base64 = None
+    user_type = None
+    if user:
+        # Try to get Seller by user
+        try:
+            seller = Seller.objects.get(user=user)
+            image_base64 = seller.get_image_base64()
+            user_type = 'seller'
+        except Seller.DoesNotExist:
+            # Try to get Buyer by email
+            try:
+                buyer = Buyer.objects.get(email=user.email)
+                image_base64 = buyer.get_image_base64()
+                user_type = 'buyer'
+            except Buyer.DoesNotExist:
+                pass
+    # Get categories for sections
+    electronics = Category.objects.filter(name__icontains='electronic')
+    electronics_subs = Category.objects.filter(parent__in=electronics)
+    clothing = Category.objects.filter(name__icontains='clothing')
+    clothing_subs = Category.objects.filter(parent__in=clothing)
+    furniture = Category.objects.filter(name__icontains='furniture')
+    furniture_subs = Category.objects.filter(parent__in=furniture)
+    electronics_cats = list(electronics) + list(electronics_subs)
+    clothing_cats = list(clothing) + list(clothing_subs)
+    furniture_cats = list(furniture) + list(furniture_subs)
+    # Fetch products for each section
+    electronics_products = Product.objects.filter(category__in=electronics_cats)
+    clothing_products = Product.objects.filter(category__in=clothing_cats)
+    furniture_products = Product.objects.filter(category__in=furniture_cats)
+    context = {
+        'user': user,
+        'seller': seller,
+        'buyer': buyer,
+        'image_base64': image_base64,
+        'user_type': user_type,
+        'electronics_categories': electronics_cats,
+        'clothing_categories': clothing_cats,
+        'furniture_categories': furniture_cats,
+        'electronics_products': electronics_products,
+        'clothing_products': clothing_products,
+        'furniture_products': furniture_products,
+    }
+    return render(request, "index.html", context)
 
 # CREATE User (Buyer or Seller)
 def create_seller_view(request):
@@ -190,17 +236,14 @@ def product_list_view(request):
 
 
 # READ Product Detail
-@login_required
-def product_detail_view(request, product_id):
-    seller = get_object_or_404(Seller, user=request.user)
-    product = get_object_or_404(Product, id=product_id, seller=seller)
-    
+def product_page_view(request, product_id):
+    seller = get_object_or_404(Seller, user=request.user) if request.user.is_authenticated else None
+    product = get_object_or_404(Product, id=product_id)
     context = {
         'product': product,
         'seller': seller,
-        'image_base64': product.get_image_base64()
     }
-    return render(request, 'seller/product_detail.html', context)
+    return render(request, 'seller/product_page.html', context)
 
 
 # UPDATE Product

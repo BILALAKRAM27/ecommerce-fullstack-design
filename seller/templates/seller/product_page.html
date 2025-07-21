@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #6c757d;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #007bff;
+        }
+
+        .breadcrumb span {
+            margin: 0 8px;
+            color: #6c757d;
+        }
+
+        /* Main product section */
+        .product-section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 300px;
+            gap: 40px;
+        }
+
+        /* Product images */
+        .product-images {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 400px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .main-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .thumbnail-images {
+            display: flex;
+            gap: 10px;
+        }
+
+        .thumbnail {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            transition: border-color 0.2s;
+        }
+
+        .thumbnail.active {
+            border-color: #007bff;
+        }
+
+        .thumbnail:hover {
+            border-color: #007bff;
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0.7;
+        }
+
+        .thumbnail.active img,
+        .thumbnail:hover img {
+            opacity: 1;
+        }
+
+        /* Product info */
+        .product-info h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #212529;
+        }
+
+        .stock-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #28a745;
+        }
+
+        .stock-status::before {
+            content: '✓';
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star {
+            color: #ffc107;
+            font-size: 16px;
+        }
+
+        .star.empty {
+            color: #e9ecef;
+        }
+
+        .rating-text {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .price-section {
+            margin-bottom: 25px;
+        }
+
+        .prices {
+            display: flex;
+            gap: 15px;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+
+        .current-price {
+            font-size: 28px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        .original-price {
+            font-size: 18px;
+            color: #6c757d;
+            text-decoration: line-through;
+        }
+
+        .discounted-price {
+            font-size: 20px;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .price-labels {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        /* Product specifications */
+        .spec-table {
+            margin-bottom: 25px;
+        }
+
+        .spec-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .spec-label {
+            width: 120px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .spec-value {
+            color: #495057;
+            font-size: 14px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            height: fit-content;
+        }
+
+        .supplier-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .supplier-avatar {
+            width: 40px;
+            height: 40px;
+            background: #17a2b8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .supplier-details h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .supplier-location {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .verified-seller,
+        .worldwide-shipping {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #007bff;
+            border: 1px solid #007bff;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .btn-outline:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .save-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #007bff;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 8px 0;
+        }
+
+        /* Tabs section */
+        .tabs-section {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tab-btn {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #6c757d;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: #007bff;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #007bff;
+        }
+
+        .tab-content {
+            padding: 30px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .product-features {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .product-features li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .product-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .spec-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        /* You may like section */
+        .recommendations {
+            margin-top: 30px;
+        }
+
+        .recommendations h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .recommendation-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .recommendation-item:last-child {
+            border-bottom: none;
+        }
+
+        .rec-image {
+            width: 60px;
+            height: 60px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+
+        .rec-info h4 {
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .rec-price {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-nav .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .mobile-nav .back-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .mobile-nav .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .mobile-nav .nav-icon {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Mobile Product Card */
+        .mobile-product-card {
+            display: none;
+            background: white;
+            margin-bottom: 10px;
+        }
+
+        .mobile-product-image {
+            width: 100%;
+            height: 300px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .mobile-product-image img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .mobile-image-counter {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .mobile-product-info {
+            padding: 20px;
+        }
+
+        .mobile-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .mobile-product-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .mobile-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        .mobile-send-btn {
+            width: 100%;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mobile-save-btn {
+            width: 100%;
+            background: white;
+            color: #007bff;
+            border: 1px solid #007bff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mobile-specs {
+            margin: 20px 0;
+        }
+
+        .mobile-spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .mobile-spec-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .mobile-spec-value {
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .mobile-description {
+            margin: 20px 0;
+        }
+
+        .mobile-description-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .mobile-read-more {
+            color: #007bff;
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .mobile-supplier {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .mobile-supplier-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            margin-bottom: 10px;
+        }
+
+        .mobile-supplier-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .mobile-supplier-avatar {
+            width: 32px;
+            height: 32px;
+            background: #17a2b8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .mobile-supplier-details h4 {
+            font-size: 14px;
+            margin: 0;
+            color: #333;
+        }
+
+        .mobile-supplier-details p {
+            font-size: 12px;
+            margin: 2px 0 0 0;
+            color: #666;
+        }
+
+        .mobile-supplier-arrow {
+            color: #ccc;
+            font-size: 16px;
+        }
+
+        .mobile-supplier-badges {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .mobile-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .mobile-similar-products {
+            padding: 20px;
+            background: white;
+        }
+
+        .mobile-similar-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .mobile-similar-grid {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .mobile-similar-item {
+            flex-shrink: 0;
+            width: 120px;
+            text-align: center;
+        }
+
+        .mobile-similar-image {
+            width: 120px;
+            height: 120px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-similar-name {
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .mobile-similar-price {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .product-section {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* Hide desktop layout */
+            .breadcrumb,
+            .product-section,
+            .tabs-section {
+                display: none;
+            }
+
+            /* Show mobile layout */
+            .mobile-nav,
+            .mobile-product-card,
+            .mobile-similar-products {
+                display: block;
+            }
+
+            .container {
+                padding: 0;
+                max-width: 100%;
+            }
+
+            body {
+                background: #f8f9fa;
+            }
+
+            /* Mobile navigation display */
+            .mobile-nav {
+                display: flex;
+            }
+
+            /* Mobile product card display */
+            .mobile-product-card {
+                display: block;
+            }
+
+            /* Mobile similar products display */
+            .mobile-similar-products {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mobile-product-info {
+                padding: 15px;
+            }
+            
+            .mobile-similar-products {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb">
+            <a href="/">Home</a>
+            <span>></span>
+            {% if product.category.parent %}
+              <a href="#">{{ product.category.parent.name }}</a>
+              <span>></span>
+            {% endif %}
+            <a href="#">{{ product.category.name }}</a>
+            <span>></span>
+            <span>{{ product.name }}</span>
+        </nav>
+
+        <!-- Main Product Section -->
+        <div class="product-section">
+            <!-- Product Images -->
+            <div class="product-images">
+                <div class="main-image" id="mainImage">
+                    {% if product.get_image_base64 %}
+                        <img src="data:image/jpeg;base64,{{ product.get_image_base64 }}" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/400x400?text=No+Image" alt="No image">
+                    {% endif %}
+                </div>
+                <!-- No thumbnails for now, but you can add more images if your model supports it -->
+            </div>
+
+            <!-- Product Info -->
+            <div class="product-info">
+                <div class="stock-status">
+                    {% if product.stock > 0 %}In stock{% else %}Out of stock{% endif %}
+                </div>
+                <h1>{{ product.name }}</h1>
+                <div class="rating">
+                    <div class="stars">
+                        {% for i in "12345" %}
+                            <span class="star{% if product.rating_avg and product.rating_avg|floatformat:0 < i|add:'0' %} empty{% endif %}">★</span>
+                        {% endfor %}
+                    </div>
+                    <span class="rating-text">
+                        {% if product.rating_avg %}{{ product.rating_avg|floatformat:1 }}{% else %}N/A{% endif %} · 📝 {{ product.order_count }} orders
+                    </span>
+                </div>
+                <div class="price-section">
+                    <div class="prices">
+                        {% if product.final_price %}
+                            <span class="current-price">${{ product.final_price|floatformat:2 }}</span>
+                            {% if product.discount_percentage %}
+                                <span class="original-price">${{ product.base_price|floatformat:2 }}</span>
+                                <span class="discounted-price">{{ product.discount_percentage }}% OFF</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="current-price">${{ product.base_price|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="spec-table">
+                    <div class="spec-row">
+                        <span class="spec-label">Category:</span>
+                        <span class="spec-value">{{ product.category.name }}</span>
+                    </div>
+                    {% if product.brand %}
+                    <div class="spec-row">
+                        <span class="spec-label">Brand:</span>
+                        <span class="spec-value">{{ product.brand.name }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="spec-row">
+                        <span class="spec-label">Stock:</span>
+                        <span class="spec-value">{{ product.stock }}</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Condition:</span>
+                        <span class="spec-value">{{ product.condition|title }}</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Created:</span>
+                        <span class="spec-value">{{ product.created_at|date:"F j, Y" }}</span>
+                    </div>
+                </div>
+                {% if product.description %}
+                <div class="spec-row">
+                    <span class="spec-label">Description:</span>
+                    <span class="spec-value">{{ product.description }}</span>
+                </div>
+                {% endif %}
+                {% if product.attribute_values.all %}
+                <div class="spec-table">
+                    {% for attr_value in product.attribute_values.all %}
+                    <div class="spec-row">
+                        <span class="spec-label">{{ attr_value.attribute.name }}{% if attr_value.attribute.unit %} ({{ attr_value.attribute.unit }}){% endif %}:</span>
+                        <span class="spec-value">{{ attr_value.value }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="supplier-info">
+                    <div class="supplier-avatar">{{ seller.shop_name|first|default:'S' }}</div>
+                    <div class="supplier-details">
+                        <h3>Supplier</h3>
+                        <p>{{ seller.shop_name }}</p>
+                    </div>
+                </div>
+                <div class="supplier-location">
+                    <!-- You can add seller location if available -->
+                </div>
+                <div class="verified-seller">
+                    ✓ Verified Seller
+                </div>
+                <div class="worldwide-shipping">
+                    �� Worldwide shipping
+                </div>
+                <br>
+                <a href="#" class="btn btn-primary">Send inquiry</a>
+                <a href="#" class="btn btn-outline">Seller's profile</a>
+                <button class="save-btn">♡ Save for later</button>
+            </div>
+        </div>
+
+        <!-- Tabs Section -->
+        <div class="tabs-section">
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showTab(event, 'description')">Description</button>
+                <button class="tab-btn" onclick="showTab(event, 'reviews')">Reviews</button>
+                <button class="tab-btn" onclick="showTab(event, 'shipping')">Shipping</button>
+                <button class="tab-btn" onclick="showTab(event, 'about-seller')">About seller</button>
+            </div>
+            
+            <div class="tab-content">
+                <div id="description" class="tab-pane active">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                    
+                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisl ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+
+                    <div class="spec-grid">
+                        <div class="spec-item">
+                            <span>Model</span>
+                            <span>#9786867</span>
+                        </div>
+                        <div class="spec-item">
+                            <span>Style</span>
+                            <span>Classic style</span>
+                        </div>
+                        <div class="spec-item">
+                            <span>Certificate</span>
+                            <span>ISO-898212T2</span>
+                        </div>
+                        <div class="spec-item">
+                            <span>Size</span>
+                            <span>34mm x 450mm x 19mm</span>
+                        </div>
+                        <div class="spec-item">
+                            <span>Memory</span>
+                            <span>36GB RAM</span>
+                        </div>
+                    </div>
+
+                    <ul class="product-features">
+                        <li>Some great feature name here</li>
+                        <li>Lorem ipsum dolor sit amet, consectetur</li>
+                        <li>Duis aute irure dolor in reprehenderit</li>
+                        <li>Some great feature name here</li>
+                    </ul>
+                </div>
+                
+                <div id="reviews" class="tab-pane">
+                    <h3>Customer Reviews</h3>
+                    <p>32 reviews with an average rating of 4.7 stars.</p>
+                    <p>Customer review content would go here...</p>
+                </div>
+                
+                <div id="shipping" class="tab-pane">
+                    <h3>Shipping Information</h3>
+                    <p>Worldwide shipping available. Delivery times vary by location.</p>
+                    <p>Shipping details and policies would go here...</p>
+                </div>
+                
+                <div id="about-seller" class="tab-pane">
+                    <h3>About Guarjoji Trading LLC</h3>
+                    <p>Verified seller based in Germany, Berlin.</p>
+                    <p>Seller information and ratings would go here...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function changeImage(thumbnail, newSrc) {
+            // Remove active class from all thumbnails
+            document.querySelectorAll('.thumbnail').forEach(thumb => {
+                thumb.classList.remove('active');
+            });
+            
+            // Add active class to clicked thumbnail
+            thumbnail.classList.add('active');
+            
+            // Change main image
+            const mainImg = document.querySelector('#mainImage img');
+            mainImg.src = newSrc;
+        }
+
+        function showTab(evt, tabName) {
+            // Hide all tab panes
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab pane and mark button as active
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        // Add some interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Save for later functionality
+            const saveBtn = document.querySelector('.save-btn');
+            saveBtn.addEventListener('click', function() {
+                if (this.innerHTML.includes('♡')) {
+                    this.innerHTML = '♥ Saved';
+                    this.style.color = '#dc3545';
+                } else {
+                    this.innerHTML = '♡ Save for later';
+                    this.style.color = '#007bff';
+                }
+            });
+
+            // Add hover effects to product images
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.transform = 'scale(1.05)';
+                    }
+                });
+                
+                thumb.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

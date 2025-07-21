@@ -1,3 +1,4 @@
+{% load b64filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -813,14 +814,26 @@
         <div class="product-section">
             <!-- Product Images -->
             <div class="product-images">
-                <div class="main-image" id="mainImage">
-                    {% if product.get_image_base64 %}
-                        <img src="data:image/jpeg;base64,{{ product.get_image_base64 }}" alt="{{ product.name }}">
-                    {% else %}
+                {% if product.images.all %}
+                    <div class="main-image" id="mainImage">
+                        {% if product.images.first %}
+                            <img src="data:image/jpeg;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/400x400?text=No+Image" alt="No image">
+                        {% endif %}
+                    </div>
+                    <div class="thumbnail-images">
+                        {% for img in product.images.all %}
+                            <div class="thumbnail" onclick="changeImage(this, 'data:image/jpeg;base64,{{ img.image|b64encode }}')">
+                                <img src="data:image/jpeg;base64,{{ img.image|b64encode }}" alt="Thumbnail">
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="main-image" id="mainImage">
                         <img src="https://via.placeholder.com/400x400?text=No+Image" alt="No image">
-                    {% endif %}
-                </div>
-                <!-- No thumbnails for now, but you can add more images if your model supports it -->
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Product Info -->

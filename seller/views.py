@@ -200,15 +200,17 @@ def create_product_view(request):
     seller = get_object_or_404(Seller, user=request.user)
     
     if request.method == 'POST':
-        form = DynamicProductForm(request.POST, request.FILES)
+        form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save(commit=False)
             product.seller = seller
             product.save()
+            for image_file in request.FILES.getlist('image_file'):
+                ProductImage.objects.create(product=product, image=image_file.read())
             messages.success(request, 'Product created successfully!')
             return redirect('sellers:product_list')
     else:
-        form = DynamicProductForm()
+        form = ProductForm()
     
     # Get parent categories (categories with no parent)
     parent_categories = Category.objects.filter(parent__isnull=True)

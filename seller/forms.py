@@ -144,7 +144,11 @@ class SellerUpdateForm(forms.ModelForm):
 
 
 class ProductForm(forms.ModelForm):
-    image = forms.FileField(required=False, label="Product Image")
+    images = forms.FileField(
+        required=False,
+        label="Product Images",
+        widget=forms.ClearableFileInput(attrs={'allow_multiple_selected': True})
+    )
     
     class Meta:
         model = Product
@@ -181,7 +185,7 @@ class ProductForm(forms.ModelForm):
 class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
-        fields = ['image_url', 'is_primary']
+        fields = ['product', 'image', 'is_primary']
         widgets = {
             'image_url': forms.URLInput(attrs={'placeholder': 'Enter image URL'}),
         }

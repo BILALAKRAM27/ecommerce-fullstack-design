@@ -114,7 +114,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ('product', 'image_url', 'is_primary')
+    list_display = ('product', 'is_primary')
     list_filter = ('is_primary', 'product__category')
     search_fields = ('product__name',)
 

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 import base64
+import uuid
 
 # ========== ENUMS ==========
 
@@ -96,6 +97,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     order_count = models.IntegerField(default=0)
     image = models.BinaryField(blank=True, null=True, editable=True)  # Storing image as binary data (BLOB)
+    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
     def __str__(self):
         return self.name
@@ -119,7 +121,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
-    image_url = models.URLField()
+    image = models.BinaryField(blank=True, null=True, editable=True)  # Store image as BLOB
     is_primary = models.BooleanField(default=False)
 
     def __str__(self):

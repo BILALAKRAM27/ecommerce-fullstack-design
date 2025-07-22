@@ -986,7 +986,6 @@
                     {{ buyer.name }}<br>
                     <a href="{% url 'buyer:buyer_profile' %}" style="font-size:14px; color:#4285f4; text-decoration:none;">Profile</a>
                 </div>
-                
             {% elif user_type == 'seller' and seller %}
                 <div style="width:48px; height:48px; border-radius:50%; background:#e0e4ea; display:flex; align-items:center; justify-content:center; margin-bottom:8px; overflow:hidden;">
                     {% if image_base64 %}
@@ -1004,7 +1003,7 @@
         </div>
         <nav style="flex:1; padding:24px 0 0 0; min-height:0;">
             <ul style="list-style:none; padding:0 0 0 0; margin:0;">
-                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-home" style="color:#b0b4bb; font-size:20px;"></i> Home</li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'seller:index' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-home" style="color:#b0b4bb; font-size:20px;"></i> Home</a></li>
                 <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-list" style="color:#b0b4bb; font-size:20px;"></i> Categories</li>
                 <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-heart" style="color:#b0b4bb; font-size:20px;"></i> Favorites</li>
                 <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-box" style="color:#b0b4bb; font-size:20px;"></i> My orders</li>
@@ -1043,8 +1042,10 @@
         <div class="container">
             <div class="header-top">
                 <div class="logo">
-                    <img class="fas fa-cube" src="{% static 'seller/assets/icon.png' %}"></img>
-                    MarketVibe
+                    <a href="{% url 'seller:index' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                        <img class="fas fa-cube" src="{% static 'seller/assets/icon.png' %}"></img>
+                        MarketVibe
+                    </a>
                 </div>
                 
                 <div class="search-bar">
@@ -1059,7 +1060,13 @@
                 </div>
                 
                 <div class="header-actions">
-                    <span><i class="fas fa-user"></i></span>
+                    {% if user.is_authenticated and user_type == 'seller' %}
+                    <span><a href="{% url 'seller:profile' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user"></i></a></span>
+                    {% elif user.is_authenticated and user_type == 'buyer' %}
+                    <span><a href="{% url 'buyer:buyer_profile' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user"></i></a></span>
+                    {% else %}
+                    <span><a href="{% url 'seller:login' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user"></i></a></span>
+                    {% endif %}
                     <span><i class="fas fa-heart"></i></span>
                     <span>
                         <a href="{% if user.is_authenticated and user_type == 'buyer' %}{% url 'buyer:cart_page' %}{% else %}#{% endif %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">

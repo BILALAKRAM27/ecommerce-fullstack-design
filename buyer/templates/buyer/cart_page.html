@@ -536,8 +536,8 @@
                             </div>
                         </div>
                         <div class="item-controls">
-                            <div class="item-price" data-unit-price="{{ item.product.price }}">
-                                ${{ item.total_price|floatformat:2 }}
+                            <div class="item-price" data-unit-price="{{ item.product.final_price }}">
+                                ${{ item.product.final_price|floatformat:2 }}
                             </div>
                             <div class="quantity-control">
                                 <label for="quantity-{{ item.product.id }}">Qty:</label>
@@ -549,7 +549,8 @@
                                     value="{{ item.quantity }}"
                                     min="1"
                                     data-product-id="{{ item.product.id }}"
-                                    data-unit-price="{{ item.product.price }}"
+                                    data-unit-price="{{ item.product.final_price }}"
+                                    style="width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"
                                 >
                             </div>
                         </div>
@@ -678,33 +679,93 @@
             // Function to safely parse numbers and handle invalid values
             function safeParseFloat(value, defaultValue = 0) {
                 const parsed = parseFloat(value);
-                return isNaN(parsed) ? defaultValue : parsed;
+                return isNaN(parsed) ? defaultValue : Number(parsed.toFixed(2));
+            }
+
+            // Function to format currency
+            function formatCurrency(amount) {
+                // Ensure amount is a number and round to 2 decimal places
+                const roundedAmount = Number(Number(amount).toFixed(2));
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(roundedAmount);
+            }
+
+            // Function to update individual item price
+            function updateItemPrice(cartItem, quantity, unitPrice) {
+                const itemPrice = Number((quantity * unitPrice).toFixed(2));
+                const priceElement = cartItem.querySelector('.item-price');
+                priceElement.textContent = formatCurrency(itemPrice);
+                return itemPrice;
+            }
+
+            // Function to update summary values
+            function updateSummaryValues(subtotal, tax, discount, total) {
+                const summaryRows = document.querySelectorAll('.summary-row');
+                
+                // Update subtotal
+                summaryRows[0].querySelector('.summary-value').textContent = formatCurrency(subtotal);
+                
+                // Update discount
+                const discountRow = document.querySelector('.summary-row.discount .summary-value');
+                discountRow.textContent = `- ${formatCurrency(discount)}`;
+                
+                // Update tax
+                const taxRow = document.querySelector('.summary-row.tax .summary-value');
+                taxRow.textContent = `+ ${formatCurrency(tax)}`;
+                
+                // Update total
+                const totalRow = document.querySelector('.summary-row.total .summary-value');
+                totalRow.textContent = formatCurrency(total);
             }
 
             // Function to update cart totals
-            function updateCartTotals() {
-                let subtotal = 0;
-                document.querySelectorAll('.cart-item').forEach(cartItem => {
-                    const input = cartItem.querySelector('.quantity-input');
-                    const quantity = parseInt(input.value, 10) || 1;
-                    const unitPrice = safeParseFloat(input.getAttribute('data-unit-price'));
-                    const itemPrice = quantity * unitPrice;
-                    
-                    // Update individual item price
-                    cartItem.querySelector('.item-price').textContent = `$${itemPrice.toFixed(2)}`;
-                    subtotal += itemPrice;
-                });
+            function updateCartTotals(serverData = null) {
+                console.log('Updating cart totals with server data:', serverData);
+                
+                if (serverData) {
+                    // Update from server data
+                    const subtotal = Number(serverData.subtotal);
+                    const tax = Number(serverData.tax);
+                    const discount = Number(serverData.discount);
+                    const total = Number(serverData.total);
 
-                // Calculate totals
-                const discount = 60.00; // You can make this dynamic if needed
-                const tax = subtotal * 0.10; // 10% tax
-                const total = subtotal - discount + tax;
+                    // Update all cart items to match server data
+                    document.querySelectorAll('.cart-item').forEach(cartItem => {
+                        const input = cartItem.querySelector('.quantity-input');
+                        const quantity = parseInt(input.value, 10) || 1;
+                        const unitPrice = safeParseFloat(input.getAttribute('data-unit-price'));
+                        updateItemPrice(cartItem, quantity, unitPrice);
+                    });
 
-                // Update summary values
-                document.querySelector('.summary-row:nth-child(1) .summary-value').textContent = `$${subtotal.toFixed(2)}`;
-                document.querySelector('.summary-row.discount .summary-value').textContent = `- $${discount.toFixed(2)}`;
-                document.querySelector('.summary-row.tax .summary-value').textContent = `+ $${tax.toFixed(2)}`;
-                document.querySelector('.summary-row.total .summary-value').textContent = `$${total.toFixed(2)}`;
+                    // Update summary values
+                    updateSummaryValues(subtotal, tax, discount, total);
+                } else {
+                    console.log('No server data, calculating locally');
+                    let subtotal = 0;
+
+                    // Update each cart item and calculate subtotal
+                    document.querySelectorAll('.cart-item').forEach(cartItem => {
+                        const input = cartItem.querySelector('.quantity-input');
+                        const quantity = parseInt(input.value, 10) || 1;
+                        const unitPrice = safeParseFloat(input.getAttribute('data-unit-price'));
+                        const itemPrice = updateItemPrice(cartItem, quantity, unitPrice);
+                        subtotal = Number((subtotal + itemPrice).toFixed(2));
+                    });
+
+                    // Calculate other values
+                    const discount = 60.00;
+                    const tax = Number((subtotal * 0.10).toFixed(2));
+                    const total = Number((subtotal - discount + tax).toFixed(2));
+
+                    console.log(`Local calculation - Subtotal: ${subtotal}, Tax: ${tax}, Discount: ${discount}, Total: ${total}`);
+
+                    // Update summary values
+                    updateSummaryValues(subtotal, tax, discount, total);
+                }
             }
 
             // Function to show notification
@@ -730,19 +791,22 @@
 
             // Handle quantity changes
             document.querySelectorAll('.quantity-input').forEach(input => {
-                let timeout;
+                let previousValue = input.value;
                 
-                input.addEventListener('change', function() {
+                input.addEventListener('change', function(event) {
+                    event.preventDefault();
+                    console.log('Quantity change event triggered');
+                    
                     const quantity = parseInt(this.value, 10) || 1;
                     if (quantity < 1) {
                         this.value = 1;
                         return;
                     }
 
-                    clearTimeout(timeout);
-                    
                     const productId = this.getAttribute('data-product-id');
                     const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+
+                    console.log(`Updating quantity - Product: ${productId}, Quantity: ${quantity}`);
 
                     // Update UI immediately for better UX
                     updateCartTotals();
@@ -756,19 +820,28 @@
                         },
                         body: `product_id=${productId}&quantity=${quantity}`
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        console.log('Server response received');
+                        return response.json();
+                    })
                     .then(data => {
+                        console.log('Server response data:', data);
                         if (data.success) {
                             showNotification('Cart updated successfully');
+                            // Update the UI with server-returned values
+                            updateCartTotals(data);
+                            previousValue = quantity;
+                            
                             // Update cart count in header if needed
                             const cartCountElement = document.querySelector('.cart-count');
                             if (cartCountElement) {
                                 cartCountElement.textContent = data.cart_count || '';
                             }
                         } else {
+                            console.error('Server returned error:', data.error);
                             showNotification(data.error || 'Failed to update cart', true);
                             // Revert to previous value if update failed
-                            this.value = this.defaultValue;
+                            this.value = previousValue;
                             updateCartTotals();
                         }
                     })
@@ -776,16 +849,14 @@
                         console.error('Error updating cart:', error);
                         showNotification('Error updating cart', true);
                         // Revert to previous value on error
-                        this.value = this.defaultValue;
+                        this.value = previousValue;
                         updateCartTotals();
                     });
-
-                    // Store current value as default for potential rollback
-                    this.defaultValue = this.value;
                 });
             });
 
             // Initialize totals on page load
+            console.log('Initializing cart totals');
             updateCartTotals();
         });
 
@@ -888,10 +959,6 @@
         updateCartTotals(); // Initialize totals on page load
     </script>
 {% endblock %}
-{% block extra_js %}
-<script>
-// Place any cart-specific JS here if needed
-</script>
-{% endblock %}
+
 </body>
 </html>

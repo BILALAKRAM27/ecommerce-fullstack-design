@@ -162,82 +162,155 @@ def remove_from_cart(request):
 @require_POST
 def update_cart_quantity(request):
     try:
+        print("=== Starting cart quantity update ===")
         product_id = int(request.POST.get('product_id'))
         quantity = int(request.POST.get('quantity', 1))
+        print(f"Received request - Product ID: {product_id}, Quantity: {quantity}")
         
         # Validate quantity
         if quantity < 1:
+            print("Invalid quantity (less than 1)")
             return JsonResponse({
                 'success': False,
                 'error': 'Quantity must be at least 1'
             })
 
+        # Get the product first to validate it exists
+        try:
+            product = Product.objects.get(id=product_id)
+            print(f"Found product: {product.name}, Price: {product.final_price:.2f}")
+        except Product.DoesNotExist:
+            print(f"Product not found with ID: {product_id}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Product not found'
+            })
+
         # Get or create cart based on user authentication status
         if request.user.is_authenticated:
-            buyer = get_object_or_404(Buyer, email=request.user.email)
-            cart, _ = Cart.objects.get_or_create(buyer=buyer)
-            
             try:
-                product = Product.objects.get(id=product_id)
+                print(f"Authenticated user: {request.user.email}")
+                buyer = Buyer.objects.get(email=request.user.email)
+                cart, created = Cart.objects.get_or_create(buyer=buyer)
+                print(f"Cart {'created' if created else 'retrieved'} for buyer")
                 
                 # Update quantity in cart
-                cart.update_quantity(product, quantity)
+                print(f"Updating quantity to {quantity} for product {product_id}")
+                cart_item = cart.update_quantity(product, quantity)
+                print(f"Cart item updated: {cart_item}")
                 
-                # Get updated cart data
-                cart_items = cart.items.all()
-                subtotal = sum(item.get_total_price() for item in cart_items)
+                # Force refresh from database
+                cart = Cart.objects.get(id=cart.id)
+                print(f"Cart refreshed from database")
+                
+                # Calculate totals with proper decimal handling
+                subtotal = round(cart.subtotal, 2)
+                tax = round(subtotal * 0.10, 2)  # 10% tax
+                discount = 60.00  # Fixed discount
+                total = round(subtotal - discount + tax, 2)
                 cart_count = cart.total_items
                 
-                return JsonResponse({
+                print(f"Calculated totals - Subtotal: {subtotal:.2f}, Tax: {tax:.2f}, Discount: {discount:.2f}, Total: {total:.2f}")
+                
+                response_data = {
                     'success': True,
                     'cart_count': cart_count,
-                    'subtotal': subtotal,
+                    'subtotal': float(subtotal),
+                    'tax': float(tax),
+                    'discount': float(discount),
+                    'total': float(total),
                     'message': 'Cart updated successfully'
-                })
+                }
                 
-            except Product.DoesNotExist:
+                print(f"Sending response: {response_data}")
+                return JsonResponse(response_data)
+                
+            except Buyer.DoesNotExist:
+                print(f"Buyer not found for email: {request.user.email}")
                 return JsonResponse({
                     'success': False,
-                    'error': 'Product not found'
+                    'error': 'Buyer not found'
+                })
+            except Exception as e:
+                print(f"Error updating cart: {str(e)}")
+                import traceback
+                print(traceback.format_exc())
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Error updating cart: {str(e)}'
                 })
                 
         else:
-            # Handle guest cart in session/cookies
+            print("Processing guest cart update")
+            # Handle guest cart in session
             cart_data = request.session.get('cart', {'items': []})
+            print(f"Current guest cart data: {cart_data}")
             
             # Find and update item quantity
             found = False
+            subtotal = 0
+            cart_count = 0
+            
             for item in cart_data['items']:
                 if item['product_id'] == product_id:
                     item['quantity'] = quantity
                     found = True
-                    break
+                    print(f"Updated quantity for product {product_id} to {quantity}")
+                
+                # Calculate totals for all items
+                try:
+                    prod = Product.objects.get(id=item['product_id'])
+                    item_total = round(prod.final_price * item['quantity'], 2)
+                    subtotal = round(subtotal + item_total, 2)
+                    cart_count += item['quantity']
+                    print(f"Item {prod.id} contributes {item_total:.2f} to subtotal")
+                except Product.DoesNotExist:
+                    print(f"Product {item['product_id']} not found, skipping")
+                    continue
                     
             if not found:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Product not found in cart'
+                print(f"Product {product_id} not found in cart, adding new item")
+                cart_data['items'].append({
+                    'product_id': product_id,
+                    'quantity': quantity
                 })
+                item_total = round(product.final_price * quantity, 2)
+                subtotal = round(subtotal + item_total, 2)
+                cart_count += quantity
                 
             # Update session
             request.session['cart'] = cart_data
             request.session.modified = True
+            print("Updated session cart data")
             
-            # Calculate totals
-            cart_count = sum(item['quantity'] for item in cart_data['items'])
+            # Calculate final totals with proper decimal handling
+            tax = round(subtotal * 0.10, 2)  # 10% tax
+            discount = 60.00  # Fixed discount
+            total = round(subtotal - discount + tax, 2)
             
-            return JsonResponse({
+            response_data = {
                 'success': True,
                 'cart_count': cart_count,
+                'subtotal': float(subtotal),
+                'tax': float(tax),
+                'discount': float(discount),
+                'total': float(total),
                 'message': 'Cart updated successfully'
-            })
+            }
+            
+            print(f"Guest cart response: {response_data}")
+            return JsonResponse(response_data)
             
     except (ValueError, TypeError) as e:
+        print(f"Value/Type error: {str(e)}")
         return JsonResponse({
             'success': False,
             'error': 'Invalid quantity or product ID'
         })
     except Exception as e:
+        print(f"Unexpected error in update_cart_quantity: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         return JsonResponse({
             'success': False,
             'error': str(e)

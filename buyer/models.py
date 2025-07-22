@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils import timezone
 import base64
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ========== ENUMS ==========
 
@@ -59,7 +62,11 @@ class Cart(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     def add_product(self, product, quantity=1):
-        item, created = CartItem.objects.get_or_create(cart=self, product=product, defaults={'quantity': quantity})
+        item, created = CartItem.objects.get_or_create(
+            cart=self, 
+            product=product,
+            defaults={'quantity': quantity}
+        )
         if not created:
             item.quantity += quantity
             item.save()
@@ -69,15 +76,30 @@ class Cart(models.Model):
         CartItem.objects.filter(cart=self, product=product).delete()
 
     def update_quantity(self, product, quantity):
+        """Update the quantity of a product in the cart"""
         try:
-            item = CartItem.objects.get(cart=self, product=product)
-            if quantity > 0:
+            if quantity <= 0:
+                # If quantity is 0 or negative, remove the item
+                self.remove_product(product)
+                return None
+            
+            item, created = CartItem.objects.get_or_create(
+                cart=self,
+                product=product,
+                defaults={'quantity': quantity}
+            )
+            
+            if not created:
                 item.quantity = quantity
                 item.save()
-            else:
-                item.delete()
-        except CartItem.DoesNotExist:
-            pass
+            
+            # Log the update
+            logger.info(f"Updated cart item: product={product.id}, quantity={quantity}, cart={self.id}")
+            
+            return item
+        except Exception as e:
+            logger.error(f"Error updating cart quantity: {str(e)}")
+            raise
 
     def clear(self):
         self.items.all().delete()
@@ -87,16 +109,33 @@ class Cart(models.Model):
         return sum(item.quantity for item in self.items.all())
 
     @property
-    def total_price(self):
-        return sum(item.product.final_price * item.quantity for item in self.items.all())
+    def subtotal(self):
+        return sum(item.get_total_price() for item in self.items.all())
+
+    @property
+    def tax(self):
+        return self.subtotal * 0.10  # 10% tax
+
+    @property
+    def discount(self):
+        return 60.00  # Fixed discount for now
+
+    @property
+    def total(self):
+        return self.subtotal - self.discount + self.tax
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey("seller.Product", on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
+    quantity = models.PositiveIntegerField(default=1)
 
     def get_total_price(self):
         return self.product.final_price * self.quantity
+
+    def save(self, *args, **kwargs):
+        if self.quantity < 1:
+            self.quantity = 1
+        super().save(*args, **kwargs)
 
 class Order(models.Model):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE)

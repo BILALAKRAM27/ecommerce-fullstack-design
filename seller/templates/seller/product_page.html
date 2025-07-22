@@ -1200,8 +1200,11 @@
                 
                 <div style="margin-top: 20px; display: flex; gap: 15px;">
                     {% if user_type == 'buyer' %}
-                        <form method="post" action="#">
+                        <form id="addToCartForm" method="post" action="{% url 'buyer:add_to_cart' %}" style="display: flex; align-items: center; gap: 10px;">
                             {% csrf_token %}
+                            <label for="quantity" style="margin-bottom:0;">Quantity:</label>
+                            <input type="number" id="quantity" name="quantity" value="1" min="1" style="width:60px; padding:4px 8px; border-radius:4px; border:1px solid #ccc;">
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
                             <button type="submit" class="btn btn-primary">Add to Cart</button>
                         </form>
                     {% endif %}
@@ -1681,5 +1684,34 @@ function attachPreviewImagesListener() {
         fileInput.addEventListener('change', previewImages);
     }
 }
+    </script>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartForm = document.getElementById('addToCartForm');
+    if (addToCartForm) {
+        addToCartForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(addToCartForm);
+            fetch(addToCartForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success || data.cart) {
+                    window.location.href = "{% url 'buyer:cart_page' %}";
+                } else {
+                    alert('Could not add to cart.');
+                }
+            })
+            .catch(() => alert('Error adding to cart.'));
+        });
+    }
+        });
     </script>
 {% endblock %}

@@ -58,10 +58,45 @@ class Cart(models.Model):
     buyer = models.OneToOneField(Buyer, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
 
+    def add_product(self, product, quantity=1):
+        item, created = CartItem.objects.get_or_create(cart=self, product=product, defaults={'quantity': quantity})
+        if not created:
+            item.quantity += quantity
+            item.save()
+        return item
+
+    def remove_product(self, product):
+        CartItem.objects.filter(cart=self, product=product).delete()
+
+    def update_quantity(self, product, quantity):
+        try:
+            item = CartItem.objects.get(cart=self, product=product)
+            if quantity > 0:
+                item.quantity = quantity
+                item.save()
+            else:
+                item.delete()
+        except CartItem.DoesNotExist:
+            pass
+
+    def clear(self):
+        self.items.all().delete()
+
+    @property
+    def total_items(self):
+        return sum(item.quantity for item in self.items.all())
+
+    @property
+    def total_price(self):
+        return sum(item.product.final_price * item.quantity for item in self.items.all())
+
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey("seller.Product", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+
+    def get_total_price(self):
+        return self.product.final_price * self.quantity
 
 class Order(models.Model):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE)

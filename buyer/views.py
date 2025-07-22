@@ -167,150 +167,162 @@ def update_cart_quantity(request):
         quantity = int(request.POST.get('quantity', 1))
         print(f"Received request - Product ID: {product_id}, Quantity: {quantity}")
         
-        # Validate quantity
-        if quantity < 1:
-            print("Invalid quantity (less than 1)")
-            return JsonResponse({
-                'success': False,
-                'error': 'Quantity must be at least 1'
-            })
-
         # Get the product first to validate it exists
         try:
             product = Product.objects.get(id=product_id)
             print(f"Found product: {product.name}, Price: {product.final_price:.2f}")
         except Product.DoesNotExist:
-            print(f"Product not found with ID: {product_id}")
             return JsonResponse({
                 'success': False,
                 'error': 'Product not found'
             })
 
-        # Get or create cart based on user authentication status
         if request.user.is_authenticated:
             try:
-                print(f"Authenticated user: {request.user.email}")
                 buyer = Buyer.objects.get(email=request.user.email)
-                cart, created = Cart.objects.get_or_create(buyer=buyer)
-                print(f"Cart {'created' if created else 'retrieved'} for buyer")
+                cart, _ = Cart.objects.get_or_create(buyer=buyer)
                 
-                # Update quantity in cart
-                print(f"Updating quantity to {quantity} for product {product_id}")
-                cart_item = cart.update_quantity(product, quantity)
-                print(f"Cart item updated: {cart_item}")
+                if quantity > 0:
+                    cart_item = cart.update_quantity(product, quantity)
+                else:
+                    cart.remove_product(product)
                 
-                # Force refresh from database
-                cart = Cart.objects.get(id=cart.id)
-                print(f"Cart refreshed from database")
-                
-                # Calculate totals with proper decimal handling
-                subtotal = round(cart.subtotal, 2)
-                tax = round(subtotal * 0.10, 2)  # 10% tax
-                discount = 60.00  # Fixed discount
-                total = round(subtotal - discount + tax, 2)
-                cart_count = cart.total_items
-                
-                print(f"Calculated totals - Subtotal: {subtotal:.2f}, Tax: {tax:.2f}, Discount: {discount:.2f}, Total: {total:.2f}")
-                
-                response_data = {
-                    'success': True,
-                    'cart_count': cart_count,
-                    'subtotal': float(subtotal),
-                    'tax': float(tax),
-                    'discount': float(discount),
-                    'total': float(total),
-                    'message': 'Cart updated successfully'
-                }
-                
-                print(f"Sending response: {response_data}")
-                return JsonResponse(response_data)
+                # Get updated cart data
+                cart_data = cart.get_cart_data()
+                print(f"Cart data after update: {cart_data}")
+                return JsonResponse(cart_data)
                 
             except Buyer.DoesNotExist:
-                print(f"Buyer not found for email: {request.user.email}")
                 return JsonResponse({
                     'success': False,
                     'error': 'Buyer not found'
                 })
             except Exception as e:
                 print(f"Error updating cart: {str(e)}")
-                import traceback
-                print(traceback.format_exc())
                 return JsonResponse({
                     'success': False,
                     'error': f'Error updating cart: {str(e)}'
                 })
-                
         else:
-            print("Processing guest cart update")
             # Handle guest cart in session
-            cart_data = request.session.get('cart', {'items': []})
-            print(f"Current guest cart data: {cart_data}")
+            cart_data = request.session.get('cart', {'items': [], 'coupon_code': None})
             
-            # Find and update item quantity
-            found = False
+            # Update or remove item
+            updated_items = []
             subtotal = 0
             cart_count = 0
             
             for item in cart_data['items']:
                 if item['product_id'] == product_id:
-                    item['quantity'] = quantity
-                    found = True
-                    print(f"Updated quantity for product {product_id} to {quantity}")
-                
-                # Calculate totals for all items
+                    if quantity > 0:
+                        item['quantity'] = quantity
+                        updated_items.append(item)
+                else:
+                    updated_items.append(item)
+                    
+            cart_data['items'] = updated_items
+            
+            # Calculate totals
+            for item in cart_data['items']:
                 try:
                     prod = Product.objects.get(id=item['product_id'])
-                    item_total = round(prod.final_price * item['quantity'], 2)
-                    subtotal = round(subtotal + item_total, 2)
+                    subtotal += round(prod.final_price * item['quantity'], 2)
                     cart_count += item['quantity']
-                    print(f"Item {prod.id} contributes {item_total:.2f} to subtotal")
                 except Product.DoesNotExist:
-                    print(f"Product {item['product_id']} not found, skipping")
                     continue
-                    
-            if not found:
-                print(f"Product {product_id} not found in cart, adding new item")
-                cart_data['items'].append({
-                    'product_id': product_id,
-                    'quantity': quantity
-                })
-                item_total = round(product.final_price * quantity, 2)
-                subtotal = round(subtotal + item_total, 2)
-                cart_count += quantity
-                
+            
+            # Apply discount
+            discount_percentage = 0.20 if cart_data.get('coupon_code') in ["MarketVibe27", "Shopping24/7"] else 0.10
+            discount = round(subtotal * discount_percentage, 2)
+            tax = round((subtotal - discount) * 0.10, 2)
+            total = round(subtotal - discount + tax, 2)
+            
             # Update session
             request.session['cart'] = cart_data
             request.session.modified = True
-            print("Updated session cart data")
-            
-            # Calculate final totals with proper decimal handling
-            tax = round(subtotal * 0.10, 2)  # 10% tax
-            discount = 60.00  # Fixed discount
-            total = round(subtotal - discount + tax, 2)
             
             response_data = {
                 'success': True,
                 'cart_count': cart_count,
                 'subtotal': float(subtotal),
-                'tax': float(tax),
+                'discount_percentage': discount_percentage * 100,
                 'discount': float(discount),
+                'tax': float(tax),
                 'total': float(total),
-                'message': 'Cart updated successfully'
+                'coupon_code': cart_data.get('coupon_code')
             }
             
-            print(f"Guest cart response: {response_data}")
             return JsonResponse(response_data)
             
-    except (ValueError, TypeError) as e:
-        print(f"Value/Type error: {str(e)}")
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
         return JsonResponse({
             'success': False,
-            'error': 'Invalid quantity or product ID'
+            'error': str(e)
         })
+
+@require_POST
+def apply_coupon(request):
+    try:
+        code = request.POST.get('code')
+        if not code:
+            return JsonResponse({
+                'success': False,
+                'error': 'No coupon code provided'
+            })
+            
+        if request.user.is_authenticated:
+            buyer = Buyer.objects.get(email=request.user.email)
+            cart, _ = Cart.objects.get_or_create(buyer=buyer)
+            
+            if cart.apply_coupon(code):
+                return JsonResponse(cart.get_cart_data())
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid coupon code'
+                })
+        else:
+            # Handle guest cart
+            cart_data = request.session.get('cart', {'items': [], 'coupon_code': None})
+            
+            if code in ["MarketVibe27", "Shopping24/7"]:
+                cart_data['coupon_code'] = code
+                request.session['cart'] = cart_data
+                request.session.modified = True
+                
+                # Recalculate totals
+                subtotal = 0
+                cart_count = 0
+                
+                for item in cart_data['items']:
+                    try:
+                        prod = Product.objects.get(id=item['product_id'])
+                        subtotal += round(prod.final_price * item['quantity'], 2)
+                        cart_count += item['quantity']
+                    except Product.DoesNotExist:
+                        continue
+                
+                discount = round(subtotal * 0.20, 2)  # 20% discount for valid coupon
+                tax = round((subtotal - discount) * 0.10, 2)
+                total = round(subtotal - discount + tax, 2)
+                
+                return JsonResponse({
+                    'success': True,
+                    'cart_count': cart_count,
+                    'subtotal': float(subtotal),
+                    'discount_percentage': 20.0,
+                    'discount': float(discount),
+                    'tax': float(tax),
+                    'total': float(total),
+                    'coupon_code': code
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid coupon code'
+                })
     except Exception as e:
-        print(f"Unexpected error in update_cart_quantity: {str(e)}")
-        import traceback
-        print(traceback.format_exc())
         return JsonResponse({
             'success': False,
             'error': str(e)
@@ -337,26 +349,44 @@ def cart_page_view(request):
             'quantity': item.quantity,
             'total_price': item.get_total_price()
         } for item in items]
+        
+        # Calculate totals using cart model methods
+        subtotal = cart.subtotal
+        discount = cart.discount_amount
+        tax = cart.tax
+        total = cart.total
+        discount_percentage = cart.get_discount_percentage() * 100
     else:
-        cart_data = get_cart_from_cookie(request)
+        cart_data = request.session.get('cart', {'items': []})
         cart_items = []
+        subtotal = 0
+        
         for entry in cart_data['items']:
             try:
                 product = Product.objects.get(id=entry['product_id'])
+                item_total = product.final_price * entry['quantity']
                 cart_items.append({
                     'product': product,
                     'quantity': entry['quantity'],
-                    'total_price': product.final_price * entry['quantity']
+                    'total_price': item_total
                 })
+                subtotal += item_total
             except Product.DoesNotExist:
                 continue
-    subtotal = sum(item['total_price'] for item in cart_items)
-    # You can add logic for discount, tax, etc.
+                
+        # Calculate totals for guest cart
+        discount_percentage = 0.20 if cart_data.get('coupon_code') in ["MarketVibe27", "Shopping24/7"] else 0.10
+        discount = round(subtotal * discount_percentage, 2)
+        tax = round((subtotal - discount) * 0.10, 2)
+        total = round(subtotal - discount + tax, 2)
+        discount_percentage *= 100
+
     context = {
         'cart_items': cart_items,
         'subtotal': subtotal,
-        'discount': 0,
-        'tax': 0,
-        'total': subtotal,
+        'discount': discount,
+        'tax': tax,
+        'total': total,
+        'discount_percentage': discount_percentage
     }
     return render(request, 'buyer/cart_page.html', context)

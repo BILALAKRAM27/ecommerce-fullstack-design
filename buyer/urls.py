@@ -14,6 +14,7 @@ urlpatterns += [
     path('cart/add/', views.add_to_cart, name='add_to_cart'),
     path('cart/remove/', views.remove_from_cart, name='remove_from_cart'),
     path('cart/update/', views.update_cart_quantity, name='update_cart_quantity'),
+    path('cart/apply-coupon/', views.apply_coupon, name='apply_coupon'),
     path('cart/clear/', views.clear_cart, name='clear_cart'),
     path('cart/page/', views.cart_page_view, name='cart_page'),
 ]

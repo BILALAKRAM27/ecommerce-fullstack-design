@@ -514,7 +514,7 @@
             <!-- Cart Items -->
             <div class="cart-items">
                 {% for item in cart_items %}
-                    <div class="cart-item">
+                    <div class="cart-item" data-product-id="{{ item.product.id }}">
                         <div class="item-image">
                             {% if item.product.images.first %}
                                 <img src="data:image/jpeg;base64,{{ item.product.images.first.image|b64encode }}" style="width:60px;height:60px;object-fit:cover;">
@@ -684,7 +684,6 @@
 
             // Function to format currency
             function formatCurrency(amount) {
-                // Ensure amount is a number and round to 2 decimal places
                 const roundedAmount = Number(Number(amount).toFixed(2));
                 return new Intl.NumberFormat('en-US', {
                     style: 'currency',
@@ -698,73 +697,67 @@
             function updateItemPrice(cartItem, quantity, unitPrice) {
                 const itemPrice = Number((quantity * unitPrice).toFixed(2));
                 const priceElement = cartItem.querySelector('.item-price');
-                priceElement.textContent = formatCurrency(itemPrice);
+                if (priceElement) {
+                    priceElement.textContent = formatCurrency(itemPrice);
+                }
                 return itemPrice;
             }
 
-            // Function to update summary values
-            function updateSummaryValues(subtotal, tax, discount, total) {
+            // Function to update cart UI with server data
+            function updateCartUI(data) {
+                console.log('Updating cart UI with data:', data);
+
+                // Update each item's price
+                document.querySelectorAll('.cart-item').forEach(cartItem => {
+                    const input = cartItem.querySelector('.quantity-input');
+                    const quantity = parseInt(input.value, 10) || 1;
+                    const unitPrice = safeParseFloat(input.getAttribute('data-unit-price'));
+                    updateItemPrice(cartItem, quantity, unitPrice);
+                });
+
+                // Update summary values
                 const summaryRows = document.querySelectorAll('.summary-row');
-                
-                // Update subtotal
-                summaryRows[0].querySelector('.summary-value').textContent = formatCurrency(subtotal);
-                
-                // Update discount
-                const discountRow = document.querySelector('.summary-row.discount .summary-value');
-                discountRow.textContent = `- ${formatCurrency(discount)}`;
-                
-                // Update tax
-                const taxRow = document.querySelector('.summary-row.tax .summary-value');
-                taxRow.textContent = `+ ${formatCurrency(tax)}`;
-                
-                // Update total
-                const totalRow = document.querySelector('.summary-row.total .summary-value');
-                totalRow.textContent = formatCurrency(total);
-            }
+                if (summaryRows.length >= 4) {  // Make sure we have all summary rows
+                    // Update subtotal
+                    summaryRows[0].querySelector('.summary-value').textContent = formatCurrency(data.subtotal);
+                    
+                    // Update discount
+                    const discountRow = document.querySelector('.summary-row.discount .summary-value');
+                    if (discountRow) {
+                        discountRow.textContent = `- ${formatCurrency(data.discount)}`;
+                    }
+                    
+                    // Update tax
+                    const taxRow = document.querySelector('.summary-row.tax .summary-value');
+                    if (taxRow) {
+                        taxRow.textContent = `+ ${formatCurrency(data.tax)}`;
+                    }
+                    
+                    // Update total
+                    const totalRow = document.querySelector('.summary-row.total .summary-value');
+                    if (totalRow) {
+                        totalRow.textContent = formatCurrency(data.total);
+                    }
+                }
 
-            // Function to update cart totals
-            function updateCartTotals(serverData = null) {
-                console.log('Updating cart totals with server data:', serverData);
-                
-                if (serverData) {
-                    // Update from server data
-                    const subtotal = Number(serverData.subtotal);
-                    const tax = Number(serverData.tax);
-                    const discount = Number(serverData.discount);
-                    const total = Number(serverData.total);
+                // Update cart count
+                const cartCountElement = document.querySelector('.cart-count');
+                if (cartCountElement) {
+                    cartCountElement.textContent = data.cart_count || '';
+                }
 
-                    // Update all cart items to match server data
-                    document.querySelectorAll('.cart-item').forEach(cartItem => {
-                        const input = cartItem.querySelector('.quantity-input');
-                        const quantity = parseInt(input.value, 10) || 1;
-                        const unitPrice = safeParseFloat(input.getAttribute('data-unit-price'));
-                        updateItemPrice(cartItem, quantity, unitPrice);
-                    });
+                // Update cart title
+                const cartTitleElement = document.querySelector('.cart-title');
+                if (cartTitleElement) {
+                    cartTitleElement.textContent = `My cart (${data.cart_count})`;
+                }
 
-                    // Update summary values
-                    updateSummaryValues(subtotal, tax, discount, total);
-                } else {
-                    console.log('No server data, calculating locally');
-                    let subtotal = 0;
-
-                    // Update each cart item and calculate subtotal
-                    document.querySelectorAll('.cart-item').forEach(cartItem => {
-                        const input = cartItem.querySelector('.quantity-input');
-                        const quantity = parseInt(input.value, 10) || 1;
-                        const unitPrice = safeParseFloat(input.getAttribute('data-unit-price'));
-                        const itemPrice = updateItemPrice(cartItem, quantity, unitPrice);
-                        subtotal = Number((subtotal + itemPrice).toFixed(2));
-                    });
-
-                    // Calculate other values
-                    const discount = 60.00;
-                    const tax = Number((subtotal * 0.10).toFixed(2));
-                    const total = Number((subtotal - discount + tax).toFixed(2));
-
-                    console.log(`Local calculation - Subtotal: ${subtotal}, Tax: ${tax}, Discount: ${discount}, Total: ${total}`);
-
-                    // Update summary values
-                    updateSummaryValues(subtotal, tax, discount, total);
+                // Update discount percentage if available
+                if (data.discount_percentage) {
+                    const discountText = document.querySelector('.discount-text');
+                    if (discountText) {
+                        discountText.textContent = `Discount (${data.discount_percentage}%)`;
+                    }
                 }
             }
 
@@ -795,8 +788,6 @@
                 
                 input.addEventListener('change', function(event) {
                     event.preventDefault();
-                    console.log('Quantity change event triggered');
-                    
                     const quantity = parseInt(this.value, 10) || 1;
                     if (quantity < 1) {
                         this.value = 1;
@@ -806,12 +797,12 @@
                     const productId = this.getAttribute('data-product-id');
                     const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
 
-                    console.log(`Updating quantity - Product: ${productId}, Quantity: ${quantity}`);
+                    // Show loading state
+                    const cartItem = this.closest('.cart-item');
+                    if (cartItem) {
+                        cartItem.style.opacity = '0.5';
+                    }
 
-                    // Update UI immediately for better UX
-                    updateCartTotals();
-
-                    // Send update to server
                     fetch('/cart/update/', {
                         method: 'POST',
                         headers: {
@@ -820,143 +811,138 @@
                         },
                         body: `product_id=${productId}&quantity=${quantity}`
                     })
-                    .then(response => {
-                        console.log('Server response received');
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
-                        console.log('Server response data:', data);
+                        if (cartItem) {
+                            cartItem.style.opacity = '1';
+                        }
+                        
                         if (data.success) {
-                            showNotification('Cart updated successfully');
-                            // Update the UI with server-returned values
-                            updateCartTotals(data);
+                            // Update all UI elements with server data
+                            updateCartUI(data);
                             previousValue = quantity;
-                            
-                            // Update cart count in header if needed
-                            const cartCountElement = document.querySelector('.cart-count');
-                            if (cartCountElement) {
-                                cartCountElement.textContent = data.cart_count || '';
-                            }
+                            showNotification('Cart updated successfully');
                         } else {
-                            console.error('Server returned error:', data.error);
                             showNotification(data.error || 'Failed to update cart', true);
-                            // Revert to previous value if update failed
                             this.value = previousValue;
-                            updateCartTotals();
+                            // Revert UI changes
+                            updateCartUI(data);
                         }
                     })
                     .catch(error => {
+                        if (cartItem) {
+                            cartItem.style.opacity = '1';
+                        }
                         console.error('Error updating cart:', error);
                         showNotification('Error updating cart', true);
-                        // Revert to previous value on error
                         this.value = previousValue;
-                        updateCartTotals();
+                        // Revert UI changes
+                        const currentItem = this.closest('.cart-item');
+                        if (currentItem) {
+                            const unitPrice = safeParseFloat(this.getAttribute('data-unit-price'));
+                            updateItemPrice(currentItem, previousValue, unitPrice);
+                        }
                     });
                 });
             });
 
-            // Initialize totals on page load
-            console.log('Initializing cart totals');
-            updateCartTotals();
-        });
+            // Handle remove buttons
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const cartItem = this.closest('.cart-item');
+                    const productId = cartItem.querySelector('.quantity-input').getAttribute('data-product-id');
+                    
+                    // Show loading state
+                    cartItem.style.opacity = '0.5';
 
-        // Remove item handler
-        document.querySelectorAll('.remove-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const cartItem = this.closest('.cart-item');
-                const productId = cartItem.querySelector('.quantity-input').getAttribute('data-product-id');
-                const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
-                fetch('/cart/remove/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: `product_id=${productId}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        cartItem.remove();
-                        updateCartTotals();
-                        updateCartCount();
-                    } else {
-                        alert('Could not remove item from cart.');
-                    }
-                })
-                .catch(() => alert('Error removing item from cart.'));
+                    const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+
+                    fetch('/cart/update/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `product_id=${productId}&quantity=0`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            cartItem.remove();
+                            updateCartUI(data);
+                            showNotification('Item removed from cart');
+                        } else {
+                            cartItem.style.opacity = '1';
+                            showNotification(data.error || 'Failed to remove item', true);
+                        }
+                    })
+                    .catch(error => {
+                        cartItem.style.opacity = '1';
+                        console.error('Error removing item:', error);
+                        showNotification('Error removing item', true);
+                    });
+                });
             });
-        });
 
-        // Save for later handler
-        document.querySelectorAll('.save-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                alert('Item saved for later!');
-            });
-        });
-
-        // Move to cart handler
-        document.querySelectorAll('.move-to-cart-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                alert('Item moved to cart!');
-            });
-        });
-
-        // Coupon application
-        document.querySelector('.apply-btn').addEventListener('click', function() {
+            // Handle coupon application
+            const applyButton = document.querySelector('.apply-btn');
             const couponInput = document.querySelector('.coupon-input');
-            const couponCode = couponInput.value.trim();
             
-            if (couponCode) {
-                alert(`Coupon "${couponCode}" applied!`);
-                couponInput.value = '';
-                // Update discount amount here
-                document.querySelector('.summary-row.discount .summary-value').textContent = '- $80.00';
-                updateCartTotals();
+            if (applyButton && couponInput) {
+                applyButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const code = couponInput.value.trim();
+                    if (code) {
+                        const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+
+                        // Show loading state
+                        applyButton.disabled = true;
+                        applyButton.textContent = 'Applying...';
+
+                        fetch('/cart/apply-coupon/', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: `code=${code}`
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            applyButton.disabled = false;
+                            applyButton.textContent = 'Apply';
+                            
+                            if (data.success) {
+                                updateCartUI(data);
+                                showNotification('Coupon applied successfully');
+                                couponInput.value = '';
+                            } else {
+                                showNotification(data.error || 'Invalid coupon code', true);
+                            }
+                        })
+                        .catch(error => {
+                            applyButton.disabled = false;
+                            applyButton.textContent = 'Apply';
+                            console.error('Error applying coupon:', error);
+                            showNotification('Error applying coupon', true);
+                        });
+                    } else {
+                        showNotification('Please enter a coupon code', true);
+                    }
+                });
             }
+
+            // Initialize cart UI with current values
+            updateCartUI({
+                subtotal: parseFloat('{{ subtotal|floatformat:2 }}'),
+                tax: parseFloat('{{ tax|floatformat:2 }}'),
+                discount: parseFloat('{{ discount|floatformat:2 }}'),
+                total: parseFloat('{{ total|floatformat:2 }}'),
+                cart_count: parseInt('{{ cart_items|length }}'),
+                discount_percentage: parseFloat('{{ discount_percentage|default:10 }}')
+            });
         });
-
-        // Update cart totals
-        function updateCartTotals() {
-            const subtotal = 1403.97;
-            const discount = 60.00;
-            const tax = 14.00;
-            const total = subtotal - discount + tax;
-            
-            document.querySelector('.summary-row.total .summary-value').textContent = `$${total.toFixed(2)}`;
-        }
-
-        function updateCartSummary(cart) {
-            document.querySelector('.summary-row.total .summary-value').textContent = `$${cart.total.toFixed(2)}`;
-            document.querySelector('.summary-row.tax .summary-value').textContent = `+ $${cart.tax.toFixed(2)}`;
-            document.querySelector('.summary-row.discount .summary-value').textContent = `- $${cart.discount.toFixed(2)}`;
-            document.querySelector('.summary-row:nth-child(1) .summary-value').textContent = `$${cart.subtotal.toFixed(2)}`;
-        }
-
-        // Update cart count
-        function updateCartCount() {
-            const cartItems = document.querySelectorAll('.cart-item').length;
-            document.querySelector('.cart-title').textContent = `My cart (${cartItems})`;
-        }
-
-        // Checkout handler
-        document.querySelector('.checkout-btn').addEventListener('click', function() {
-            alert('Proceeding to checkout...');
-        });
-
-        // Responsive behavior
-        function handleResize() {
-            const orderSummary = document.querySelector('.order-summary');
-            if (window.innerWidth <= 768) {
-                orderSummary.style.position = 'static';
-            } else {
-                orderSummary.style.position = 'sticky';
-            }
-        }
-
-        window.addEventListener('resize', handleResize);
-        handleResize(); // Initial call
-        updateCartTotals(); // Initialize totals on page load
     </script>
 {% endblock %}
 

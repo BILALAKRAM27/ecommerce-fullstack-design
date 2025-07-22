@@ -60,6 +60,7 @@ class Wishlist(models.Model):
 class Cart(models.Model):
     buyer = models.OneToOneField(Buyer, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
+    coupon_code = models.CharField(max_length=50, null=True, blank=True)
 
     def add_product(self, product, quantity=1):
         item, created = CartItem.objects.get_or_create(
@@ -93,9 +94,6 @@ class Cart(models.Model):
                 item.quantity = quantity
                 item.save()
             
-            # Log the update
-            logger.info(f"Updated cart item: product={product.id}, quantity={quantity}, cart={self.id}")
-            
             return item
         except Exception as e:
             logger.error(f"Error updating cart quantity: {str(e)}")
@@ -103,26 +101,63 @@ class Cart(models.Model):
 
     def clear(self):
         self.items.all().delete()
+        self.coupon_code = None
+        self.save()
+
+    def apply_coupon(self, code):
+        """Apply a coupon code to the cart"""
+        valid_coupons = ["MarketVibe27", "Shopping24/7"]
+        if code in valid_coupons:
+            self.coupon_code = code
+            self.save()
+            return True
+        return False
+
+    def get_discount_percentage(self):
+        """Get the current discount percentage"""
+        if self.coupon_code in ["MarketVibe27", "Shopping24/7"]:
+            return 0.20  # 20% discount
+        return 0.10  # 10% default discount
 
     @property
     def total_items(self):
+        """Return the number of unique items in cart, not their quantities"""
+        return self.items.count()
+
+    @property
+    def total_quantity(self):
+        """Return the total quantity of all items in cart"""
         return sum(item.quantity for item in self.items.all())
 
     @property
     def subtotal(self):
-        return sum(item.get_total_price() for item in self.items.all())
+        return round(sum(item.get_total_price() for item in self.items.all()), 2)
+
+    @property
+    def discount_amount(self):
+        return round(self.subtotal * self.get_discount_percentage(), 2)
 
     @property
     def tax(self):
-        return self.subtotal * 0.10  # 10% tax
-
-    @property
-    def discount(self):
-        return 60.00  # Fixed discount for now
+        return round((self.subtotal - self.discount_amount) * 0.10, 2)  # 10% tax after discount
 
     @property
     def total(self):
-        return self.subtotal - self.discount + self.tax
+        return round(self.subtotal - self.discount_amount + self.tax, 2)
+
+    def get_cart_data(self):
+        """Get all cart data in a dictionary format"""
+        return {
+            'success': True,
+            'cart_count': self.total_items,  # Use total_items for unique count
+            'total_quantity': self.total_quantity,  # Add total quantity if needed
+            'subtotal': float(self.subtotal),
+            'discount_percentage': self.get_discount_percentage() * 100,
+            'discount': float(self.discount_amount),
+            'tax': float(self.tax),
+            'total': float(self.total),
+            'coupon_code': self.coupon_code
+        }
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')

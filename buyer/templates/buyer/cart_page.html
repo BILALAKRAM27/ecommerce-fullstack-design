@@ -765,21 +765,77 @@
             function showNotification(message, isError = false) {
                 const notification = document.createElement('div');
                 notification.className = `notification ${isError ? 'error' : 'success'}`;
-                notification.textContent = message;
                 notification.style.position = 'fixed';
-                notification.style.top = '20px';
-                notification.style.right = '20px';
-                notification.style.padding = '10px 20px';
-                notification.style.borderRadius = '4px';
+                notification.style.top = '80px'; // Changed from 50% to fixed pixels from top
+                notification.style.left = '50%';
+                notification.style.transform = 'translateX(-50%)'; // Only transform X axis since we're using fixed top
+                notification.style.padding = '20px 40px 20px 20px';
+                notification.style.borderRadius = '8px';
                 notification.style.backgroundColor = isError ? '#ff4444' : '#00C851';
                 notification.style.color = 'white';
                 notification.style.zIndex = '1000';
+                notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                notification.style.minWidth = '300px';
+                notification.style.display = 'flex';
+                notification.style.justifyContent = 'space-between';
+                notification.style.alignItems = 'center';
+
+                // Create message span
+                const messageSpan = document.createElement('span');
+                messageSpan.textContent = message;
+                messageSpan.style.flex = '1';
+                notification.appendChild(messageSpan);
+
+                // Create close button
+                const closeButton = document.createElement('button');
+                closeButton.innerHTML = '×';
+                closeButton.style.background = 'none';
+                closeButton.style.border = 'none';
+                closeButton.style.color = 'white';
+                closeButton.style.fontSize = '24px';
+                closeButton.style.cursor = 'pointer';
+                closeButton.style.marginLeft = '15px';
+                closeButton.style.padding = '0 5px';
+                closeButton.style.lineHeight = '1';
+                closeButton.style.opacity = '0.8';
+                closeButton.style.transition = 'opacity 0.2s';
                 
-                document.body.appendChild(notification);
-                
-                setTimeout(() => {
+                // Hover effect
+                closeButton.addEventListener('mouseover', () => {
+                    closeButton.style.opacity = '1';
+                });
+                closeButton.addEventListener('mouseout', () => {
+                    closeButton.style.opacity = '0.8';
+                });
+
+                // Click handler
+                closeButton.addEventListener('click', () => {
                     notification.remove();
-                }, 3000);
+                });
+
+                notification.appendChild(closeButton);
+                document.body.appendChild(notification);
+
+                // Auto-remove after 5 seconds if not manually closed
+                const timeout = setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        notification.remove();
+                    }
+                }, 5000);
+
+                // Clear timeout if manually closed
+                closeButton.addEventListener('click', () => {
+                    clearTimeout(timeout);
+                });
+
+                // Add fade-in animation from top
+                notification.animate([
+                    { opacity: 0, transform: 'translate(-50%, -20px)' },
+                    { opacity: 1, transform: 'translateX(-50%)' }
+                ], {
+                    duration: 300,
+                    easing: 'ease-out'
+                });
             }
 
             // Handle quantity changes

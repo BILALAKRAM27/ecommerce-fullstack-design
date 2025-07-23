@@ -255,15 +255,18 @@ def product_page_view(request, product_id):
     user = request.user if request.user.is_authenticated else None
     seller = None
     user_type = None
+    in_wishlist = False
     if user:
         try:
             seller = Seller.objects.get(user=user)
             user_type = 'seller'
         except Seller.DoesNotExist:
-            from buyer.models import Buyer
+            from buyer.models import Buyer, Wishlist
             try:
                 buyer = Buyer.objects.get(email=user.email)
                 user_type = 'buyer'
+                # Check if product is in wishlist
+                in_wishlist = Wishlist.objects.filter(buyer=buyer, product_id=product_id).exists()
             except Buyer.DoesNotExist:
                 pass
     product = get_object_or_404(Product, id=product_id)
@@ -271,6 +274,7 @@ def product_page_view(request, product_id):
         'product': product,
         'seller': seller,
         'user_type': user_type,
+        'in_wishlist': in_wishlist,
         # add 'user' if you use it in the template
     }
     return render(request, 'seller/product_page.html', context)

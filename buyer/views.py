@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Buyer, Cart, CartItem
+from .models import Buyer, Cart, CartItem, Wishlist
 from .forms import BuyerUpdateForm
 from seller.models import Product
 from .utils import get_cart_from_cookie, set_cart_cookie, clear_cart_cookie
@@ -339,6 +339,136 @@ def clear_cart(request):
         clear_cart_cookie(response)
         return response
 
+@require_POST
+def add_to_wishlist(request):
+    print("=== Adding to wishlist ===")
+    try:
+        product_id = int(request.POST.get('product_id'))
+        print(f"Product ID: {product_id}")
+        
+        if not request.user.is_authenticated:
+            print("User not authenticated")
+            return JsonResponse({
+                'success': False,
+                'error': 'Please login to save items'
+            })
+        
+        try:
+            product = Product.objects.get(id=product_id)
+            print(f"Found product: {product.name}")
+        except Product.DoesNotExist:
+            print(f"Product not found with ID: {product_id}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Product not found'
+            })
+        
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        print(f"Found buyer: {buyer.name}")
+        
+        # Check if already in cart
+        cart = Cart.objects.filter(buyer=buyer).first()
+        if cart and cart.items.filter(product=product).exists():
+            return JsonResponse({
+                'success': False,
+                'error': 'This item is already in your cart.'
+            })
+        
+        # Check if already in wishlist
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            buyer=buyer,
+            product=product
+        )
+        print(f"Wishlist item {'created' if created else 'already exists'}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Added to wishlist'
+        })
+        
+    except Exception as e:
+        print(f"Error adding to wishlist: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_POST
+def remove_from_wishlist(request):
+    print("=== Removing from wishlist ===")
+    try:
+        product_id = int(request.POST.get('product_id'))
+        print(f"Product ID: {product_id}")
+        
+        if not request.user.is_authenticated:
+            print("User not authenticated")
+            return JsonResponse({
+                'success': False,
+                'error': 'Please login to manage wishlist'
+            })
+            
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        print(f"Found buyer: {buyer.name}")
+        
+        result = Wishlist.objects.filter(buyer=buyer, product_id=product_id).delete()
+        print(f"Delete result: {result}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Removed from wishlist'
+        })
+        
+    except Exception as e:
+        print(f"Error removing from wishlist: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_POST
+def remove_all_from_cart(request):
+    try:
+        if request.user.is_authenticated:
+            buyer = get_object_or_404(Buyer, email=request.user.email)
+            cart, _ = Cart.objects.get_or_create(buyer=buyer)
+            cart.clear()  # Using the existing clear method from Cart model
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'All items removed from cart',
+                'cart_count': 0,
+                'subtotal': 0,
+                'tax': 0,
+                'discount': 0,
+                'total': 0
+            })
+        else:
+            # Handle guest cart
+            request.session['cart'] = {'items': []}
+            request.session.modified = True
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'All items removed from cart',
+                'cart_count': 0,
+                'subtotal': 0,
+                'tax': 0,
+                'discount': 0,
+                'total': 0
+            })
+            
+    except Exception as e:
+        print(f"Error removing all items from cart: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+# Update the cart_page_view to include wishlist items
 def cart_page_view(request):
     if request.user.is_authenticated:
         buyer = Buyer.objects.get(email=request.user.email)
@@ -350,7 +480,9 @@ def cart_page_view(request):
             'total_price': item.get_total_price()
         } for item in items]
         
-        # Calculate totals using cart model methods
+        # Get wishlist items
+        wishlist_items = Wishlist.objects.filter(buyer=buyer).select_related('product')
+        
         subtotal = cart.subtotal
         discount = cart.discount_amount
         tax = cart.tax
@@ -359,6 +491,7 @@ def cart_page_view(request):
     else:
         cart_data = request.session.get('cart', {'items': []})
         cart_items = []
+        wishlist_items = []  # Empty list for non-authenticated users
         subtotal = 0
         
         for entry in cart_data['items']:
@@ -374,7 +507,6 @@ def cart_page_view(request):
             except Product.DoesNotExist:
                 continue
                 
-        # Calculate totals for guest cart
         discount_percentage = 0.20 if cart_data.get('coupon_code') in ["MarketVibe27", "Shopping24/7"] else 0.10
         discount = round(subtotal * discount_percentage, 2)
         tax = round((subtotal - discount) * 0.10, 2)
@@ -383,6 +515,7 @@ def cart_page_view(request):
 
     context = {
         'cart_items': cart_items,
+        'wishlist_items': wishlist_items,
         'subtotal': subtotal,
         'discount': discount,
         'tax': tax,

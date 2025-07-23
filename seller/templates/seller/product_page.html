@@ -319,11 +319,23 @@
             align-items: center;
             gap: 8px;
             font-size: 14px;
-            color: #007bff;
             cursor: pointer;
             background: none;
             border: none;
             padding: 8px 0;
+            color: #888;
+            transition: color 0.2s;
+        }
+        .save-btn.saved {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .save-btn .icon {
+            font-size: 18px;
+            transition: color 0.2s;
+        }
+        .save-btn.saved .icon {
+            color: #dc3545;
         }
 
         /* Tabs section */
@@ -1240,7 +1252,10 @@
                 <br>
                 <a href="#" class="btn btn-primary">Send inquiry</a>
                 <a href="#" class="btn btn-outline">Seller's profile</a>
-                <button class="save-btn">♡ Save for later</button>
+                <button class="save-btn{% if in_wishlist %} saved{% endif %}" id="wishlist-toggle-btn" data-product-id="{{ product.id }}">
+                    <span class="icon">{% if in_wishlist %}&#10084;{% else %}&#9825;{% endif %}</span>
+                    <span class="text">{% if in_wishlist %}Saved{% else %}Save for later{% endif %}</span>
+                </button>
             </div>
         </div>
 
@@ -1641,77 +1656,85 @@
             if (tabPane) tabPane.classList.add('active');
         }
     </script>
-    <script>
-function previewImages(event) {
-    const files = event.target.files;
-    const previewContainer = document.getElementById('imagePreviews');
-    const thumbnailSelector = document.getElementById('thumbnailSelector');
-    // Hide existing thumbnail radios if new images are selected
-    const existingThumbRadios = document.querySelectorAll('input[name="existing_thumbnail"]');
-    if (files.length > 0) {
-        existingThumbRadios.forEach(radio => {
-            radio.disabled = true;
-            radio.closest('div').style.opacity = 0.5; // visually indicate disabled
-        });
-    } else {
-        existingThumbRadios.forEach(radio => {
-            radio.disabled = false;
-            radio.closest('div').style.opacity = 1;
-        });
-    }
-    previewContainer.innerHTML = '';
-    thumbnailSelector.innerHTML = '';
-    if (files.length > 0) {
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const div = document.createElement('div');
-                div.style.display = 'inline-block';
-                div.style.marginRight = '10px';
-                div.style.textAlign = 'center';
-                div.innerHTML = `<img src="${e.target.result}" alt="Preview" class="image-preview"><br><input type='radio' name='thumbnail' value='${i}' ${i===0?'checked':''}> Thumbnail`;
-                previewContainer.appendChild(div);
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-}
-function attachPreviewImagesListener() {
-    const fileInput = document.getElementById('id_image_file');
-    if (fileInput) {
-        fileInput.removeEventListener('change', previewImages);
-        fileInput.addEventListener('change', previewImages);
-    }
-}
-    </script>
 {% endblock %}
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const addToCartForm = document.getElementById('addToCartForm');
-    if (addToCartForm) {
-        addToCartForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(addToCartForm);
-            fetch(addToCartForm.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success || data.cart) {
-                    window.location.href = "{% url 'buyer:cart_page' %}";
-                } else {
-                    alert('Could not add to cart.');
-                }
-            })
-            .catch(() => alert('Error adding to cart.'));
-        });
+function showNotification(message, isError) {
+    let notif = document.getElementById('wishlist-notification');
+    if (!notif) {
+        notif = document.createElement('div');
+        notif.id = 'wishlist-notification';
+        notif.style.position = 'fixed';
+        notif.style.top = '40px';
+        notif.style.left = '50%';
+        notif.style.transform = 'translateX(-50%)';
+        notif.style.background = isError ? '#dc3545' : '#3578dc';
+        notif.style.color = 'white';
+        notif.style.padding = '14px 32px';
+        notif.style.borderRadius = '8px';
+        notif.style.fontSize = '16px';
+        notif.style.zIndex = 9999;
+        notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+        notif.style.display = 'none';
+        document.body.appendChild(notif);
     }
+    notif.textContent = message;
+    notif.style.background = isError ? '#dc3545' : '#3578dc';
+    notif.style.display = 'block';
+    setTimeout(() => {
+        notif.style.display = 'none';
+    }, 2200);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const saveBtn = document.getElementById('wishlist-toggle-btn');
+    if (!saveBtn) return;
+    saveBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const productId = this.getAttribute('data-product-id');
+        const isSaved = this.classList.contains('saved');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        if (!csrfToken) {
+            showNotification('Please log in to use the wishlist.', true);
+            return;
+        }
+        this.disabled = true;
+        this.style.opacity = '0.6';
+        fetch(isSaved ? '/wishlist/remove/' : '/wishlist/add/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: `product_id=${productId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.disabled = false;
+            this.style.opacity = '1';
+            if (data.success) {
+                if (isSaved) {
+                    this.classList.remove('saved');
+                    this.querySelector('.icon').innerHTML = '\u2661';
+                    this.querySelector('.text').textContent = 'Save for later';
+                    showNotification('Removed from wishlist');
+                } else {
+                    this.classList.add('saved');
+                    this.querySelector('.icon').innerHTML = '\u2764';
+                    this.querySelector('.text').textContent = 'Saved';
+                    showNotification('Added to wishlist');
+                }
+            } else {
+                showNotification(data.error || 'Failed to update wishlist.', true);
+            }
+        })
+        .catch(() => {
+            this.disabled = false;
+            this.style.opacity = '1';
+            showNotification('Error updating wishlist.', true);
         });
-    </script>
+    });
+});
+</script>
+{{ block.super }}
 {% endblock %}

@@ -423,12 +423,62 @@
 
         .remove-all-btn {
             color: #007bff;
+            background-color: white;
+            border: 1px solid #3578dc;
             text-decoration: none;
             font-size: 14px;
         }
 
         .remove-all-btn:hover {
             text-decoration: underline;
+        }
+
+        .remove-all-btn {
+            background: none;
+            border: none;
+            color: #3578dc;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .remove-all-btn:hover {
+            background: #4635e320;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 48px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .empty-cart i {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 16px;
+        }
+
+        .empty-cart p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .empty-cart .shop-now-link {
+            display: inline-block;
+            background: #4285f4;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .empty-cart .shop-now-link:hover {
+            background: #3367d6;
         }
 
         /* Responsive Design */
@@ -498,32 +548,179 @@
                 padding: 20px;
             }
         }
+
+        .cart-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+        }
+
+        .back-btn {
+            margin-left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            background-color: #3578dc;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .back-btn:hover {
+            text-decoration: none;
+            background-color: #2461c0;
+        }
+
+        .remove-all-btn {
+            margin-right: 20px;
+            padding: 8px 16px;
+            background-color: white;
+            border: 1px solid #3578dc;
+            color: #3578dc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .remove-all-btn:hover {
+            background: #4635e320;
+        }
+
+        .saved-items {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-top: 20px;
+            max-width: 1200px;
+        }
+
+        .saved-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+        }
+
+        .saved-item:last-child {
+            border-bottom: none;
+        }
+
+        .saved-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .saved-item-details {
+            flex: 1;
+        }
+
+        .saved-item-details h3 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .saved-item-details p {
+            margin: 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .saved-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .saved-item-actions button {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .move-to-cart-btn {
+            background-color: #3578dc;
+            color: white;
+            border: none;
+        }
+
+        .move-to-cart-btn:hover {
+            background-color: #2461c0;
+        }
+
+        .remove-from-wishlist-btn {
+            background-color: white;
+            color: #3578dc;
+            border: 1px solid #3578dc;
+        }
+
+        .remove-from-wishlist-btn:hover {
+            background-color: #4635e320;
+        }
+
+        .saved-items-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .saved-items-header h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .empty-wishlist {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body> 
     <div class="container">
         <form id="csrf-form" style="display:none;">{% csrf_token %}</form>
-        <!-- Cart Header -->
+        <!-- Update the cart header -->
         <div class="cart-header">
             <h1 class="cart-title">My cart ({{ cart_items|length }})</h1>
-            <a href="#" class="remove-all-btn">Remove all</a>
+            
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
             <!-- Cart Items -->
             <div class="cart-items">
+                {% if cart_items %}
+                    <div class="cart-items-container">
                 {% for item in cart_items %}
-                    <div class="cart-item" data-product-id="{{ item.product.id }}">
+                            <div class="cart-item" data-product-id="{{ item.product.id }}">
                         <div class="item-image">
-                            {% if item.product.images.first %}
-                                <img src="data:image/jpeg;base64,{{ item.product.images.first.image|b64encode }}" style="width:60px;height:60px;object-fit:cover;">
-                            {% else %}
-                                🛒
-                            {% endif %}
+                            <a href="{% url 'sellers:product_page' item.product.id %}">
+                                {% if item.product.images.first %}
+                                    <img src="data:image/jpeg;base64,{{ item.product.images.first.image|b64encode }}" style="width:60px;height:60px;object-fit:cover;">
+                                {% else %}
+                                    🛒
+                                {% endif %}
+                            </a>
                         </div>
                         <div class="item-details">
-                            <div class="item-title">{{ item.product.name }}</div>
+                            <div class="item-title">
+                                <a href="{% url 'sellers:product_page' item.product.id %}" style="color:inherit;text-decoration:none;">
+                                    {{ item.product.name }}
+                                </a>
+                            </div>
                             <div class="item-specs">
                                 {% for attr in item.product.attribute_values.all %}
                                     {{ attr.attribute.name }}: {{ attr.value }}{% if not forloop.last %}, {% endif %}
@@ -536,29 +733,44 @@
                             </div>
                         </div>
                         <div class="item-controls">
-                            <div class="item-price" data-unit-price="{{ item.product.final_price }}">
-                                ${{ item.product.final_price|floatformat:2 }}
-                            </div>
+                                    <div class="item-price" data-unit-price="{{ item.product.final_price }}">
+                                        ${{ item.product.final_price|floatformat:2 }}
+                                    </div>
                             <div class="quantity-control">
-                                <label for="quantity-{{ item.product.id }}">Qty:</label>
-                                <input 
-                                    type="number" 
-                                    class="quantity-input" 
-                                    id="quantity-{{ item.product.id }}"
-                                    name="quantity"
-                                    value="{{ item.quantity }}"
-                                    min="1"
-                                    data-product-id="{{ item.product.id }}"
-                                    data-unit-price="{{ item.product.final_price }}"
-                                    style="width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"
-                                >
+                                        <label for="quantity-{{ item.product.id }}">Qty:</label>
+                                        <input 
+                                            type="number" 
+                                            class="quantity-input" 
+                                            id="quantity-{{ item.product.id }}"
+                                            name="quantity"
+                                            value="{{ item.quantity }}"
+                                            min="1"
+                                            data-product-id="{{ item.product.id }}"
+                                            data-unit-price="{{ item.product.final_price }}"
+                                            style="width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"
+                                        >
                             </div>
                         </div>
                     </div>
                 {% endfor %}
+                    </div>
+                    <div class="cart-footer">
+                        <a href="{% url 'seller:index' %}" class="back-btn">Back to shop</a>
+                        <button class="remove-all-btn">Remove all</button>
+                    </div>
+                {% else %}
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>Your cart is empty</p>
+                        <a href="{% url 'seller:index' %}" class="shop-now-link">
+                            Continue Shopping
+                        </a>
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Order Summary -->
+            {% if cart_items %}
             <div class="order-summary">
                 <div class="coupon-section">
                     <div class="coupon-header">Have a coupon?</div>
@@ -595,10 +807,11 @@
                     <div class="payment-icon" style="background-color: #000; border-radius: 4px;"></div>
                 </div>
             </div>
+            {% endif %}
         </div>
 
-        <!-- Back to Shop Button -->
-        <a href="#" class="back-btn">Back to shop</a>
+        <!-- Back to Shop Button - Only show if cart has items -->
+        
 
         <!-- Features Section -->
         <div class="features-section">
@@ -625,44 +838,163 @@
             </div>
         </div>
 
-        <!-- Saved Items Section -->
-        <div class="saved-items-section">
-            <h2 class="section-title">Saved for later</h2>
+        <!-- Update the saved items section HTML structure -->
+<div class="saved-items">
+    <h2>Saved for later</h2>
             <div class="saved-items-grid">
+        {% if wishlist_items %}
+            {% for item in wishlist_items %}
                 <div class="saved-item">
-                    <div class="saved-item-image tablet">📱</div>
-                    <div class="saved-item-price">$99.50</div>
-                    <div class="saved-item-title">GoPro HERO6 4K Action Camera - Black</div>
-                    <button class="move-to-cart-btn">
-                        🛒 Move to cart
+                    <div class="saved-item-image">
+                        <a href="{% url 'sellers:product_page' item.product.id %}">
+                            <img src="data:image/jpeg;base64,{{ item.product.images.first.image|b64encode }}" alt="{{ item.product.name }}" style="width:120px;height:120px;object-fit:cover;">
+                        </a>
+                    </div>
+                    <div class="saved-item-details">
+                        <h3>
+                            <a href="{% url 'sellers:product_page' item.product.id %}" style="color:inherit;text-decoration:none;">
+                                {{ item.product.name }}
+                            </a>
+                        </h3>
+                        <p class="price">${{ item.product.final_price }}</p>
+                    </div>
+                    <!-- Update the saved item actions div -->
+                    <div class="saved-item-actions">
+                        <button class="move-to-cart-btn" data-product-id="{{ item.product.id }}">
+                            <i class="fas fa-shopping-cart"></i> Move to cart
+                    </button>
+                        <button class="remove-from-wishlist-btn" data-product-id="{{ item.product.id }}">
+                            <i class="fas fa-times"></i> Remove
                     </button>
                 </div>
-                <div class="saved-item">
-                    <div class="saved-item-image phone">📱</div>
-                    <div class="saved-item-price">$99.50</div>
-                    <div class="saved-item-title">GoPro HERO6 4K Action Camera - Black</div>
-                    <button class="move-to-cart-btn">
-                        🛒 Move to cart
-                    </button>
                 </div>
-                <div class="saved-item">
-                    <div class="saved-item-image watch">⌚</div>
-                    <div class="saved-item-price">$99.50</div>
-                    <div class="saved-item-title">GoPro HERO6 4K Action Camera - Black</div>
-                    <button class="move-to-cart-btn">
-                        🛒 Move to cart
-                    </button>
-                </div>
-                <div class="saved-item">
-                    <div class="saved-item-image laptop">💻</div>
-                    <div class="saved-item-price">$99.50</div>
-                    <div class="saved-item-title">GoPro HERO6 4K Action Camera - Black</div>
-                    <button class="move-to-cart-btn">
-                        🛒 Move to cart
-                    </button>
-                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-wishlist">
+                <p>No items saved for later</p>
+            </div>
+        {% endif %}
             </div>
         </div>
+
+<!-- Update the CSS -->
+<style>
+    .saved-items {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .saved-items h2 {
+        margin: 0 0 20px 0;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .saved-items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .saved-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .saved-item-image {
+        width: 100%;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border-radius: 4px;
+        background: white;
+    }
+
+    .saved-item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .saved-item-details {
+        text-align: left;
+    }
+
+    .saved-item-details h3 {
+        margin: 0;
+        font-size: 14px;
+        color: #333;
+        line-height: 1.4;
+    }
+
+    .saved-item-details .price {
+        margin: 5px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .saved-item-actions {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .move-to-cart-btn, .remove-from-wishlist-btn {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .move-to-cart-btn {
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+    }
+
+    .move-to-cart-btn:hover {
+        background-color: #0b5ed7;
+    }
+
+    .remove-from-wishlist-btn {
+        background-color: white;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+
+    .remove-from-wishlist-btn:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .empty-wishlist {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 30px;
+        color: #666;
+    }
+
+    @media (max-width: 768px) {
+        .saved-items-grid {
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+        }
+    }
+</style>
 
         <!-- Promotional Banner -->
         <div class="promo-banner">
@@ -850,8 +1182,8 @@
                         return;
                     }
 
-                    const productId = this.getAttribute('data-product-id');
-                    const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+                const productId = this.getAttribute('data-product-id');
+                const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
 
                     // Show loading state
                     const cartItem = this.closest('.cart-item');
@@ -859,16 +1191,16 @@
                         cartItem.style.opacity = '0.5';
                     }
 
-                    fetch('/cart/update/', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': csrfToken,
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: `product_id=${productId}&quantity=${quantity}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
+                fetch('/cart/update/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `product_id=${productId}&quantity=${quantity}`
+                })
+                .then(response => response.json())
+                .then(data => {
                         if (cartItem) {
                             cartItem.style.opacity = '1';
                         }
@@ -878,7 +1210,7 @@
                             updateCartUI(data);
                             previousValue = quantity;
                             showNotification('Cart updated successfully');
-                        } else {
+                    } else {
                             showNotification(data.error || 'Failed to update cart', true);
                             this.value = previousValue;
                             // Revert UI changes
@@ -898,37 +1230,37 @@
                             const unitPrice = safeParseFloat(this.getAttribute('data-unit-price'));
                             updateItemPrice(currentItem, previousValue, unitPrice);
                         }
-                    });
                 });
             });
+        });
 
             // Handle remove buttons
             document.querySelectorAll('.remove-btn').forEach(button => {
                 button.addEventListener('click', function(event) {
                     event.preventDefault();
-                    const cartItem = this.closest('.cart-item');
+                const cartItem = this.closest('.cart-item');
                     const productId = cartItem.querySelector('.quantity-input').getAttribute('data-product-id');
                     
                     // Show loading state
                     cartItem.style.opacity = '0.5';
 
-                    const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+                const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
 
                     fetch('/cart/update/', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': csrfToken,
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
                         body: `product_id=${productId}&quantity=0`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            cartItem.remove();
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        cartItem.remove();
                             updateCartUI(data);
                             showNotification('Item removed from cart');
-                        } else {
+                    } else {
                             cartItem.style.opacity = '1';
                             showNotification(data.error || 'Failed to remove item', true);
                         }
@@ -938,8 +1270,63 @@
                         console.error('Error removing item:', error);
                         showNotification('Error removing item', true);
                     });
-                });
             });
+        });
+
+            // Update the save-btn click handler in your JavaScript
+            document.querySelectorAll('.save-btn').forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const cartItem = this.closest('.cart-item');
+                    const productId = cartItem.getAttribute('data-product-id');
+                    const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+
+                    // Show loading state
+                    cartItem.style.opacity = '0.5';
+
+                    // First add to wishlist
+                    fetch('/wishlist/add/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `product_id=${productId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Then remove from cart
+                            return fetch('/cart/update/', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': csrfToken,
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                                },
+                                body: `product_id=${productId}&quantity=0`
+                            });
+                        } else {
+                            throw new Error(data.error || 'Failed to add to wishlist');
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Item saved to wishlist');
+                            // Reload the page to show updated cart and wishlist
+                            window.location.reload();
+                        } else {
+                            cartItem.style.opacity = '1';
+                            showNotification(data.error || 'Failed to update cart', true);
+                        }
+                    })
+                    .catch(error => {
+                        cartItem.style.opacity = '1';
+                        console.error('Error:', error);
+                        showNotification(error.message || 'Error saving item', true);
+                    });
+            });
+        });
 
             // Handle coupon application
             const applyButton = document.querySelector('.apply-btn');
@@ -972,7 +1359,7 @@
                             if (data.success) {
                                 updateCartUI(data);
                                 showNotification('Coupon applied successfully');
-                                couponInput.value = '';
+                couponInput.value = '';
                             } else {
                                 showNotification(data.error || 'Invalid coupon code', true);
                             }
@@ -998,6 +1385,186 @@
                 cart_count: parseInt('{{ cart_items|length }}'),
                 discount_percentage: parseFloat('{{ discount_percentage|default:10 }}')
             });
+
+            // Handle "Move to cart" button clicks
+            document.querySelectorAll('.move-to-cart-btn').forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    
+                    const productId = this.getAttribute('data-product-id');
+                    if (!productId) {
+                        showNotification('Error: Product ID not found', true);
+                        return;
+                    }
+
+                    const savedItem = this.closest('.saved-item');
+                    if (!savedItem) {
+                        showNotification('Error: Could not find item to move', true);
+                        return;
+                    }
+
+                    // Show loading state
+                    this.disabled = true;
+                    savedItem.style.opacity = '0.5';
+
+                    const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+
+                    // First, add to cart
+                    fetch('/cart/update/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: `product_id=${productId}&quantity=1`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Then remove from wishlist
+                            return fetch('/wishlist/remove/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'X-CSRFToken': csrfToken
+                                },
+                                body: `product_id=${productId}`
+                            });
+                        } else {
+                            throw new Error(data.error || 'Failed to add item to cart');
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Reload the page to show updated cart and wishlist
+                            window.location.reload();
+                        } else {
+                            // Reset loading state
+                            this.disabled = false;
+                            savedItem.style.opacity = '1';
+                            showNotification(data.error || 'Failed to move item to cart', true);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Reset loading state
+                        this.disabled = false;
+                        savedItem.style.opacity = '1';
+                        showNotification(error.message || 'Error moving item to cart', true);
+                    });
+                });
+            });
+
+            // Handle "Remove from wishlist" button clicks
+            document.querySelectorAll('.remove-from-wishlist-btn').forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    
+                    const productId = this.getAttribute('data-product-id');
+                    if (!productId) {
+                        showNotification('Error: Product ID not found', true);
+                        return;
+                    }
+
+                    const savedItem = this.closest('.saved-item');
+                    if (!savedItem) {
+                        showNotification('Error: Could not find item to remove', true);
+                        return;
+                    }
+
+                    // Show loading state
+                    this.disabled = true;
+                    savedItem.style.opacity = '0.5';
+
+                    const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+
+                    fetch('/wishlist/remove/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: `product_id=${productId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove the item from DOM
+                            savedItem.remove();
+                            showNotification('Item removed from wishlist');
+
+                            // Check if wishlist is empty
+                            const remainingItems = document.querySelectorAll('.saved-item');
+                            if (remainingItems.length === 0) {
+                                const savedItemsGrid = document.querySelector('.saved-items-grid');
+                                if (savedItemsGrid) {
+                                    savedItemsGrid.innerHTML = `
+                                        <div class="empty-wishlist">
+                                            <p>No items saved for later</p>
+                                        </div>
+                                    `;
+                                }
+                            }
+            } else {
+                            // Reset loading state
+                            this.disabled = false;
+                            savedItem.style.opacity = '1';
+                            showNotification(data.error || 'Failed to remove item from wishlist', true);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Reset loading state
+                        this.disabled = false;
+                        savedItem.style.opacity = '1';
+                        showNotification('Error removing item from wishlist', true);
+                    });
+                });
+            });
+
+            // Handle "Remove all" button click
+            const removeAllBtn = document.querySelector('.remove-all-btn');
+            if (removeAllBtn) {
+                removeAllBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    
+                    if (!confirm('Are you sure you want to remove all items from your cart?')) {
+                        return;
+                    }
+
+                    const csrfToken = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]').value;
+                    
+                    // Show loading state
+                    removeAllBtn.disabled = true;
+                    removeAllBtn.style.opacity = '0.5';
+                    
+                    fetch('/cart/remove-all/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Reload the page to show proper empty state
+                            window.location.reload();
+            } else {
+                            removeAllBtn.disabled = false;
+                            removeAllBtn.style.opacity = '1';
+                            showNotification(data.error || 'Failed to remove items', true);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        removeAllBtn.disabled = false;
+                        removeAllBtn.style.opacity = '1';
+                        showNotification('Error removing items', true);
+                    });
+                });
+            }
         });
     </script>
 {% endblock %}

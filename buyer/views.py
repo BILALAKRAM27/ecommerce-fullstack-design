@@ -117,6 +117,7 @@ def get_cart(request):
         })
         return cart_data
 
+@login_required(login_url='/seller/login/')
 def add_to_cart(request):
     product_id = int(request.POST.get('product_id'))
     quantity = int(request.POST.get('quantity', 1))
@@ -139,6 +140,7 @@ def add_to_cart(request):
         set_cart_cookie(response, cart_data)
         return response
 
+@login_required
 def remove_from_cart(request):
     product_id = int(request.POST.get('product_id'))
     if request.user.is_authenticated:
@@ -159,6 +161,7 @@ def remove_from_cart(request):
         set_cart_cookie(response, cart_data)
         return response
 
+@login_required
 @require_POST
 def update_cart_quantity(request):
     try:
@@ -260,7 +263,7 @@ def update_cart_quantity(request):
             'success': False,
             'error': str(e)
         })
-
+@login_required
 @require_POST
 def apply_coupon(request):
     try:
@@ -328,6 +331,7 @@ def apply_coupon(request):
             'error': str(e)
         })
 
+@login_required
 def clear_cart(request):
     if request.user.is_authenticated:
         buyer = get_object_or_404(Buyer, email=request.user.email)
@@ -339,6 +343,7 @@ def clear_cart(request):
         clear_cart_cookie(response)
         return response
 
+@login_required
 @require_POST
 def add_to_wishlist(request):
     print("=== Adding to wishlist ===")
@@ -395,6 +400,7 @@ def add_to_wishlist(request):
             'error': str(e)
         })
 
+@login_required
 @require_POST
 def remove_from_wishlist(request):
     print("=== Removing from wishlist ===")
@@ -429,6 +435,7 @@ def remove_from_wishlist(request):
             'error': str(e)
         })
 
+@login_required
 @require_POST
 def remove_all_from_cart(request):
     try:

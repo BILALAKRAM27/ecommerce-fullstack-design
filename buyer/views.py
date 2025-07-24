@@ -126,8 +126,11 @@ def add_to_cart(request):
         buyer = get_object_or_404(Buyer, email=request.user.email)
         cart, _ = Cart.objects.get_or_create(buyer=buyer)
         cart.add_product(product, quantity)
-        # Return a success response
-        return JsonResponse({'success': True})
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': True})
+        else:
+            # Redirect to cart page after adding
+            return redirect('buyer:cart_page')  # Make sure this is the correct name for your cart page view
     else:
         cart_data = get_cart_from_cookie(request)
         for item in cart_data["items"]:

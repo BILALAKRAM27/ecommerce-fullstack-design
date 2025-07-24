@@ -1,0 +1,933 @@
+{% extends 'index.html' %}
+{% load b64filters %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Page - Django Design System</title>
+    <style>
+        /* Design System CSS Variables */
+        :root {
+            /* Primary Brand Colors */
+            --primary-blue: #4285F4;
+            --primary-blue-dark: #3367D6;
+            --primary-blue-light: #E3F2FD;
+            
+            /* Neutral Foundation */
+            --neutral-50: #FAFAFA;
+            --neutral-100: #F5F5F5;
+            --neutral-200: #EEEEEE;
+            --neutral-300: #E0E0E0;
+            --neutral-400: #BDBDBD;
+            --neutral-500: #9E9E9E;
+            --neutral-600: #757575;
+            --neutral-700: #616161;
+            --neutral-800: #424242;
+            --neutral-900: #212121;
+            
+            /* Semantic Colors */
+            --success: #2ECC71;
+            --warning: #F39C12;
+            --error: #E74C3C;
+            --info: #3498DB;
+            
+            /* Text Colors */
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-muted: #9E9E9E;
+            --text-inverse: #FFFFFF;
+            
+            /* Background Colors */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #FAFAFA;
+            --bg-tertiary: #F5F5F5;
+            --bg-overlay: rgba(0, 0, 0, 0.5);
+            
+            /* Font Stack */
+            --font-primary: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-secondary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Container and Layout */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .checkout-container {
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 992px) {
+            .checkout-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        /* Typography */
+        .text-xs { font-size: 0.75rem; line-height: 1.4; }
+        .text-sm { font-size: 0.875rem; line-height: 1.5; }
+        .text-base { font-size: 1rem; line-height: 1.6; }
+        .text-lg { font-size: 1.125rem; line-height: 1.6; }
+        .text-xl { font-size: 1.25rem; line-height: 1.5; }
+        .text-2xl { font-size: 1.5rem; line-height: 1.4; }
+        .text-3xl { font-size: 1.875rem; line-height: 1.3; }
+
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+
+        /* Card Components */
+        .card {
+            background-color: var(--bg-primary);
+            border-radius: 0.5rem;
+            border: 1px solid var(--neutral-200);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--neutral-300);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--neutral-200);
+            background-color: var(--bg-secondary);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Button Components */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-blue-dark);
+            border-color: var(--primary-blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--primary-blue-light);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Form Components */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--neutral-300);
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background-color: var(--bg-primary);
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+        }
+
+        /* Seller Section */
+        .seller-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .seller-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--neutral-200);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .seller-header:hover {
+            background-color: var(--neutral-100);
+        }
+
+        .seller-header.active {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom-color: transparent;
+        }
+
+        .seller-content {
+            border: 1px solid var(--neutral-200);
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            background-color: var(--bg-primary);
+            display: none;
+        }
+
+        .seller-content.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .chevron {
+            transition: transform 0.2s ease;
+        }
+
+        .chevron.rotate {
+            transform: rotate(180deg);
+        }
+
+        /* Cart Item */
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 0.5rem;
+            object-fit: cover;
+            margin-right: 1rem;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        /* Order Summary */
+        .order-summary {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 1.125rem;
+            padding-top: 1rem;
+        }
+
+        /* Payment Methods */
+        .payment-method {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid var(--neutral-200);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .payment-method:hover {
+            border-color: var(--primary-blue);
+        }
+
+        .payment-method.selected {
+            border-color: var(--primary-blue);
+            background-color: var(--primary-blue-light);
+        }
+
+        .payment-method input[type="radio"] {
+            margin-right: 1rem;
+        }
+
+        /* Shipping Address */
+        .address-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .address-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .address-form .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Receipt Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-overlay);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background-color: var(--bg-primary);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--success);
+        }
+
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            background-color: var(--success);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--neutral-300);
+            border-top: 2px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Utility Classes */
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .text-center { text-align: center; }
+        .text-success { color: var(--success); }
+        .text-muted { color: var(--text-muted); }
+        .hidden { display: none; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .checkout-container {
+                padding: 1rem 0;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+            
+            .cart-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .item-image {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="checkout-container">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold mb-4">Checkout</h1>
+            <div class="flex items-center text-sm text-muted">
+                <a href="/">Home</a>
+                <span class="mx-2">/</span>
+                <a href="{% url 'buyer:cart_page' %}">Cart</a>
+                <span class="mx-2">/</span>
+                <span class="text-primary">Checkout</span>
+            </div>
+        </div>
+
+        <div class="checkout-grid">
+            <!-- Main Content -->
+            <div class="checkout-main">
+                <!-- Cart Items by Seller -->
+                <div class="card mb-6">
+                    <div class="card-header">
+                        <h2 class="text-xl font-semibold">Your Items</h2>
+                    </div>
+                    <div class="card-body">
+                        {% for group in grouped_sellers %}
+                        <div class="seller-section">
+                            <div class="seller-header" onclick="toggleSeller('seller{{ forloop.counter }}')">
+                                <div>
+                                    <h3 class="font-semibold">{{ group.seller.shop_name }}</h3>
+                                    <p class="text-sm text-muted">{{ group.products|length }} item{{ group.products|length|pluralize }} • ${{ group.subtotal|floatformat:2 }}</p>
+                                </div>
+                                <div class="chevron" id="chevron-seller{{ forloop.counter }}">
+                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M7 10l5 5 5-5z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="seller-content {% if forloop.first %}active{% endif %}" id="content-seller{{ forloop.counter }}">
+                                {% for product in group.products %}
+                                <div class="cart-item">
+                                    {% if product.image_url %}
+                                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="item-image">
+                                    {% else %}
+                                        <img src="/static/images/placeholder.png" alt="No image" class="item-image">
+                                    {% endif %}
+                                    <div class="item-details">
+                                        <h4 class="font-medium">{{ product.name }}</h4>
+                                        {% if product.attributes %}
+                                            <p class="text-sm text-muted">{{ product.attributes }}</p>
+                                        {% endif %}
+                                        <p class="text-sm">Qty: {{ product.quantity }}</p>
+                                    </div>
+                                    <div class="item-price">${{ product.price|floatformat:2 }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="card mb-6">
+                    <div class="card-header">
+                        <h2 class="text-xl font-semibold">Shipping Address</h2>
+                    </div>
+                    <div class="card-body">
+                        <form class="address-form" id="addressForm">
+                            <div class="form-group">
+                                <label class="form-label" for="address">Street Address</label>
+                                <input type="text" id="address" class="form-input" value="{{ shipping_address.street }}" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="city">City</label>
+                                    <input type="text" id="city" class="form-input" value="{{ shipping_address.city }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="zipCode">ZIP Code</label>
+                                    <input type="text" id="zipCode" class="form-input" value="{{ shipping_address.zip_code }}" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="country">Country</label>
+                                <select id="country" class="form-select" required>
+                                    <option value="US" {% if shipping_address.country == 'US' %}selected{% endif %}>United States</option>
+                                    <option value="CA" {% if shipping_address.country == 'CA' %}selected{% endif %}>Canada</option>
+                                    <option value="UK" {% if shipping_address.country == 'UK' %}selected{% endif %}>United Kingdom</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="card mb-6">
+                    <div class="card-header">
+                        <h2 class="text-xl font-semibold">Payment Method</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="payment-method selected" onclick="selectPaymentMethod('card')">
+                            <input type="radio" name="payment" id="card" value="card" checked>
+                            <label for="card" class="flex items-center">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mr-3">
+                                    <path d="M2 4h20v16H2V4zm2 2v3h16V6H4zm0 5v7h16v-7H4z"/>
+                                </svg>
+                                Credit/Debit Card
+                            </label>
+                        </div>
+                        <div class="payment-method" onclick="selectPaymentMethod('paypal')">
+                            <input type="radio" name="payment" id="paypal" value="paypal">
+                            <label for="paypal" class="flex items-center">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mr-3">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                </svg>
+                                PayPal
+                            </label>
+                        </div>
+                        <div class="payment-method" onclick="selectPaymentMethod('apple')">
+                            <input type="radio" name="payment" id="apple" value="apple">
+                            <label for="apple" class="flex items-center">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mr-3">
+                                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                                </svg>
+                                Apple Pay
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary Sidebar -->
+            <div class="checkout-sidebar">
+                <div class="order-summary">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="text-xl font-semibold">Order Summary</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="summary-row">
+                                <span>Subtotal ({{ order_summary.total_items }} item{{ order_summary.total_items|pluralize }})</span>
+                                <span>${{ order_summary.subtotal|floatformat:2 }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Shipping</span>
+                                <span>${{ order_summary.shipping|floatformat:2 }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax</span>
+                                <span>${{ order_summary.tax|floatformat:2 }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Total</span>
+                                <span class="text-primary-blue">${{ order_summary.total|floatformat:2 }}</span>
+                            </div>
+                            <button class="btn btn-primary btn-large w-full mt-4" id="payNowBtn" onclick="processPayment()">
+                                Pay Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal" id="receiptModal">
+    <div class="modal-content">
+        <div class="receipt-header">
+            <div class="success-icon">✓</div>
+            <h2 class="text-2xl font-bold text-success">Payment Successful!</h2>
+                <p class="text-muted">Order #12345 - Thank you for your purchase</p>
+        </div>
+        
+        <div class="receipt-body">
+            <h3 class="text-lg font-semibold mb-4">Order Details</h3>
+            
+            <!-- Receipt by Seller -->
+            <div class="seller-section mb-4">
+                    <h4 class="font-medium mb-2">TechWorld Store</h4>
+                <div class="bg-secondary p-4 rounded">
+                        <div class="flex justify-between mb-2">
+                            <span>Premium Smartphone</span>
+                            <span>$199.99</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>Protective Case</span>
+                            <span>$24.99</span>
+                        </div>
+                    <div class="flex justify-between mb-2">
+                            <span>Wireless Charger</span>
+                            <span>$74.99</span>
+                        </div>
+                        <div class="flex justify-between font-semibold border-t pt-2">
+                            <span>Subtotal</span>
+                            <span>$299.97</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="seller-section mb-4">
+                    <h4 class="font-medium mb-2">Fashion Hub</h4>
+                    <div class="bg-secondary p-4 rounded">
+                        <div class="flex justify-between mb-2">
+                            <span>Premium T-Shirt</span>
+                            <span>$39.99</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>Designer Jeans</span>
+                            <span>$49.99</span>
+                        </div>
+                    <div class="flex justify-between font-semibold border-t pt-2">
+                        <span>Subtotal</span>
+                            <span>$89.98</span>
+                        </div>
+                    </div>
+                </div>
+
+            <div class="summary-row">
+                <span>Total Amount</span>
+                    <span class="font-bold text-success">$438.33</span>
+            </div>
+
+            <div class="text-center mt-6">
+                <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
+                <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        // Seller collapsible functionality
+        function toggleSeller(sellerId) {
+            const content = document.getElementById(`content-${sellerId}`);
+            const chevron = document.getElementById(`chevron-${sellerId}`);
+            const header = content.previousElementSibling;
+            
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                chevron.classList.remove('rotate');
+                header.classList.remove('active');
+            } else {
+                content.classList.add('active');
+                chevron.classList.add('rotate');
+                header.classList.add('active');
+            }
+        }
+
+        // Payment method selection
+        function selectPaymentMethod(method) {
+            // Remove selected class from all payment methods
+            document.querySelectorAll('.payment-method').forEach(pm => {
+                pm.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked payment method
+            event.currentTarget.classList.add('selected');
+            
+            // Check the radio button
+            document.getElementById(method).checked = true;
+        }
+
+        // Form validation
+        class CheckoutValidator {
+            constructor() {
+                this.setupValidation();
+            }
+            
+            setupValidation() {
+                const inputs = document.querySelectorAll('#addressForm input, #addressForm select');
+                inputs.forEach(input => {
+                    input.addEventListener('blur', () => this.validateField(input));
+                    input.addEventListener('input', debounce(() => this.validateField(input), 300));
+                });
+            }
+            
+            validateField(field) {
+                const value = field.value.trim();
+                let isValid = true;
+                let message = '';
+                
+                if (field.hasAttribute('required') && !value) {
+                    isValid = false;
+                    message = 'This field is required';
+                } else if (field.id === 'zipCode' && value && !/^\d{5}(-\d{4})?$/.test(value)) {
+                    isValid = false;
+                    message = 'Please enter a valid ZIP code';
+                }
+                
+                this.updateFieldState(field, isValid, message);
+                return isValid;
+            }
+            
+            updateFieldState(field, isValid, message) {
+                let errorElement = field.parentElement.querySelector('.form-error');
+                
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'form-error text-sm';
+                    errorElement.style.color = 'var(--error)';
+                    errorElement.style.marginTop = '0.25rem';
+                    field.parentElement.appendChild(errorElement);
+                }
+                
+                if (isValid) {
+                    field.style.borderColor = 'var(--neutral-300)';
+                    errorElement.textContent = '';
+                } else {
+                    field.style.borderColor = 'var(--error)';
+                    errorElement.textContent = message;
+                }
+            }
+            
+            validateAllFields() {
+                const inputs = document.querySelectorAll('#addressForm input[required], #addressForm select[required]');
+                let allValid = true;
+                
+                inputs.forEach(input => {
+                    if (!this.validateField(input)) {
+                        allValid = false;
+                    }
+                });
+                
+                return allValid;
+            }
+        }
+
+        // Payment processing
+        function processPayment() {
+            const validator = new CheckoutValidator();
+            const payNowBtn = document.getElementById('payNowBtn');
+            const originalText = payNowBtn.innerHTML;
+            
+            // Validate form
+            if (!validator.validateAllFields()) {
+                alert('Please fill in all required fields correctly.');
+                return;
+            }
+            
+            // Show loading state
+            payNowBtn.disabled = true;
+            payNowBtn.innerHTML = `
+                <span class="spinner mr-2"></span>
+                Processing...
+            `;
+            
+            // Simulate payment processing
+            setTimeout(() => {
+                // Reset button
+                payNowBtn.disabled = false;
+                payNowBtn.innerHTML = originalText;
+                
+                // Show receipt modal
+                showReceipt();
+            }, 3000);
+        }
+
+        // Receipt modal functions
+        function showReceipt() {
+            const modal = document.getElementById('receiptModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeReceipt() {
+            const modal = document.getElementById('receiptModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            
+            // Redirect or show success message
+            alert('Thank you for your purchase! You will receive a confirmation email shortly.');
+        }
+
+        function downloadReceipt() {
+            // Create a simple text receipt
+            const receiptData = `
+RECEIPT - Order #12345
+========================
+
+TechWorld Store:
+- Premium Smartphone: $199.99
+- Protective Case: $24.99
+- Wireless Charger: $74.99
+Subtotal: $299.97
+
+Fashion Hub:
+- Premium T-Shirt: $39.99
+- Designer Jeans: $49.99
+Subtotal: $89.98
+
+Total: $438.33
+
+Thank you for your purchase!
+            `;
+            
+            const blob = new Blob([receiptData], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'receipt-12345.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Utility functions
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
+        // Close modal when clicking outside
+        document.getElementById('receiptModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReceipt();
+            }
+        });
+
+        // Initialize checkout functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize form validation
+            new CheckoutValidator();
+            
+            // Auto-expand first seller section
+            const firstSeller = document.querySelector('.seller-content');
+            if (firstSeller) {
+                firstSeller.classList.add('active');
+                const firstChevron = document.querySelector('.chevron');
+                if (firstChevron) {
+                    firstChevron.classList.add('rotate');
+                }
+                const firstHeader = document.querySelector('.seller-header');
+                if (firstHeader) {
+                    firstHeader.classList.add('active');
+                }
+            }
+        });
+
+        // Keyboard accessibility
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('receiptModal');
+                if (modal.classList.contains('active')) {
+                    closeReceipt();
+                }
+            }
+        });
+    </script>
+{% endblock %}
+</html>

@@ -14,7 +14,7 @@ class BuyerAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'image_preview')
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'email', 'phone', 'address')
+            'fields': ('name', 'email', 'phone')
         }),
         ('Media', {
             'fields': ('image', 'image_preview'),

@@ -2,12 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Buyer, Cart, CartItem, Wishlist
+from .models import Buyer, Cart, CartItem, Wishlist, Address
 from .forms import BuyerUpdateForm
 from seller.models import Product
 from .utils import get_cart_from_cookie, set_cart_cookie, clear_cart_cookie
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from .utils_order import group_cart_items_by_seller, calculate_order_summary, generate_order_id
+from .models import Order, OrderItem
+import base64
 
 
 # Create your views here.
@@ -533,3 +536,141 @@ def cart_page_view(request):
         'discount_percentage': discount_percentage
     }
     return render(request, 'buyer/cart_page.html', context)
+
+@login_required
+def checkout_view(request):
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    cart, _ = Cart.objects.get_or_create(buyer=buyer)
+    cart_items = cart.items.select_related('product__seller')
+
+    # Group items by seller
+    grouped_sellers = []
+    seller_map = {}
+    for item in cart_items:
+        seller = item.product.seller
+        if seller.id not in seller_map:
+            seller_map[seller.id] = {
+                'seller': {'shop_name': seller.shop_name},
+                'products': [],
+                'subtotal': 0,
+            }
+        img_obj = item.product.images.first()
+        if img_obj and img_obj.image:
+            image_url = f"data:image/jpeg;base64,{base64.b64encode(img_obj.image).decode()}"
+        else:
+            image_url = ""
+        seller_map[seller.id]['products'].append({
+            'name': item.product.name,
+            'image_url': image_url,
+            'attributes': ', '.join([f"{av.attribute.name}: {av.value}" for av in item.product.attribute_values.all()]),
+            'quantity': item.quantity,
+            'price': item.product.final_price,
+        })
+        seller_map[seller.id]['subtotal'] += item.product.final_price * item.quantity
+    grouped_sellers = list(seller_map.values())
+
+    # Order summary
+    subtotal = cart.subtotal
+    shipping = 15.99  # Example fixed shipping
+    tax = round((subtotal - cart.discount_amount) * 0.10, 2)
+    total = round(subtotal - cart.discount_amount + tax + shipping, 2)
+    total_items = sum(item.quantity for item in cart_items)
+    order_summary = {
+        'subtotal': subtotal,
+        'shipping': shipping,
+        'tax': tax,
+        'total': total,
+        'total_items': total_items,
+    }
+
+    # Shipping address
+    address_obj = getattr(buyer, 'address', None)
+    shipping_address = {
+        'street': address_obj.street if address_obj else '',
+        'city': address_obj.city if address_obj else '',
+        'zip_code': address_obj.zip_code if address_obj else '',
+        'country': address_obj.country if address_obj else 'US',
+    }
+
+    context = {
+        'grouped_sellers': grouped_sellers,
+        'order_summary': order_summary,
+        'shipping_address': shipping_address,
+        'buyer': buyer,
+    }
+    return render(request, 'buyer/checkout_page.html', context)
+
+@login_required
+def order_summary_view(request):
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    cart, _ = Cart.objects.get_or_create(buyer=buyer)
+    items = cart.items.select_related('product__seller')
+
+    # Group items by seller
+    sellers = {}
+    for item in items:
+        seller = item.product.seller
+        if seller.id not in sellers:
+            sellers[seller.id] = {
+                'seller': seller,
+                'products': []
+            }
+        sellers[seller.id]['products'].append(item)
+
+    context = {
+        'sellers': sellers.values()
+    }
+    return render(request, 'buyer/checkout_page.html', context)
+
+@login_required
+def place_order_view(request):
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    cart, _ = Cart.objects.get_or_create(buyer=buyer)
+    cart_items = cart.items.select_related('product__seller')
+
+    grouped_sellers = group_cart_items_by_seller(cart_items)
+    order_summary = calculate_order_summary(cart)
+
+    shipping_address = buyer.address or ''
+    if request.method == 'POST':
+        shipping_address = request.POST.get('shipping_address', shipping_address)
+        # Place an order for each seller
+        order_ids = []
+        receipts = []
+        for group in grouped_sellers:
+            seller = group['seller']
+            order_id = generate_order_id()
+            order = Order.objects.create(
+                buyer=buyer,
+                seller=seller,
+                status='pending',
+                total_amount=order_summary['total'],
+                payment_status='pending',
+                delivery_address=shipping_address,
+            )
+            order_ids.append(order_id)
+            for item in group['products']:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    price_at_purchase=item.product.final_price,
+                    quantity=item.quantity,
+                )
+            receipts.append({
+                'order': order,
+                'seller': seller,
+                'products': group['products'],
+            })
+        cart.clear()
+        return render(request, 'buyer/order_receipt.html', {
+            'receipts': receipts,
+            'order_summary': order_summary,
+            'shipping_address': shipping_address,
+            'order_ids': order_ids,
+        })
+
+    return render(request, 'buyer/checkout_page.html', {
+        'grouped_sellers': grouped_sellers,
+        'order_summary': order_summary,
+        'shipping_address': shipping_address,
+    })

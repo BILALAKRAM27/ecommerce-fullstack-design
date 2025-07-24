@@ -1,6 +1,6 @@
 import base64
 from django import forms
-from .models import Buyer, Order, Payment, CartItem, Wishlist
+from .models import Buyer, Order, Payment, CartItem, Wishlist, Address
 
 
 class BuyerRegistrationForm(forms.ModelForm):
@@ -8,7 +8,7 @@ class BuyerRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = Buyer
-        fields = ['name', 'email', 'phone', 'address']
+        fields = ['name', 'email', 'phone']
 
     def save(self, commit=True):
         buyer = super().save(commit=False)
@@ -26,7 +26,7 @@ class BuyerUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Buyer
-        fields = ['name', 'email', 'phone', 'address']
+        fields = ['name', 'email', 'phone']
 
     def save(self, commit=True):
         buyer = super().save(commit=False)
@@ -62,3 +62,9 @@ class WishlistForm(forms.ModelForm):
     class Meta:
         model = Wishlist
         fields = ['product']
+
+
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        fields = ['street', 'city', 'zip_code', 'country']

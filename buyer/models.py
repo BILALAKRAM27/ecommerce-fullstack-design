@@ -30,7 +30,6 @@ class Buyer(models.Model):
     email = models.EmailField(unique=True)
     image = models.BinaryField(blank=True, null=True)  # Storing image as binary data (BLOB)
     phone = models.CharField(max_length=20, null=True, blank=True)
-    address = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
@@ -193,3 +192,13 @@ class Payment(models.Model):
     transaction_id = models.CharField(max_length=100)
     status = models.CharField(max_length=20, choices=PaymentStatus.choices)
     payment_time = models.DateTimeField()
+
+class Address(models.Model):
+    buyer = models.OneToOneField('Buyer', on_delete=models.CASCADE, related_name='address')
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=50, default='US')
+
+    def __str__(self):
+        return f"{self.street}, {self.city}, {self.country}"

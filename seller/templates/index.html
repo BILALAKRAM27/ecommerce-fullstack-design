@@ -1150,7 +1150,7 @@
                 
                 <div class="header-actions">
                     {% if user.is_authenticated and user_type == 'seller' %}
-                    <span><a href="{% url 'seller:profile' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user"></i></a></span>
+                    <span><a href="{% url 'seller:seller_profile' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user"></i></a></span>
                     {% elif user.is_authenticated and user_type == 'buyer' %}
                     <span><a href="{% url 'buyer:buyer_profile' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user"></i></a></span>
                     {% else %}

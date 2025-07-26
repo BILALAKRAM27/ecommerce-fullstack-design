@@ -121,11 +121,18 @@
 
 .order-row, .product-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr auto;
   gap: 1rem;
   padding: 1rem;
   border-bottom: 1px solid var(--neutral-200);
   align-items: center;
+}
+
+.order-row {
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 120px;
+}
+
+.product-row {
+  grid-template-columns: 1fr 1fr 1fr 1fr 150px;
 }
 
 .order-row:hover, .product-row:hover {
@@ -180,7 +187,7 @@
 }
 
 .modal-content {
-  background: var(--bg-primary);
+  background: white;
   border-radius: 0.5rem;
   padding: 2rem;
   max-width: 500px;
@@ -188,6 +195,8 @@
   max-height: 90vh;
   overflow-y: auto;
   animation: slideUp 0.3s ease-out;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e5e7eb;
 }
 
 .notification-item {
@@ -249,6 +258,167 @@
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
   }
+  
+  .modal-content {
+    width: 95%;
+    margin: 1rem;
+  }
+  
+  .card-header .flex {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .card-header .flex > div {
+    width: 100%;
+  }
+  
+  .form-input, .form-select {
+    width: 100%;
+  }
+}
+
+/* Enhanced form styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  color: #374151;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input.invalid {
+  border-color: #dc3545;
+}
+
+.form-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Enhanced button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+/* Action buttons specific styling */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 120px;
+}
+
+.action-buttons .btn {
+  padding: 0.5rem;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 0.25rem;
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.action-buttons .btn:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons .btn.text-red-600 {
+  color: #dc2626;
+}
+
+.action-buttons .btn.text-red-600:hover {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+.btn-primary {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-blue-dark);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--neutral-200);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--neutral-300);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  background-color: var(--neutral-100);
+  color: var(--text-primary);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Animation for notifications */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.fixed.top-4.right-4 {
+  animation: slideInRight 0.3s ease-out;
 }
 </style>
 {% endblock %}
@@ -257,7 +427,7 @@
 <div class="container">
   <!-- Dashboard Header -->
   <div class="card mb-8">
-    <div class="dashboard-header">
+  <div class="dashboard-header">
       <div class="flex items-center">
         {% if seller.image and seller.get_image_base64 %}
             <img src="data:image/jpeg;base64,{{ seller.get_image_base64 }}" alt="Shop Avatar" class="profile-avatar" id="profileAvatar">
@@ -266,11 +436,13 @@
                 {{ seller.shop_name|first|upper|default:"S" }}
             </div>
         {% endif %}
-        <div class="ml-6">
+        <div class="ml-6" style="margin-left: 10px;color: #111827;">
           <h1 class="text-3xl font-bold mb-2" id="shopName">{{ seller.shop_name|default:"My Shop" }}</h1>
           <p class="text-lg opacity-90" id="shopBio">{{ seller.shop_description|default:"Welcome to my store!" }}</p>
-          <a href="{% url 'seller:seller_profile' %}" class="btn btn-ghost mt-2 text-white border-white hover:bg-white hover:text-blue-600">
-            View Profile
+          <a href="{% url 'seller:seller_profile' %}">
+            <button class="btn btn-default " style="color: white;background-color: #3b82f6;border-color: white;" >
+              View Profile
+          </button>
           </a>
         </div>
       </div>
@@ -284,21 +456,41 @@
     </div>
     <div class="card-body">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="stat-card">
+          <div class="stat-value">${{ total_earnings|floatformat:2|default:"0.00" }}</div>
+      <div class="stat-label">Total Earnings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_orders|default:"0" }}</div>
+      <div class="stat-label">Total Orders</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_products|default:"0" }}</div>
+      <div class="stat-label">Products</div>
+    </div>
+    <div class="stat-card">
+          <div class="stat-value">${{ monthly_sales|floatformat:2|default:"0.00" }}</div>
+      <div class="stat-label">This Month</div>
+        </div>
+      </div>
+      
+      <!-- Additional Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
         <div class="stat-card">
-          <div class="stat-value">${{ total_earnings|floatformat:0|default:"0" }}</div>
-          <div class="stat-label">Total Earnings</div>
+          <div class="stat-value">${{ cod_revenue|floatformat:2|default:"0.00" }}</div>
+          <div class="stat-label">COD Revenue</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value">{{ total_orders|default:"0" }}</div>
-          <div class="stat-label">Total Orders</div>
+          <div class="stat-value">${{ stripe_revenue|floatformat:2|default:"0.00" }}</div>
+          <div class="stat-label">Stripe Revenue</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value">{{ total_products|default:"0" }}</div>
-          <div class="stat-label">Products</div>
+          <div class="stat-value">{{ pending_orders|default:"0" }}</div>
+          <div class="stat-label">Pending Orders</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value">${{ monthly_sales|floatformat:0|default:"0" }}</div>
-          <div class="stat-label">This Month</div>
+          <div class="stat-value">{{ low_stock_products|default:"0" }}</div>
+          <div class="stat-label">Low Stock Items</div>
         </div>
       </div>
     </div>
@@ -311,11 +503,11 @@
       <!-- Tab Navigation -->
       <div class="card mb-6">
         <div class="card-body p-0">
-          <div class="tab-nav">
-            <div class="flex flex-wrap">
-              <button class="tab-button active" data-tab="orders">Orders</button>
-              <button class="tab-button" data-tab="products">Products</button>
-              <button class="tab-button" data-tab="reports">Reports</button>
+      <div class="tab-nav">
+        <div class="flex flex-wrap">
+          <button class="tab-button active" data-tab="orders">Orders</button>
+          <button class="tab-button" data-tab="products">Products</button>
+          <button class="tab-button" data-tab="reports">Reports</button>
             </div>
           </div>
         </div>
@@ -326,31 +518,73 @@
         <div class="card">
           <div class="card-header flex justify-between items-center">
             <h3 class="text-lg font-semibold">Recent Orders</h3>
-            <a href="{% url 'seller:orders_list' %}" class="btn btn-primary btn-sm">View All</a>
+            <div class="flex items-center space-x-3">
+              <div class="flex items-center space-x-2">
+                <input type="text" id="orderSearch" placeholder="Search orders..." class="form-input text-sm w-48">
+                <select id="orderStatusFilter" class="form-select text-sm">
+                  <option value="">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <a href="{% url 'seller:orders_list' %}" class="btn btn-primary btn-sm">View All</a>
+            </div>
           </div>
           <div class="card-body p-0">
             <div class="order-row font-semibold bg-neutral-50 text-sm">
               <div>Order ID</div>
               <div>Customer</div>
+              <div>Products</div>
               <div>Total</div>
               <div>Status</div>
+              <div>Payment</div>
               <div>Actions</div>
             </div>
             {% for order in recent_orders %}
-            <div class="order-row">
+            <div class="order-row" data-order-id="{{ order.id }}" data-status="{{ order.status }}">
               <div class="font-mono text-sm">#{{ order.id }}</div>
-              <div>{{ order.customer.first_name }} {{ order.customer.last_name }}</div>
-              <div class="font-semibold">${{ order.total|floatformat:2 }}</div>
+              <div>{% if order.buyer.name %}
+  {{ order.buyer.name }}
+{% elif order.buyer.user %}
+  {{ order.buyer.user.username }}
+{% else %}
+  Anonymous
+{% endif %}</div>
+              <div class="text-sm">
+                {% for item in order.items.all|slice:":2" %}
+                  {{ item.product.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                {% if order.items.count > 2 %}
+                  <span class="text-neutral-500">+{{ order.items.count|add:"-2" }} more</span>
+                {% endif %}
+              </div>
+              <div class="font-semibold">${{ order.total_amount|floatformat:2 }}</div>
               <div>
                 <span class="status-badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
               </div>
               <div>
-                <button class="btn btn-ghost btn-sm" onclick="viewOrder('{{ order.id }}')">View</button>
+                <span class="status-badge status-{{ order.payment_status|lower }}">{{ order.get_payment_status_display }}</span>
+              </div>
+              <div class="action-buttons">
+                <button class="btn" onclick="viewOrderDetails('{{ order.id }}')" title="View Details">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                </button>
+                <button class="btn" onclick="updateOrderStatus('{{ order.id }}')" title="Update Status">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                </button>
               </div>
             </div>
             {% empty %}
             <div class="order-row">
-              <div class="col-span-5 text-center text-neutral-500 py-8">No orders yet</div>
+              <div class="col-span-6 text-center text-neutral-500 py-8">No orders yet</div>
             </div>
             {% endfor %}
           </div>
@@ -362,40 +596,70 @@
         <div class="card">
           <div class="card-header flex justify-between items-center">
             <h3 class="text-lg font-semibold">Your Products</h3>
-            <a href="{% url 'seller:products_list' %}" class="btn btn-primary">View All Products</a>
+            <div class="flex items-center space-x-3">
+              <div class="flex items-center space-x-2">
+                <input type="text" id="productSearch" placeholder="Search products..." class="form-input text-sm w-48">
+              </div>
+              <a href="{% url 'seller:products_list' %}" class="btn btn-primary">View All Products</a>
+            </div>
           </div>
           <div class="card-body p-0">
             <div class="product-row font-semibold bg-neutral-50 text-sm">
               <div>Product</div>
               <div>Price</div>
               <div>Stock</div>
-              <div>Status</div>
+              <div>Sales</div>
               <div>Actions</div>
             </div>
             {% for product in products %}
-            <div class="product-row">
+            <div class="product-row" data-product-id="{{ product.id }}" data-status="{% if product.is_active %}active{% else %}inactive{% endif %}" data-stock="{{ product.stock|default:0 }}">
               <div class="flex items-center">
-                <img src="{{ product.image.url|default:'/static/images/default-product.jpg' }}" alt="{{ product.name }}" class="product-image mr-3">
+                {% if product.images.first %}
+                  <img src="data:image/png;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}" class="product-image mr-3">
+                {% else %}
+                  <div class="product-image mr-3 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                    {{ product.name|first|upper }}
+                  </div>
+                {% endif %}
                 <div>
                   <div class="font-semibold">{{ product.name }}</div>
-                  <div class="text-sm text-neutral-600">{{ product.category.name }}</div>
+                  <div class="text-sm text-neutral-600">{{ product.category.name|default:"Uncategorized" }}</div>
                 </div>
               </div>
-              <div class="font-semibold">${{ product.price|floatformat:2 }}</div>
-              <div>{{ product.stock|default:"0" }}</div>
-              <div>
-                <span class="status-badge {% if product.is_active %}status-completed{% else %}status-cancelled{% endif %}">
-                  {% if product.is_active %}Active{% else %}Inactive{% endif %}
-                </span>
+              <div class="font-semibold">${{ product.final_price|floatformat:2 }}</div>
+              <div class="{% if product.stock <= 5 %}text-red-600 font-semibold{% endif %}">
+                {{ product.stock|default:"0" }}
+                {% if product.stock <= 5 and product.stock > 0 %}
+                  <span class="text-xs text-red-500">(Low)</span>
+                {% endif %}
               </div>
-              <div class="flex space-x-2">
-                <button class="btn btn-ghost btn-sm" onclick="editProduct('{{ product.id }}')">Edit</button>
-                <button class="btn btn-ghost btn-sm text-red-600" onclick="deleteProduct('{{ product.id }}')">Delete</button>
+                              <div class="text-sm text-neutral-600">
+                  {{ product.dashboard_order_count|default:"0" }} sold
+                  {% if product.dashboard_total_revenue %}
+                  <br><span class="text-green-600">${{ product.dashboard_total_revenue|floatformat:2 }}</span>
+                  {% endif %}
+                </div>
+              <div class="action-buttons">
+                <button class="btn" onclick="editProduct('{{ product.id }}')" title="Edit Product">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button class="btn" onclick="duplicateProduct('{{ product.id }}')" title="Duplicate Product">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                </button>
+                <button class="btn text-red-600" onclick="deleteProduct('{{ product.id }}')" title="Delete Product">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
               </div>
             </div>
             {% empty %}
             <div class="product-row">
-              <div class="col-span-5 text-center text-neutral-500 py-8">No products yet</div>
+              <div class="col-span-6 text-center text-neutral-500 py-8">No products yet</div>
             </div>
             {% endfor %}
           </div>
@@ -407,31 +671,31 @@
       <!-- Reports Tab -->
       <div class="tab-content" id="reports">
         <div class="card mb-6">
-          <div class="card-header">
+            <div class="card-header">
             <h3 class="text-lg font-semibold">Sales Analytics</h3>
-          </div>
-          <div class="card-body">
+            </div>
+            <div class="card-body">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
                 <h4 class="text-md font-semibold mb-4">Sales Overview</h4>
-                <div class="chart-container">
-                  <canvas id="salesChart"></canvas>
-                </div>
+              <div class="chart-container">
+                <canvas id="salesChart"></canvas>
               </div>
+            </div>
               <div>
                 <h4 class="text-md font-semibold mb-4">Revenue Breakdown</h4>
-                <div class="space-y-4">
-                  <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
-                    <span>This Week</span>
-                    <span class="font-semibold text-primary-blue">${{ weekly_revenue|floatformat:2|default:"0.00" }}</span>
-                  </div>
-                  <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
-                    <span>This Month</span>
-                    <span class="font-semibold text-primary-blue">${{ monthly_revenue|floatformat:2|default:"0.00" }}</span>
-                  </div>
-                  <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
-                    <span>This Year</span>
-                    <span class="font-semibold text-primary-blue">${{ yearly_revenue|floatformat:2|default:"0.00" }}</span>
+              <div class="space-y-4">
+                <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
+                  <span>This Week</span>
+                  <span class="font-semibold text-primary-blue">${{ weekly_revenue|floatformat:2|default:"0.00" }}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
+                  <span>This Month</span>
+                  <span class="font-semibold text-primary-blue">${{ monthly_revenue|floatformat:2|default:"0.00" }}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
+                  <span>This Year</span>
+                  <span class="font-semibold text-primary-blue">${{ yearly_revenue|floatformat:2|default:"0.00" }}</span>
                   </div>
                 </div>
               </div>
@@ -439,32 +703,73 @@
           </div>
         </div>
         
-        <div class="card">
+        <!-- Order Status Breakdown -->
+        <div class="card mb-6">
           <div class="card-header">
-            <h3 class="text-lg font-semibold">Top Selling Products</h3>
+            <h3 class="text-lg font-semibold">Order Status Breakdown</h3>
           </div>
           <div class="card-body">
-            <div class="space-y-3">
-              {% for product in top_products %}
-              <div class="flex items-center justify-between p-3 bg-neutral-50 rounded">
-                <div class="flex items-center">
-                  {% if product.image %}
-                    <img src="data:image/jpeg;base64,{{ product.get_image_base64 }}" alt="{{ product.name }}" class="w-10 h-10 rounded mr-3 object-cover">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                <div class="text-2xl font-bold text-yellow-600">{{ pending_orders }}</div>
+                <div class="text-sm text-yellow-700">Pending</div>
+              </div>
+              <div class="text-center p-4 bg-blue-50 rounded-lg">
+                <div class="text-2xl font-bold text-blue-600">{{ processing_orders }}</div>
+                <div class="text-sm text-blue-700">Processing</div>
+              </div>
+              <div class="text-center p-4 bg-purple-50 rounded-lg">
+                <div class="text-2xl font-bold text-purple-600">{{ shipped_orders }}</div>
+                <div class="text-sm text-purple-700">Shipped</div>
+              </div>
+              <div class="text-center p-4 bg-green-50 rounded-lg">
+                <div class="text-2xl font-bold text-green-600">{{ delivered_orders }}</div>
+                <div class="text-sm text-green-700">Delivered</div>
+              </div>
+              <div class="text-center p-4 bg-red-50 rounded-lg">
+                <div class="text-2xl font-bold text-red-600">{{ cancelled_orders }}</div>
+                <div class="text-sm text-red-700">Cancelled</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+          <div class="card">
+            <div class="card-header">
+              <h3 class="text-lg font-semibold">Top Selling Products</h3>
+            </div>
+            <div class="card-body">
+              <div class="space-y-3">
+                {% for product in top_products %}
+                <div class="flex items-center justify-between p-3 bg-neutral-50 rounded">
+                  <div class="flex items-center">
+                  {% if product.images.first %}
+                    <img src="data:image/png;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}" class="w-10 h-10 rounded mr-3 object-cover">
                   {% else %}
                     <div class="w-10 h-10 rounded mr-3 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
                       {{ product.name|first|upper }}
                     </div>
                   {% endif %}
-                  <div>
-                    <div class="font-semibold">{{ product.name }}</div>
-                    <div class="text-sm text-neutral-600">{{ product.order_count|default:"0" }} orders</div>
+                    <div>
+                      <div class="font-semibold">{{ product.name }}</div>
+                    <div class="text-sm text-neutral-600">
+                      {{ product.dashboard_order_count|default:"0" }} orders
+                      {% if product.dashboard_total_sold %}
+                        • {{ product.dashboard_total_sold }} units sold
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
-                <div class="font-semibold text-primary-blue">${{ product.final_price|floatformat:2 }}</div>
-              </div>
-              {% empty %}
-              <p class="text-center text-neutral-500 py-4">No sales data available</p>
-              {% endfor %}
+                <div class="text-right">
+                  <div class="font-semibold text-primary-blue">${{ product.final_price|floatformat:2 }}</div>
+                  {% if product.dashboard_total_revenue %}
+                    <div class="text-sm text-green-600">${{ product.dashboard_total_revenue|floatformat:2 }} revenue</div>
+                  {% endif %}
+                </div>
+                </div>
+                {% empty %}
+                <p class="text-center text-neutral-500 py-4">No sales data available</p>
+                {% endfor %}
             </div>
           </div>
         </div>
@@ -480,14 +785,62 @@
         </div>
         <div class="card-body space-y-3">
           <button class="btn btn-primary w-full" onclick="openPromotionModal()">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
             Create Promotion
           </button>
-          <a href="{% url 'seller:add_product' %}" class="btn btn-secondary w-full">
+          <a href="{% url 'seller:product_create' %}" class="btn btn-secondary w-full">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
             Add Product
           </a>
-          <button class="btn btn-ghost w-full">
+          <button class="btn btn-ghost w-full" onclick="openExportModal()">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
             Export Data
           </button>
+          <button class="btn btn-ghost w-full" onclick="refreshDashboard()">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Refresh Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg font-semibold">Recent Activity</h3>
+        </div>
+        <div class="card-body p-0">
+          {% for order in recent_activity %}
+          <div class="notification-item">
+            <div class="notification-icon notification-new">
+              📦
+            </div>
+            <div class="flex-1">
+              <div class="font-semibold text-sm">Order #{{ order.id }}</div>
+              <div class="text-xs text-neutral-600">
+                {% if order.buyer.name %}
+  {{ order.buyer.name }}
+{% elif order.buyer.user %}
+  {{ order.buyer.user.username }}
+{% else %}
+  Anonymous
+{% endif %} • ${{ order.total_amount|floatformat:2 }}
+              </div>
+              <div class="text-xs text-neutral-500 mt-1">{{ order.created_at|timesince }} ago</div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="notification-item">
+            <div class="text-center text-neutral-500 w-full py-4">No recent activity</div>
+          </div>
+          {% endfor %}
         </div>
       </div>
 
@@ -523,7 +876,7 @@
 
 <!-- Create Promotion Modal -->
 <div class="modal" id="promotionModal">
-  <div class="modal-content">
+  <div class="modal-content bg-white">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-xl font-semibold">Create Promotion</h3>
       <button class="btn btn-ghost" onclick="closeModal('promotionModal')">&times;</button>
@@ -532,21 +885,21 @@
       {% csrf_token %}
       <div class="form-group">
         <label class="form-label">Promotion Name</label>
-        <input type="text" class="form-input" placeholder="Summer Sale 2024" required>
+        <input type="text" name="name" class="form-input" placeholder="Summer Sale 2024" required>
       </div>
       <div class="grid grid-cols-2 gap-4">
-        <div class="form-group">
+      <div class="form-group">
           <label class="form-label">Discount (%)</label>
-          <input type="number" class="form-input" min="1" max="99" placeholder="20" required>
-        </div>
-        <div class="form-group">
+          <input type="number" name="discount" class="form-input" min="1" max="99" placeholder="20" required>
+      </div>
+      <div class="form-group">
           <label class="form-label">Valid Until</label>
-          <input type="date" class="form-input" required>
+          <input type="date" name="valid_until" class="form-input" required>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Products</label>
-        <select class="form-input" multiple>
+        <select name="products" class="form-input" multiple>
           {% for product in products %}
           <option value="{{ product.id }}">{{ product.name }}</option>
           {% endfor %}
@@ -557,6 +910,146 @@
         <button type="submit" class="btn btn-primary">Create Promotion</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal" id="orderDetailsModal">
+  <div class="modal-content max-w-4xl bg-white">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold">Order Details</h3>
+      <button class="btn btn-ghost" onclick="closeModal('orderDetailsModal')">&times;</button>
+    </div>
+    <div id="orderDetailsContent">
+      <!-- Order details will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<!-- Update Order Status Modal -->
+<div class="modal" id="updateStatusModal">
+  <div class="modal-content bg-white">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold text-gray-800">Update Order Status</h3>
+      <button class="btn btn-ghost text-gray-600 hover:text-gray-800" onclick="closeModal('updateStatusModal')">&times;</button>
+    </div>
+    <form id="updateStatusForm">
+      {% csrf_token %}
+      <input type="hidden" id="orderIdForUpdate" name="order_id">
+      <div class="form-group">
+        <label class="form-label text-gray-700">New Status</label>
+        <select name="status" class="form-input bg-white border-gray-300 text-gray-800" required>
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label text-gray-700">Tracking Number (Optional)</label>
+        <input type="text" name="tracking_number" class="form-input bg-white border-gray-300 text-gray-800" placeholder="Enter tracking number">
+      </div>
+      <div class="form-group">
+        <label class="form-label text-gray-700">Notes (Optional)</label>
+        <textarea name="notes" class="form-input bg-white border-gray-300 text-gray-800" rows="3" placeholder="Add any notes about this order"></textarea>
+      </div>
+      <div class="flex justify-end space-x-3">
+        <button type="button" class="btn btn-secondary bg-gray-200 text-gray-800 hover:bg-gray-300" onclick="closeModal('updateStatusModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary bg-blue-600 text-white hover:bg-blue-700">Update Status</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Product Edit Modal -->
+<div class="modal" id="productEditModal">
+  <div class="modal-content max-w-4xl bg-white">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold">Edit Product</h3>
+      <button class="btn btn-ghost" onclick="closeModal('productEditModal')">&times;</button>
+    </div>
+    <form id="productEditForm">
+      {% csrf_token %}
+      <input type="hidden" id="productIdForEdit" name="product_id">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="form-group">
+          <label class="form-label">Product Name</label>
+          <input type="text" name="name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price</label>
+          <input type="number" name="price" class="form-input" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock</label>
+          <input type="number" name="stock" class="form-input" required>
+      </div>
+      <div class="form-group">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-input" required>
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+          {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-input" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select name="is_active" class="form-input">
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </div>
+      <div class="flex justify-end space-x-3">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('productEditModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Export Data Modal -->
+<div class="modal" id="exportModal">
+  <div class="modal-content bg-white">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold">Export Data</h3>
+      <button class="btn btn-ghost" onclick="closeModal('exportModal')">&times;</button>
+    </div>
+    <div class="space-y-4">
+      <div class="form-group">
+        <label class="form-label">Export Type</label>
+        <select id="exportType" class="form-input">
+          <option value="orders">Orders</option>
+          <option value="products">Products</option>
+          <option value="sales">Sales Report</option>
+          <option value="inventory">Inventory Report</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date Range</label>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="date" id="exportStartDate" class="form-input">
+          <input type="date" id="exportEndDate" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Format</label>
+        <select id="exportFormat" class="form-input">
+          <option value="csv">CSV</option>
+          <option value="excel">Excel</option>
+          <option value="pdf">PDF</option>
+        </select>
+      </div>
+      <div class="flex justify-end space-x-3">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('exportModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="exportData()">Export</button>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -698,7 +1191,7 @@ class FormValidator {
         submitBtn.innerHTML = originalText;
         
         // Show success message or handle response
-                if (this.form.id === 'addProductForm') {
+        if (this.form.id === 'addProductForm') {
           alert('Product added successfully!');
           this.form.reset();
         }
@@ -706,7 +1199,7 @@ class FormValidator {
     }
   }
   
-
+    
 }
 
 // Initialize form validators
@@ -720,23 +1213,476 @@ document.addEventListener('DOMContentLoaded', () => {
   initSalesChart();
 });
 
-// Product management functions
-function editProduct(productId) {
-  // In a real application, this would fetch product data and populate a modal
-  console.log('Edit product:', productId);
-  alert('Edit product functionality would be implemented here');
-}
-
-function deleteProduct(productId) {
-  if (confirm('Are you sure you want to delete this product?')) {
-    console.log('Delete product:', productId);
-    alert('Delete product functionality would be implemented here');
+// Enhanced Product Management Functions
+async function editProduct(productId) {
+  try {
+    const response = await fetch(`/product/${productId}/edit/`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    });
+    
+    if (response.ok) {
+      const productData = await response.json();
+      populateProductEditForm(productData);
+      openModal('productEditModal');
+    } else {
+      showNotification('Failed to load product data', 'error');
+    }
+  } catch (error) {
+    console.error('Error loading product:', error);
+    showNotification('Error loading product data', 'error');
   }
 }
 
-function viewOrder(orderId) {
-  console.log('View order:', orderId);
-  alert('View order functionality would be implemented here');
+function populateProductEditForm(productData) {
+  document.getElementById('productIdForEdit').value = productData.id;
+  document.querySelector('#productEditForm input[name="name"]').value = productData.name;
+  document.querySelector('#productEditForm input[name="price"]').value = productData.price;
+  document.querySelector('#productEditForm input[name="stock"]').value = productData.stock;
+  document.querySelector('#productEditForm select[name="category"]').value = productData.category;
+  document.querySelector('#productEditForm textarea[name="description"]').value = productData.description || '';
+  document.querySelector('#productEditForm select[name="is_active"]').value = productData.is_active.toString();
+}
+
+async function deleteProduct(productId) {
+  if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+    try {
+      const response = await fetch(`/product/${productId}/delete/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+      
+      if (response.ok) {
+        showNotification('Product deleted successfully', 'success');
+        // Remove the product row from the table
+        const productRow = document.querySelector(`[data-product-id="${productId}"]`);
+        if (productRow) {
+          productRow.remove();
+        }
+      } else {
+        showNotification('Failed to delete product', 'error');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      showNotification('Error deleting product', 'error');
+    }
+  }
+}
+
+async function duplicateProduct(productId) {
+  if (confirm('Create a copy of this product?')) {
+    try {
+      const response = await fetch(`/product/${productId}/duplicate/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+      
+      if (response.ok) {
+        showNotification('Product duplicated successfully', 'success');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        showNotification('Failed to duplicate product', 'error');
+      }
+    } catch (error) {
+      console.error('Error duplicating product:', error);
+      showNotification('Error duplicating product', 'error');
+    }
+  }
+}
+
+// Enhanced Order Management Functions
+async function viewOrderDetails(orderId) {
+  try {
+    const response = await fetch(`/order/${orderId}/details/`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    });
+    
+    if (response.ok) {
+      const orderData = await response.json();
+      displayOrderDetails(orderData);
+      openModal('orderDetailsModal');
+    } else {
+      showNotification('Failed to load order details', 'error');
+    }
+  } catch (error) {
+    console.error('Error loading order details:', error);
+    showNotification('Error loading order details', 'error');
+  }
+}
+
+function displayOrderDetails(orderData) {
+  const content = document.getElementById('orderDetailsContent');
+  content.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div>
+        <h4 class="font-semibold mb-3">Order Information</h4>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Order ID:</span>
+            <span class="font-mono">#${orderData.id}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Date:</span>
+            <span>${new Date(orderData.created_at).toLocaleDateString()}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Status:</span>
+            <span class="status-badge status-${orderData.status}">${orderData.get_status_display}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Payment Status:</span>
+            <span class="status-badge status-${orderData.payment_status}">${orderData.get_payment_status_display}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Total:</span>
+            <span class="font-semibold">$${orderData.total_amount}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Tracking:</span>
+            <span>${orderData.tracking_number}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3">Payment Information</h4>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Method:</span>
+            <span>${orderData.payment.method}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Transaction ID:</span>
+            <span class="font-mono text-xs">${orderData.payment.transaction_id}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Payment Status:</span>
+            <span class="status-badge status-${orderData.payment.status.toLowerCase()}">${orderData.payment.status}</span>
+          </div>
+          ${orderData.payment.payment_time ? `
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Payment Time:</span>
+            <span>${new Date(orderData.payment.payment_time).toLocaleString()}</span>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3">Customer Information</h4>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Name:</span>
+            <span>${orderData.buyer.name}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Email:</span>
+            <span>${orderData.buyer.email}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Phone:</span>
+            <span>${orderData.buyer.phone || 'N/A'}</span>
+          </div>
+        </div>
+        <h4 class="font-semibold mb-3 mt-4">Shipping Address</h4>
+        <div class="text-sm text-neutral-600">
+          ${orderData.delivery_address}
+        </div>
+        ${orderData.notes && orderData.notes !== 'No notes' ? `
+        <h4 class="font-semibold mb-3 mt-4">Notes</h4>
+        <div class="text-sm text-neutral-600">
+          ${orderData.notes}
+        </div>
+        ` : ''}
+      </div>
+    </div>
+    <div class="mt-6">
+      <h4 class="font-semibold mb-3">Order Items</h4>
+      <div class="space-y-3">
+        ${orderData.items.map(item => `
+          <div class="flex items-center justify-between p-3 bg-neutral-50 rounded">
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gray-200 rounded mr-3 flex items-center justify-center">
+                ${item.product.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div class="font-semibold">${item.product.name}</div>
+                <div class="text-sm text-neutral-600">Qty: ${item.quantity}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-semibold">$${item.price_at_purchase}</div>
+              <div class="text-sm text-neutral-600">$${item.total}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function updateOrderStatus(orderId) {
+  document.getElementById('orderIdForUpdate').value = orderId;
+  openModal('updateStatusModal');
+}
+
+// Enhanced Dashboard Functions
+function openExportModal() {
+  // Set default date range (last 30 days)
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30);
+  
+  document.getElementById('exportStartDate').value = startDate.toISOString().split('T')[0];
+  document.getElementById('exportEndDate').value = endDate.toISOString().split('T')[0];
+  
+  openModal('exportModal');
+}
+
+async function exportData() {
+  const exportType = document.getElementById('exportType').value;
+  const startDate = document.getElementById('exportStartDate').value;
+  const endDate = document.getElementById('exportEndDate').value;
+  const format = document.getElementById('exportFormat').value;
+  
+  try {
+    const response = await fetch('/export-data/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        export_type: exportType,
+        start_date: startDate,
+        end_date: endDate,
+        format: format
+      })
+    });
+    
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${exportType}_export_${new Date().toISOString().split('T')[0]}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      showNotification('Export completed successfully', 'success');
+      closeModal('exportModal');
+    } else {
+      showNotification('Export failed', 'error');
+    }
+  } catch (error) {
+    console.error('Export error:', error);
+    showNotification('Export error', 'error');
+  }
+}
+
+async function refreshDashboard() {
+  const refreshBtn = document.querySelector('button[onclick="refreshDashboard()"]');
+  const originalText = refreshBtn.innerHTML;
+  
+  LoadingManager.show(refreshBtn, 'Refreshing...');
+  
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate refresh
+    window.location.reload();
+  } catch (error) {
+    console.error('Refresh error:', error);
+    LoadingManager.hide(refreshBtn, originalText);
+    showNotification('Refresh failed', 'error');
+  }
+}
+
+// Search and Filter Functions
+function initSearchAndFilter() {
+  // Order search
+  const orderSearch = document.getElementById('orderSearch');
+  if (orderSearch) {
+    orderSearch.addEventListener('input', debounce(filterOrders, 300));
+  }
+  
+  // Order status filter
+  const orderStatusFilter = document.getElementById('orderStatusFilter');
+  if (orderStatusFilter) {
+    orderStatusFilter.addEventListener('change', filterOrders);
+  }
+  
+  // Product search
+  const productSearch = document.getElementById('productSearch');
+  if (productSearch) {
+    productSearch.addEventListener('input', debounce(filterProducts, 300));
+  }
+  
+  
+}
+
+function filterOrders() {
+  const searchTerm = document.getElementById('orderSearch').value.toLowerCase();
+  const statusFilter = document.getElementById('orderStatusFilter').value;
+  const orderRows = document.querySelectorAll('#orders .order-row:not(.font-semibold)');
+  
+  orderRows.forEach(row => {
+    const orderId = row.querySelector('div:first-child').textContent.toLowerCase();
+    const customer = row.querySelector('div:nth-child(2)').textContent.toLowerCase();
+    const status = row.getAttribute('data-status');
+    
+    const matchesSearch = orderId.includes(searchTerm) || customer.includes(searchTerm);
+    const matchesStatus = !statusFilter || status === statusFilter;
+    
+    row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+  });
+}
+
+function filterProducts() {
+  const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+  const productRows = document.querySelectorAll('#products .product-row:not(.font-semibold)');
+  
+  productRows.forEach(row => {
+    const productName = row.querySelector('div:first-child .font-semibold').textContent.toLowerCase();
+    const matchesSearch = productName.includes(searchTerm);
+    
+    row.style.display = matchesSearch ? '' : 'none';
+  });
+}
+
+// Form submission handlers
+function initFormHandlers() {
+  // Product edit form
+  const productEditForm = document.getElementById('productEditForm');
+  if (productEditForm) {
+    productEditForm.addEventListener('submit', handleProductEdit);
+  }
+  
+  // Order status update form
+  const updateStatusForm = document.getElementById('updateStatusForm');
+  if (updateStatusForm) {
+    updateStatusForm.addEventListener('submit', handleOrderStatusUpdate);
+  }
+  
+  // Promotion form
+  const promotionForm = document.getElementById('promotionForm');
+  if (promotionForm) {
+    promotionForm.addEventListener('submit', handlePromotionCreate);
+  }
+}
+
+async function handleProductEdit(e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const productId = formData.get('product_id');
+  
+  try {
+    const response = await fetch(`/product/${productId}/update/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: formData
+    });
+    
+    if (response.ok) {
+      showNotification('Product updated successfully', 'success');
+      closeModal('productEditModal');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      showNotification('Failed to update product', 'error');
+    }
+  } catch (error) {
+    console.error('Error updating product:', error);
+    showNotification('Error updating product', 'error');
+  }
+}
+
+async function handleOrderStatusUpdate(e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+
+  try {
+    const response = await fetch('/order/update-status/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: formData
+    });
+
+    if (response.ok) {
+      showNotification('Order status updated successfully', 'success');
+      closeModal('updateStatusModal');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      showNotification('Failed to update order status', 'error');
+    }
+  } catch (error) {
+    showNotification('Error updating order status', 'error');
+  }
+}
+
+async function handlePromotionCreate(e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  
+  try {
+    const response = await fetch('/promotion/create/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: formData
+    });
+    
+    if (response.ok) {
+      showNotification('Promotion created successfully', 'success');
+      closeModal('promotionModal');
+      e.target.reset();
+    } else {
+      showNotification('Failed to create promotion', 'error');
+    }
+  } catch (error) {
+    console.error('Error creating promotion:', error);
+    showNotification('Error creating promotion', 'error');
+  }
+}
+
+// Utility Functions
+function getCSRFToken() {
+  return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+    type === 'success' ? 'bg-green-500 text-white' :
+    type === 'error' ? 'bg-red-500 text-white' :
+    'bg-blue-500 text-white'
+  }`;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
 }
 
 // Chart initialization
@@ -744,13 +1690,18 @@ function initSalesChart() {
   const ctx = document.getElementById('salesChart');
   if (!ctx) return;
   
+  // Get sales data from Django template
+  const salesData = JSON.parse('{{ sales_data|escapejs }}');
+  const labels = salesData.map(item => item.month);
+  const data = salesData.map(item => item.sales);
+  
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      labels: labels,
       datasets: [{
         label: 'Sales',
-        data: [1200, 1900, 3000, 5000, 2000, 3000],
+        data: data,
         borderColor: 'rgb(66, 133, 244)',
         backgroundColor: 'rgba(66, 133, 244, 0.1)',
         tension: 0.4,
@@ -770,6 +1721,11 @@ function initSalesChart() {
           beginAtZero: true,
           grid: {
             color: 'rgba(0, 0, 0, 0.1)'
+          },
+          ticks: {
+            callback: function(value) {
+              return '$' + value.toLocaleString();
+            }
           }
         },
         x: {
@@ -1086,24 +2042,65 @@ document.addEventListener('DOMContentLoaded', () => {
   initImagePreview();
   initKeyboardShortcuts();
   initAutoSave();
+  initFormHandlers();
   
   // Start real-time updates simulation
   simulateRealTimeUpdates();
   
-  // Add export functionality to export button
-  const exportBtn = document.querySelector('.btn.btn-ghost.w-full');
-  if (exportBtn && exportBtn.textContent.includes('Export')) {
-    exportBtn.addEventListener('click', () => {
-      const activeTab = document.querySelector('.tab-content.active').id;
-      if (activeTab === 'orders' || activeTab === 'products') {
-        exportData(activeTab);
-      }
-    });
-  }
-  
   // Initialize tooltips for better UX
   initTooltips();
+  
+  // Initialize enhanced search and filter
+  initSearchAndFilter();
+  
+  // Set up real-time notifications
+  setupRealTimeNotifications();
 });
+
+// Real-time notifications setup
+function setupRealTimeNotifications() {
+  // Check for new orders every 30 seconds
+  setInterval(async () => {
+    try {
+      const response = await fetch('/check-new-orders/', {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.new_orders > 0) {
+          showNotification(`You have ${data.new_orders} new order(s)!`, 'info');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking for new orders:', error);
+    }
+  }, 30000);
+  
+  // Check for low stock every 60 seconds
+  setInterval(async () => {
+    try {
+      const response = await fetch('/check-low-stock/', {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.low_stock_products > 0) {
+          showNotification(`${data.low_stock_products} product(s) are running low on stock!`, 'warning');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking for low stock:', error);
+    }
+  }, 60000);
+}
 
 // Tooltip functionality
 function initTooltips() {
@@ -1152,4 +2149,5 @@ function hideTooltip(e) {
 }
 </script>
 {% endblock %}
+  
   

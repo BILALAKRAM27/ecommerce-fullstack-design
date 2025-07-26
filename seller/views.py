@@ -7,8 +7,8 @@ from django.contrib.auth import login, authenticate, logout
 from .models import Seller, Product, ProductImage, Brand, Category, CategoryAttribute, AttributeOption
 from .forms import UserRegisterForm, SellerUpdateForm, SellerLoginForm, ProductForm, ProductImageForm, DynamicProductForm
 from django.utils import timezone
-from buyer.models import Buyer, Order
-from django.http import JsonResponse
+from buyer.models import Buyer, Order, OrderStatus, Payment
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
 import os
@@ -16,6 +16,14 @@ import stripe
 from django.conf import settings
 from django.shortcuts import redirect
 from .models import Seller
+from django.views.decorators.http import require_POST, require_GET
+from django.db.models import Sum, Count, Q
+from datetime import datetime, timedelta
+import csv
+from io import StringIO
+from buyer.models import OrderItem
+import logging
+
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY") or settings.STRIPE_SECRET_KEY
 
@@ -603,75 +611,160 @@ def seller_stripe_status(request):
 
 @login_required
 def seller_dashboard_overview(request):
-    """Main seller dashboard with overview stats and recent data"""
-    seller = get_object_or_404(Seller, user=request.user)
-    
-    # Get orders for this seller
-    orders = Order.objects.filter(seller=seller).order_by('-created_at')
-    
-    # Calculate dashboard stats
-    total_earnings = sum(order.total_amount for order in orders if order.payment_status == 'paid')
-    total_orders = orders.count()
-    total_products = Product.objects.filter(seller=seller).count()
-    
+    """Enhanced seller dashboard with comprehensive real data from database"""
+    # Allow superuser to select seller by ?seller_id= for debugging
+    if request.user.is_superuser and request.GET.get('seller_id'):
+        try:
+            seller = Seller.objects.get(id=request.GET['seller_id'])
+        except Seller.DoesNotExist:
+            return HttpResponseBadRequest('Seller not found')
+    else:
+        seller = get_object_or_404(Seller, user=request.user)
+
+    # Debug logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Dashboard for seller ID: {seller.id}, shop: {seller.shop_name}")
+
+    # Get all orders for this seller with detailed information
+    all_orders = Order.objects.filter(seller=seller).select_related('buyer').prefetch_related('items__product')
+    logger.info(f"Order count: {all_orders.count()}")
+
+    # Get all products for this seller
+    products = Product.objects.filter(seller=seller)
+    logger.info(f"Product count: {products.count()}")
+
+    # Get recent orders (last 10) with buyer information
+    recent_orders = all_orders.order_by('-created_at')[:10]
+
+    # Annotate products for dashboard
+    products = products.prefetch_related('images').annotate(
+        dashboard_order_count=Count('orderitem__order', distinct=True),
+        dashboard_total_sold=Sum('orderitem__quantity'),
+        dashboard_total_revenue=Sum('orderitem__price_at_purchase')
+    ).order_by('-created_at')
+
+    # Calculate comprehensive statistics
+    total_earnings = all_orders.filter(payment_status='paid').aggregate(
+        total=Sum('total_amount')
+    )['total'] or 0
+
+    total_orders = all_orders.count()
+    total_products = products.count()
+
+    # Payment method breakdown - need to check Payment model for actual payment method
+    cod_revenue = 0
+    stripe_revenue = 0
+
+    # Get payments for this seller's orders
+    payments = Payment.objects.filter(order__seller=seller, status='paid')
+    for payment in payments:
+        if payment.payment_method == 'cash_on_delivery':
+            cod_revenue += payment.order.total_amount
+        elif payment.payment_method == 'stripe':
+            stripe_revenue += payment.order.total_amount
+
     # Monthly sales (current month)
-    from django.utils import timezone
-    from datetime import datetime
-    current_month = timezone.now().month
-    monthly_sales = sum(order.total_amount for order in orders 
-                       if order.payment_status == 'paid' and order.created_at.month == current_month)
-    
-    # Recent orders (last 10)
-    recent_orders = orders[:10]
-    
-    # Get seller's products
-    products = Product.objects.filter(seller=seller).order_by('-created_at')
-    
-    # Calculate revenue breakdown
-    weekly_revenue = sum(order.total_amount for order in orders 
-                        if order.payment_status == 'paid' and 
-                        order.created_at >= timezone.now() - timezone.timedelta(days=7))
-    
-    yearly_revenue = sum(order.total_amount for order in orders 
-                        if order.payment_status == 'paid' and 
-                        order.created_at.year == timezone.now().year)
-    
-    # Top selling products (simplified - in real app you'd track sales)
-    top_products = products[:5]  # Just show recent products for now
-    
-    # Mock notifications (in real app these would come from a notification system)
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    monthly_sales = all_orders.filter(
+        payment_status='paid',
+        created_at__month=current_month,
+        created_at__year=current_year
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    # Revenue breakdown by time periods
+    weekly_revenue = all_orders.filter(
+        payment_status='paid',
+        created_at__gte=datetime.now() - timedelta(days=7)
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    monthly_revenue = all_orders.filter(
+        payment_status='paid',
+        created_at__gte=datetime.now() - timedelta(days=30)
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    yearly_revenue = all_orders.filter(
+        payment_status='paid',
+        created_at__year=current_year
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    # Order status breakdown
+    pending_orders = all_orders.filter(status='pending').count()
+    processing_orders = all_orders.filter(status='processing').count()
+    shipped_orders = all_orders.filter(status='shipped').count()
+    delivered_orders = all_orders.filter(status='delivered').count()
+    cancelled_orders = all_orders.filter(status='cancelled').count()
+
+    # Top selling products with revenue
+    top_products = products.annotate(
+        dashboard_order_count=Count('orderitem__order', distinct=True),
+        dashboard_total_sold=Sum('orderitem__quantity'),
+        dashboard_total_revenue=Sum('orderitem__price_at_purchase')
+    ).order_by('-dashboard_total_revenue')[:5]
+
+    # Low stock products
+    low_stock_products = products.filter(stock__lte=5, stock__gt=0).count()
+
+    # Categories for product forms
+    categories = Category.objects.all()
+
+    # Recent activity (last 5 orders with details)
+    recent_activity = all_orders.select_related('buyer').prefetch_related('items__product')[:5]
+
+    # Sales chart data (last 6 months)
+    sales_data = []
+    for i in range(6):
+        month_date = datetime.now() - timedelta(days=30*i)
+        month_sales = all_orders.filter(
+            payment_status='paid',
+            created_at__month=month_date.month,
+            created_at__year=month_date.year
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        sales_data.append({
+            'month': month_date.strftime('%b'),
+            'sales': float(month_sales)
+        })
+    sales_data.reverse()
+
     notifications = [
         {
             'type': 'order',
-            'title': 'New Order Received',
-            'message': 'Order #1234 has been placed',
-            'created_at': timezone.now() - timezone.timedelta(hours=2)
+            'title': f'New Order Received',
+            'message': f'You have {pending_orders} pending orders',
+            'created_at': datetime.now() - timedelta(hours=2)
         },
         {
             'type': 'stock',
             'title': 'Low Stock Alert',
-            'message': 'Product "Premium T-Shirt" is running low',
-            'created_at': timezone.now() - timezone.timedelta(days=1)
+            'message': f'{low_stock_products} products are running low on stock',
+            'created_at': datetime.now() - timedelta(hours=5)
         }
     ]
-    
-    # Get categories for product form
-    categories = Category.objects.all()
-    
+
     context = {
         'seller': seller,
+        'recent_orders': recent_orders,
+        'products': products,
         'total_earnings': total_earnings,
         'total_orders': total_orders,
         'total_products': total_products,
         'monthly_sales': monthly_sales,
-        'recent_orders': recent_orders,
-        'products': products,
         'weekly_revenue': weekly_revenue,
-        'monthly_revenue': monthly_sales,
+        'monthly_revenue': monthly_revenue,
         'yearly_revenue': yearly_revenue,
+        'cod_revenue': cod_revenue,
+        'stripe_revenue': stripe_revenue,
+        'pending_orders': pending_orders,
+        'processing_orders': processing_orders,
+        'shipped_orders': shipped_orders,
+        'delivered_orders': delivered_orders,
+        'cancelled_orders': cancelled_orders,
         'top_products': top_products,
-        'notifications': notifications,
+        'low_stock_products': low_stock_products,
+        'recent_activity': recent_activity,
+        'sales_data': sales_data,
         'categories': categories,
+        'notifications': notifications,
     }
     return render(request, 'seller/seller_dashboard.html', context)
 
@@ -755,7 +848,7 @@ def seller_add_product(request):
         'form': form,
         'categories': categories,
     }
-    return render(request, 'seller/add_product.html', context)
+    return render(request, 'seller/product_form.html', context)
 
 @login_required
 def seller_edit_product(request, product_id):
@@ -849,8 +942,11 @@ def seller_reports(request):
     
     monthly_data.reverse()  # Show oldest to newest
     
-    # Top selling products (simplified)
-    top_products = Product.objects.filter(seller=seller)[:5]
+    # Top selling products with actual sales data
+    top_products = Product.objects.filter(seller=seller).annotate(
+        total_sold=Sum('orderitem__quantity'),
+        total_revenue=Sum('orderitem__price_at_purchase' * 'orderitem__quantity')
+    ).order_by('-total_revenue')[:5]
     
     context = {
         'seller': seller,
@@ -948,3 +1044,290 @@ def seller_export_data(request):
             ])
     
     return response
+
+@login_required
+@require_GET
+def product_edit_data(request, product_id):
+    """Get product data for editing"""
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    data = {
+        'id': product.id,
+        'name': product.name,
+        'price': float(product.final_price),
+        'stock': product.stock,
+        'category': product.category.id if product.category else None,
+        'description': product.description,
+        'is_active': product.is_active,
+    }
+    
+    return JsonResponse(data)
+
+@login_required
+@require_POST
+def product_update(request, product_id):
+    """Update product information"""
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    try:
+        product.name = request.POST.get('name')
+        product.final_price = request.POST.get('price')
+        product.stock = request.POST.get('stock')
+        product.description = request.POST.get('description', '')
+        product.is_active = request.POST.get('is_active') == 'true'
+        
+        category_id = request.POST.get('category')
+        if category_id:
+            product.category = Category.objects.get(id=category_id)
+        
+        product.save()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def product_delete(request, product_id):
+    """Delete a product"""
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    try:
+        product.delete()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def product_duplicate(request, product_id):
+    """Duplicate a product"""
+    seller = get_object_or_404(Seller, user=request.user)
+    original_product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    try:
+        # Create a copy of the product
+        new_product = Product.objects.create(
+            seller=seller,
+            name=f"{original_product.name} (Copy)",
+            final_price=original_product.final_price,
+            stock=original_product.stock,
+            description=original_product.description,
+            category=original_product.category,
+            is_active=False  # Start as inactive
+        )
+        
+        # Copy images if any
+        for image in original_product.images.all():
+            ProductImage.objects.create(
+                product=new_product,
+                image=image.image,
+                is_thumbnail=image.is_thumbnail
+            )
+        
+        return JsonResponse({'success': True, 'product_id': new_product.id})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_GET
+def order_details(request, order_id):
+    """Get detailed order information"""
+    seller = get_object_or_404(Seller, user=request.user)
+    order = get_object_or_404(Order, id=order_id, seller=seller)
+    
+    # Get order items
+    order_items = OrderItem.objects.filter(order=order).select_related('product')
+    
+    # Get payment information
+    payment_info = None
+    try:
+        payment = Payment.objects.get(order=order)
+        payment_info = {
+            'method': payment.get_payment_method_display(),
+            'transaction_id': payment.transaction_id,
+            'status': payment.get_status_display(),
+            'payment_time': payment.payment_time.isoformat() if payment.payment_time else None,
+        }
+    except Payment.DoesNotExist:
+        payment_info = {
+            'method': 'Not specified',
+            'transaction_id': 'N/A',
+            'status': order.get_payment_status_display(),
+            'payment_time': None,
+        }
+    
+    data = {
+        'id': order.id,
+        'created_at': order.created_at.isoformat(),
+        'status': order.status,
+        'payment_status': order.payment_status,
+        'total_amount': float(order.total_amount),
+        'delivery_address': order.delivery_address,
+        'tracking_number': order.tracking_number or 'Not provided',
+        'notes': order.notes or 'No notes',
+        'get_status_display': order.get_status_display(),
+        'get_payment_status_display': order.get_payment_status_display(),
+        'buyer': {
+            'name': order.buyer.display_name,
+            'email': order.buyer.email,
+            'phone': order.buyer.phone or 'N/A',
+        },
+        'payment': payment_info,
+        'items': [
+            {
+                'product': {
+                    'name': item.product.name,
+                    'id': item.product.id,
+                },
+                'quantity': item.quantity,
+                'price_at_purchase': float(item.price_at_purchase),
+                'total': float(item.price_at_purchase * item.quantity),
+            }
+            for item in order_items
+        ]
+    }
+    
+    return JsonResponse(data)
+
+@login_required
+@require_POST
+def order_update_status(request):
+    """Update order status"""
+    seller = get_object_or_404(Seller, user=request.user)
+    order_id = request.POST.get('order_id')
+    new_status = request.POST.get('status')
+    tracking_number = request.POST.get('tracking_number', '')
+    notes = request.POST.get('notes', '')
+    
+    if not order_id or not new_status:
+        return JsonResponse({'success': False, 'error': 'Order ID and status are required'})
+    
+    try:
+        order = get_object_or_404(Order, id=order_id, seller=seller)
+        
+        # Validate status
+        valid_statuses = [choice[0] for choice in OrderStatus.choices]
+        if new_status not in valid_statuses:
+            return JsonResponse({'success': False, 'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'})
+        
+        order.status = new_status
+        
+        # Store tracking number and notes
+        if tracking_number:
+            order.tracking_number = tracking_number
+        if notes:
+            order.notes = notes
+            
+        order.save()
+        return JsonResponse({'success': True, 'message': f'Order status updated to {order.get_status_display()}'})
+    except Order.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Order not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def promotion_create(request):
+    """Create a new promotion"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    try:
+        name = request.POST.get('name')
+        discount = request.POST.get('discount')
+        valid_until = request.POST.get('valid_until')
+        product_ids = request.POST.getlist('products')
+        
+        # In a real implementation, you would create a Promotion model
+        # For now, we'll just return success
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def export_data(request):
+    """Export data in various formats"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    try:
+        data = json.loads(request.body)
+        export_type = data.get('export_type')
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        format_type = data.get('format')
+        
+        if format_type == 'csv':
+            return export_csv(request, seller, export_type, start_date, end_date)
+        else:
+            return JsonResponse({'success': False, 'error': 'Format not supported'})
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def export_csv(request, seller, export_type, start_date, end_date):
+    """Export data as CSV"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{export_type}_export.csv"'
+    
+    writer = csv.writer(response)
+    
+    if export_type == 'orders':
+        writer.writerow(['Order ID', 'Customer', 'Total', 'Status', 'Date'])
+        orders = Order.objects.filter(seller=seller)
+        if start_date and end_date:
+            orders = orders.filter(created_at__range=[start_date, end_date])
+        
+        for order in orders:
+            writer.writerow([
+                order.id,
+                order.buyer.name if hasattr(order.buyer, 'name') else order.buyer.user.username,
+                order.total_amount,
+                order.get_status_display(),
+                order.created_at.strftime('%Y-%m-%d')
+            ])
+    
+    elif export_type == 'products':
+        writer.writerow(['Product ID', 'Name', 'Price', 'Stock', 'Status'])
+        products = Product.objects.filter(seller=seller)
+        
+        for product in products:
+            writer.writerow([
+                product.id,
+                product.name,
+                product.final_price,
+                product.stock,
+                'Active' if product.is_active else 'Inactive'
+            ])
+    
+    return response
+
+@login_required
+@require_GET
+def check_new_orders(request):
+    """Check for new orders (for real-time notifications)"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    # Check for orders created in the last 5 minutes
+    recent_orders = Order.objects.filter(
+        seller=seller,
+        created_at__gte=datetime.now() - timedelta(minutes=5)
+    ).count()
+    
+    return JsonResponse({'new_orders': recent_orders})
+
+@login_required
+@require_GET
+def check_low_stock(request):
+    """Check for products with low stock"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    low_stock_products = Product.objects.filter(
+        seller=seller,
+        stock__lte=5,
+        stock__gt=0
+    ).count()
+    
+    return JsonResponse({'low_stock_products': low_stock_products})

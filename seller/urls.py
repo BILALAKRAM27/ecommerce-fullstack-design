@@ -25,20 +25,30 @@ urlpatterns = [
     path('ajax/get-category-attributes/', views.get_category_attributes, name='get_category_attributes'),
     path('ajax/save-attribute-value/', views.save_attribute_value, name='save_attribute_value'),
 
-    path('dashboard/', views.seller_dashboard, name='seller_dashboard'),
+    path('dashboard/', views.seller_dashboard_overview, name='seller_dashboard'),
     path('orders/', views.seller_orders, name='seller_orders'),
     path('revenue/', views.seller_revenue, name='seller_revenue'),
     path('stripe/status/', views.seller_stripe_status, name='seller_stripe_status'),
     
-    # New comprehensive dashboard URLs
-    path('dashboard/overview/', views.seller_dashboard_overview, name='seller_dashboard'),
     path('orders/list/', views.seller_orders_list, name='orders_list'),
     path('products/list/', views.seller_products_list, name='products_list'),
-    path('products/add/', views.seller_add_product, name='add_product'),
+    path('products/add/', views.seller_add_product, name='product_create'),
     path('products/<int:product_id>/edit/', views.seller_edit_product, name='edit_product'),
     path('products/<int:product_id>/delete/', views.seller_delete_product, name='delete_product'),
     path('reports/', views.seller_reports, name='reports'),
     path('profile/edit/', views.seller_edit_profile, name='edit_profile'),
     path('promotions/create/', views.seller_create_promotion, name='create_promotion'),
     path('export/', views.seller_export_data, name='export_data'),
+
+    # Enhanced Dashboard URLs
+    path('product/<int:product_id>/edit/', views.product_edit_data, name='product_edit_data'),
+    path('product/<int:product_id>/update/', views.product_update, name='product_update'),
+    path('product/<int:product_id>/delete/', views.product_delete, name='product_delete'),
+    path('product/<int:product_id>/duplicate/', views.product_duplicate, name='product_duplicate'),
+    path('order/<int:order_id>/details/', views.order_details, name='order_details'),
+    path('order/update-status/', views.order_update_status, name='order_update_status'),
+    path('promotion/create/', views.promotion_create, name='promotion_create'),
+    path('export-data/', views.export_data, name='export_data'),
+    path('check-new-orders/', views.check_new_orders, name='check_new_orders'),
+    path('check-low-stock/', views.check_low_stock, name='check_low_stock'),
 ]

@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 class OrderStatus(models.TextChoices):
     PENDING = 'pending', 'Pending'
+    PROCESSING = 'processing', 'Processing'
     SHIPPED = 'shipped', 'Shipped'
     DELIVERED = 'delivered', 'Delivered'
     CANCELLED = 'cancelled', 'Cancelled'
@@ -50,6 +51,14 @@ class Buyer(models.Model):
         return None
 
     image_data = property(get_image_base64)
+
+    @property
+    def display_name(self):
+        if self.name:
+            return self.name
+        if hasattr(self, 'user') and self.user:
+            return self.user.username
+        return "Anonymous"
 
 class Wishlist(models.Model):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE)
@@ -178,7 +187,15 @@ class Order(models.Model):
     total_amount = models.FloatField()
     payment_status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
     delivery_address = models.TextField()
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
+    
+    def __str__(self):
+        return f"Order #{self.id} - {self.buyer.display_name}"
+    
+    class Meta:
+        ordering = ['-created_at']
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')

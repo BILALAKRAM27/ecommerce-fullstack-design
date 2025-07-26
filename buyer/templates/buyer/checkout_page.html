@@ -644,18 +644,18 @@
 
 <!-- Receipt Modal -->
 <div class="modal" id="receiptModal">
-    <div class="modal-content">
+    <div class="modal-content" id="full-receipt-content">
         <div class="receipt-header">
             <div class="success-icon">✓</div>
             <h2 class="text-2xl font-bold text-success">Payment Successful!</h2>
             <p class="text-muted" id="orderNumber">Order #<span id="orderId"></span> - Thank you for your purchase</p>
         </div>
         
-        <div class="receipt-body" id="receiptBody">
+        <div class="receipt-body" id="receipt-content">
             <!-- Dynamic content will be populated here -->
-                    </div>
-                    </div>
-                </div>
+        </div>
+    </div>
+</div>
 
 <!-- Error Modal -->
 <div class="modal" id="errorModal">
@@ -1089,30 +1089,47 @@
 
         // Process COD payment
         async function processCODPayment() {
-            const shippingAddress = getShippingAddress();
-            
-            const response = await fetch('{% url "buyer:place_order" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({
-                    payment_method: 'cod',
-                    shipping_address: shippingAddress,
-                }),
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                console.log('COD order created successfully, fetching details...');
-                // Fetch order details from database for receipt
-                const orderData = await fetchOrderDetails(result.orders);
-                console.log('COD order details fetched:', orderData);
-                showReceipt(result.orders, 'cod', orderData.grouped_order_details, orderData.payment_status);
-            } else {
-                throw new Error(result.error || 'Failed to place order');
+            try {
+                console.log('Processing COD payment...');
+                const shippingAddress = getShippingAddress();
+                
+                // Validate shipping address
+                if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.zip_code || !shippingAddress.country) {
+                    throw new Error('Please fill in all shipping address fields');
+                }
+                
+                const response = await fetch('{% url "buyer:place_order" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({
+                        payment_method: 'cod',
+                        shipping_address: shippingAddress,
+                    }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('COD order response:', result);
+                
+                if (result.success) {
+                    console.log('COD order created successfully, fetching details...');
+                    // Fetch order details from database for receipt
+                    const orderData = await fetchOrderDetails(result.orders);
+                    console.log('COD order details fetched:', orderData);
+                    showReceipt(result.orders, 'cod', orderData.grouped_order_details, orderData.payment_status);
+                } else {
+                    throw new Error(result.error || 'Failed to place order');
+                }
+            } catch (error) {
+                console.error('COD payment error:', error);
+                showErrorModal(`COD payment failed: ${error.message}`);
+                // Don't clear cart or create order on failure
             }
         }
 
@@ -1160,121 +1177,189 @@
 
         // Stripe payment from modal
         async function processStripePaymentFromModal() {
-            initializeStripe();
-            mountCardElement('#modal-card-element');
-            const shippingAddress = getShippingAddress();
-            const response = await fetch('{% url "buyer:process_stripe_payment" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({ shipping_address: shippingAddress }),
-            });
-            const result = await response.json();
-            if (!result.success) {
-                if (result.non_stripe_sellers) {
-                    const sellerList = result.non_stripe_sellers.join(', ');
-                    const errorMessage = `The following sellers are not set up for online payments: ${sellerList}. Please choose Cash on Delivery or contact these sellers to set up payments.`;
-                    showErrorModal(errorMessage);
-                    if (confirm('Would you like to switch to Cash on Delivery instead?')) {
-                        selectPaymentMethod('cod', null);
-                        document.getElementById('cod').checked = true;
-                    }
-                } else {
-                    showErrorModal(result.error || 'Failed to create payment');
+            try {
+                console.log('Processing Stripe payment from modal...');
+                initializeStripe();
+                mountCardElement('#modal-card-element');
+                
+                const shippingAddress = getShippingAddress();
+                
+                // Validate shipping address
+                if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.zip_code || !shippingAddress.country) {
+                    throw new Error('Please fill in all shipping address fields');
                 }
-                return;
-            }
-            paymentIntents = result.payment_intents;
-            for (const paymentIntent of paymentIntents) {
-                const clientSecret = paymentIntent.client_secret;
-                if (!stripe || !card) {
-                    showErrorModal('Stripe is not initialized.');
+                
+                const response = await fetch('{% url "buyer:process_stripe_payment" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({ shipping_address: shippingAddress }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Stripe payment response:', result);
+                
+                if (!result.success) {
+                    if (result.non_stripe_sellers) {
+                        const sellerList = result.non_stripe_sellers.join(', ');
+                        const errorMessage = `The following sellers are not set up for online payments: ${sellerList}. Please choose Cash on Delivery or contact these sellers to set up payments.`;
+                        showErrorModal(errorMessage);
+                        if (confirm('Would you like to switch to Cash on Delivery instead?')) {
+                            selectPaymentMethod('cod', null);
+                            document.getElementById('cod').checked = true;
+                        }
+                    } else {
+                        throw new Error(result.error || 'Failed to create payment');
+                    }
                     return;
                 }
-                const { error, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret, {
-                    payment_method: {
-                        card: card,
-                        billing_details: {
-                            address: {
-                                line1: shippingAddress.street,
-                                city: shippingAddress.city,
-                                postal_code: shippingAddress.zip_code,
-                                country: shippingAddress.country,
+                
+                paymentIntents = result.payment_intents;
+                if (!paymentIntents || paymentIntents.length === 0) {
+                    throw new Error('No payment intents received from server');
+                }
+                
+                for (const paymentIntent of paymentIntents) {
+                    const clientSecret = paymentIntent.client_secret;
+                    if (!clientSecret) {
+                        throw new Error('Invalid payment intent: missing client secret');
+                    }
+                    
+                    if (!stripe || !card) {
+                        throw new Error('Stripe is not initialized');
+                    }
+                    
+                    const { error, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: {
+                            card: card,
+                            billing_details: {
+                                address: {
+                                    line1: shippingAddress.street,
+                                    city: shippingAddress.city,
+                                    postal_code: shippingAddress.zip_code,
+                                    country: shippingAddress.country,
+                                },
                             },
                         },
-                    },
-                });
-                if (error) {
-                    document.getElementById('modal-card-errors').textContent = error.message;
-                    showErrorModal(error.message);
-                    return;
+                    });
+                    
+                    if (error) {
+                        document.getElementById('modal-card-errors').textContent = error.message;
+                        throw new Error(`Payment confirmation failed: ${error.message}`);
+                    }
+                    
+                    if (confirmedIntent.status !== 'succeeded') {
+                        throw new Error(`Payment was not successful. Status: ${confirmedIntent.status}`);
+                    }
                 }
-                if (confirmedIntent.status !== 'succeeded') {
-                    showErrorModal('Payment was not successful.');
-                    return;
-                }
+                
+                closeCardEntryModal();
+                console.log('Stripe payment successful, fetching order details...');
+                // Fetch order details from database for receipt
+                const orderData = await pollOrderPaymentStatus(result.orders);
+                console.log('Stripe order details fetched:', orderData);
+                showReceipt(result.orders, 'stripe', orderData.grouped_order_details, orderData.payment_status);
+                
+            } catch (error) {
+                console.error('Stripe payment error:', error);
+                showErrorModal(`Stripe payment failed: ${error.message}`);
+                // Don't clear cart or create order on failure
             }
-            closeCardEntryModal();
-            console.log('Stripe payment successful, fetching order details...');
-            // Fetch order details from database for receipt
-            const orderData = await pollOrderPaymentStatus(result.orders);
-            console.log('Stripe order details fetched:', orderData);
-            showReceipt(result.orders, 'stripe', orderData.grouped_order_details, orderData.payment_status);
         }
 
         // Use saved PaymentMethod for payment
         async function processStripePaymentWithSavedMethod() {
-            initializeStripe();
-            const shippingAddress = getShippingAddress();
-            const response = await fetch('{% url "buyer:process_stripe_payment" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({ shipping_address: shippingAddress }),
-            });
-            const result = await response.json();
-            if (!result.success) {
-                if (result.non_stripe_sellers) {
-                    const sellerList = result.non_stripe_sellers.join(', ');
-                    const errorMessage = `The following sellers are not set up for online payments: ${sellerList}. Please choose Cash on Delivery or contact these sellers to set up payments.`;
-                    showErrorModal(errorMessage);
-                    if (confirm('Would you like to switch to Cash on Delivery instead?')) {
-                        selectPaymentMethod('cod', null);
-                        document.getElementById('cod').checked = true;
-                    }
-                } else {
-                    showErrorModal(result.error || 'Failed to create payment');
+            try {
+                console.log('Processing Stripe payment with saved method...');
+                initializeStripe();
+                
+                if (!savedPaymentMethodId) {
+                    throw new Error('No saved payment method found. Please save your card details first.');
                 }
-                return;
-            }
-            paymentIntents = result.payment_intents;
-            for (const paymentIntent of paymentIntents) {
-                const clientSecret = paymentIntent.client_secret;
-                if (!stripe || !card) {
-                    showErrorModal('Stripe is not initialized.');
-                    return;
+                
+                const shippingAddress = getShippingAddress();
+                
+                // Validate shipping address
+                if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.zip_code || !shippingAddress.country) {
+                    throw new Error('Please fill in all shipping address fields');
                 }
-                const { error, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret, {
-                    payment_method: savedPaymentMethodId,
+                
+                const response = await fetch('{% url "buyer:process_stripe_payment" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({ shipping_address: shippingAddress }),
                 });
-                if (error) {
-                    showErrorModal(error.message);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('Stripe payment response:', result);
+                
+                if (!result.success) {
+                    if (result.non_stripe_sellers) {
+                        const sellerList = result.non_stripe_sellers.join(', ');
+                        const errorMessage = `The following sellers are not set up for online payments: ${sellerList}. Please choose Cash on Delivery or contact these sellers to set up payments.`;
+                        showErrorModal(errorMessage);
+                        if (confirm('Would you like to switch to Cash on Delivery instead?')) {
+                            selectPaymentMethod('cod', null);
+                            document.getElementById('cod').checked = true;
+                        }
+                    } else {
+                        throw new Error(result.error || 'Failed to create payment');
+                    }
                     return;
                 }
-                if (confirmedIntent.status !== 'succeeded') {
-                    showErrorModal('Payment was not successful.');
-                    return;
+                
+                paymentIntents = result.payment_intents;
+                if (!paymentIntents || paymentIntents.length === 0) {
+                    throw new Error('No payment intents received from server');
                 }
+                
+                for (const paymentIntent of paymentIntents) {
+                    const clientSecret = paymentIntent.client_secret;
+                    if (!clientSecret) {
+                        throw new Error('Invalid payment intent: missing client secret');
+                    }
+                    
+                    if (!stripe) {
+                        throw new Error('Stripe is not initialized');
+                    }
+                    
+                    const { error, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: savedPaymentMethodId,
+                    });
+                    
+                    if (error) {
+                        throw new Error(`Payment confirmation failed: ${error.message}`);
+                    }
+                    
+                    if (confirmedIntent.status !== 'succeeded') {
+                        throw new Error(`Payment was not successful. Status: ${confirmedIntent.status}`);
+                    }
+                }
+                
+                console.log('Stripe payment with saved method successful, fetching order details...');
+                // Fetch order details from database for receipt
+                const orderData = await pollOrderPaymentStatus(result.orders);
+                console.log('Stripe order details fetched:', orderData);
+                showReceipt(result.orders, 'stripe', orderData.grouped_order_details, orderData.payment_status);
+                
+            } catch (error) {
+                console.error('Stripe payment error:', error);
+                showErrorModal(`Stripe payment failed: ${error.message}`);
+                // Don't clear cart or create order on failure
             }
-            console.log('Stripe payment with saved method successful, fetching order details...');
-            // Fetch order details from database for receipt
-            const orderData = await pollOrderPaymentStatus(result.orders);
-            console.log('Stripe order details fetched:', orderData);
-            showReceipt(result.orders, 'stripe', orderData.grouped_order_details, orderData.payment_status);
         }
 
         async function pollOrderPaymentStatus(orderIds, maxAttempts = 5, interval = 1500) {
@@ -1308,20 +1393,40 @@
 
         // Show receipt modal
         function showReceipt(orders, paymentMethod, groupedOrderDetails, paymentStatus = 'paid') {
-            console.log('showReceipt called with:', { orders, paymentMethod, groupedOrderDetails, paymentStatus });
-            const modal = document.getElementById('receiptModal');
-            const orderId = orders[0] || 'N/A';
-            const currentDate = new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('orderId').textContent = orderId;
-            const receiptBody = document.getElementById('receiptBody');
+            try {
+                console.log('showReceipt called with:', { orders, paymentMethod, groupedOrderDetails, paymentStatus });
+                
+                // Validate inputs
+                if (!orders || !Array.isArray(orders) || orders.length === 0) {
+                    throw new Error('Invalid orders data provided');
+                }
+                
+                const modal = document.getElementById('receiptModal');
+                if (!modal) {
+                    throw new Error('Receipt modal element not found');
+                }
+                
+                const orderIdElement = document.getElementById('orderId');
+                if (!orderIdElement) {
+                    throw new Error('Order ID element not found');
+                }
+                
+                const orderId = orders[0] || 'N/A';
+                const currentDate = new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                            orderIdElement.textContent = orderId;
+            const receiptBody = document.getElementById('receipt-content');
+            if (!receiptBody) {
+                throw new Error('Receipt content element not found');
+            }
             let html = `
-                <div id="receipt-content" style="margin-bottom: 1.5rem;">
+                <div style="margin-bottom: 1.5rem;">
                     <h3 class="text-lg font-semibold mb-2">Order Details</h3>
                     <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
@@ -1336,13 +1441,12 @@
                             <span><strong>Payment Method:</strong></span>
                             <span>${paymentMethod.toUpperCase()}</span>
                         </div>
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span><strong>Payment Status:</strong></span>
-                    <span style="color: ${paymentStatus === 'paid' ? '#28a745' : paymentStatus === 'failed' ? '#dc3545' : '#ffc107'}; font-weight: 600;">
-                        ${paymentStatus === 'paid' ? '✓ Paid' : paymentStatus === 'failed' ? '✗ Failed' : '⏳ Pending'}
-                    </span>
-                </div>
-
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>Payment Status:</strong></span>
+                            <span style="color: ${paymentStatus === 'paid' ? '#28a745' : paymentStatus === 'failed' ? '#dc3545' : '#ffc107'}; font-weight: 600;">
+                                ${paymentStatus === 'paid' ? '✓ Paid' : paymentStatus === 'failed' ? '✗ Failed' : '⏳ Pending'}
+                            </span>
+                        </div>
                     </div>
                 </div>`;
             if (groupedOrderDetails && groupedOrderDetails.length > 0) {
@@ -1399,22 +1503,59 @@
             <p style="font-size: 0.9em;">Order details will be available shortly.</p>
         </div>`;
     }
-    html += `
-        <div style="text-align: center; margin-top: 1.5rem;">
-            <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
-            <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
-        </div>`;
-    receiptBody.innerHTML = html;
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+                html += `
+                <div class="action-buttons" style="text-align: center; margin-top: 1.5rem;">
+                    <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
+                    <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
+                </div>`;
+            receiptBody.innerHTML = html;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            console.log('Receipt modal displayed successfully');
+            
+            } catch (error) {
+                console.error('Error showing receipt:', error);
+                showErrorModal(`Failed to display receipt: ${error.message}`);
+            }
 }
 
         // Show error modal
         function showErrorModal(message) {
+            console.error('Error Modal:', message);
             const modal = document.getElementById('errorModal');
-            document.getElementById('errorMessage').textContent = message;
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            if (modal && document.getElementById('errorMessage')) {
+                document.getElementById('errorMessage').textContent = message;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                // Fallback to alert if modal not found
+                alert(message);
+            }
+        }
+        
+        // Validate shipping address
+        function validateShippingAddress() {
+            const shippingAddress = getShippingAddress();
+            const errors = [];
+            
+            if (!shippingAddress.street || shippingAddress.street.trim() === '') {
+                errors.push('Street address is required');
+            }
+            if (!shippingAddress.city || shippingAddress.city.trim() === '') {
+                errors.push('City is required');
+            }
+            if (!shippingAddress.zip_code || shippingAddress.zip_code.trim() === '') {
+                errors.push('ZIP code is required');
+            }
+            if (!shippingAddress.country || shippingAddress.country.trim() === '') {
+                errors.push('Country is required');
+            }
+            
+            return {
+                isValid: errors.length === 0,
+                errors: errors
+            };
         }
 
         // Close receipt modal
@@ -1436,12 +1577,41 @@
 
         // Download receipt
         function downloadReceipt() {
-            const receiptContent = document.getElementById('receipt-content');
+            const receiptContent = document.getElementById('full-receipt-content');
             if (!receiptContent) {
                 alert('Receipt content not found!');
                 return;
             }
-            html2canvas(receiptContent).then(canvas => {
+            
+            // Find and temporarily hide the action buttons
+            const actionButtons = receiptContent.querySelector('.action-buttons');
+            let originalDisplay = '';
+            if (actionButtons) {
+                originalDisplay = actionButtons.style.display;
+                actionButtons.style.display = 'none';
+            }
+            
+            // Save original styles
+            const originalMaxHeight = receiptContent.style.maxHeight;
+            const originalOverflow = receiptContent.style.overflow;
+            // Remove clipping
+            receiptContent.style.maxHeight = 'none';
+            receiptContent.style.overflow = 'visible';
+
+            html2canvas(receiptContent, {
+                useCORS: true,
+                windowWidth: receiptContent.scrollWidth,
+                windowHeight: receiptContent.scrollHeight
+            }).then(canvas => {
+                // Restore styles
+                receiptContent.style.maxHeight = originalMaxHeight;
+                receiptContent.style.overflow = originalOverflow;
+                
+                // Restore action buttons
+                if (actionButtons) {
+                    actionButtons.style.display = originalDisplay;
+                }
+
                 const link = document.createElement('a');
                 link.download = 'receipt.png';
                 link.href = canvas.toDataURL('image/png');

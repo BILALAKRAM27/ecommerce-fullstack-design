@@ -752,12 +752,15 @@ def process_stripe_payment(request):
         for seller_id, group in seller_groups.items():
             seller = group['seller']
             
+            # Calculate shipping per seller
+            shipping_per_seller = 15.99 / len(seller_groups)
+
             # Create order
             order = Order.objects.create(
                 buyer=buyer,
                 seller=seller,
                 status='pending',
-                total_amount=group['total'],
+                total_amount=group['total'] + shipping_per_seller,  # Add shipping here
                 payment_status='pending',
                 delivery_address=shipping_address,
             )

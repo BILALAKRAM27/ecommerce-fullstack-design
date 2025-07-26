@@ -8,6 +8,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout Page - Django Design System</title>
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         /* Design System CSS Variables */
         :root {
@@ -473,6 +475,7 @@
 </head>
 <body>
 <div class="checkout-container">
+    {% csrf_token %}
     <div class="container">
         <!-- Page Header -->
         <div class="mb-6">
@@ -571,21 +574,27 @@
                         <h2 class="text-xl font-semibold">Payment Method</h2>
                     </div>
                     <div class="card-body">
-                        <div class="payment-method selected" onclick="selectPaymentMethod('cod')">
+                        <div class="payment-method selected" onclick="selectPaymentMethod('cod', event)">
                             <input type="radio" name="payment" id="cod" value="cod" checked>
                             <label for="cod" class="flex items-center">
                                 💵 Cash on Delivery (COD)
                             </label>
                         </div>
-                        <div class="payment-method" onclick="selectPaymentMethod('stripe')">
+                        <div class="payment-method" onclick="selectPaymentMethod('stripe', event)">
                             <input type="radio" name="payment" id="stripe" value="stripe">
                             <label for="stripe" class="flex items-center">
-                                <img src="{% static 'seller/assets/stripe.png' %}" alt="Stripe" class="mr-3" style="width: 25px; height: 20px; border-radius: 5px;">
-                                <p style="color: white;">..</p>Stripe
+                                <svg width="25" height="20" viewBox="0 0 25 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-3">
+                                    <path d="M23.5 0H1.5C0.67 0 0 0.67 0 1.5V18.5C0 19.33 0.67 20 1.5 20H23.5C24.33 20 25 19.33 25 18.5V1.5C25 0.67 24.33 0 23.5 0Z" fill="#6772E5"/>
+                                    <path d="M8.5 6.5H16.5V8.5H8.5V6.5Z" fill="white"/>
+                                    <path d="M8.5 10.5H14.5V12.5H8.5V10.5Z" fill="white"/>
+                                </svg>
+                                Stripe
                             </label>
                         </div>
                     </div>
                 </div>
+                <div id="card-element" style="display:none; margin-top:1rem;"></div>
+                <div id="card-errors" role="alert" style="color:red;"></div>
             </div>
 
             <!-- Order Summary Sidebar -->
@@ -629,67 +638,49 @@
         <div class="receipt-header">
             <div class="success-icon">✓</div>
             <h2 class="text-2xl font-bold text-success">Payment Successful!</h2>
-                <p class="text-muted">Order #12345 - Thank you for your purchase</p>
+            <p class="text-muted" id="orderNumber">Order #<span id="orderId"></span> - Thank you for your purchase</p>
         </div>
         
-        <div class="receipt-body">
-            <h3 class="text-lg font-semibold mb-4">Order Details</h3>
-            
-            <!-- Receipt by Seller -->
-            <div class="seller-section mb-4">
-                    <h4 class="font-medium mb-2">TechWorld Store</h4>
-                <div class="bg-secondary p-4 rounded">
-                        <div class="flex justify-between mb-2">
-                            <span>Premium Smartphone</span>
-                            <span>$199.99</span>
-                        </div>
-                        <div class="flex justify-between mb-2">
-                            <span>Protective Case</span>
-                            <span>$24.99</span>
-                        </div>
-                    <div class="flex justify-between mb-2">
-                            <span>Wireless Charger</span>
-                            <span>$74.99</span>
-                        </div>
-                        <div class="flex justify-between font-semibold border-t pt-2">
-                            <span>Subtotal</span>
-                            <span>$299.97</span>
-                        </div>
+        <div class="receipt-body" id="receiptBody">
+            <!-- Dynamic content will be populated here -->
                     </div>
                 </div>
+            </div>
 
-                <div class="seller-section mb-4">
-                    <h4 class="font-medium mb-2">Fashion Hub</h4>
-                    <div class="bg-secondary p-4 rounded">
-                        <div class="flex justify-between mb-2">
-                            <span>Premium T-Shirt</span>
-                            <span>$39.99</span>
-                        </div>
-                        <div class="flex justify-between mb-2">
-                            <span>Designer Jeans</span>
-                            <span>$49.99</span>
-                        </div>
-                    <div class="flex justify-between font-semibold border-t pt-2">
-                        <span>Subtotal</span>
-                            <span>$89.98</span>
-                        </div>
-                    </div>
-                </div>
-
-            <div class="summary-row">
-                <span>Total Amount</span>
-                    <span class="font-bold text-success">$438.33</span>
+<!-- Error Modal -->
+<div class="modal" id="errorModal">
+    <div class="modal-content">
+        <div class="receipt-header">
+            <div class="success-icon" style="background-color: var(--error);">✕</div>
+            <h2 class="text-2xl font-bold" style="color: var(--error);">Payment Failed</h2>
+            <p class="text-muted" id="errorMessage">Something went wrong with your payment</p>
             </div>
 
             <div class="text-center mt-6">
-                <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
-                <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
-            </div>
+            <button class="btn btn-primary" onclick="closeErrorModal()">Try Again</button>
         </div>
     </div>
 </div>
 
     <script>
+        // Initialize Stripe
+        const stripePublishableKey = '{{ stripe_publishable_key }}';
+        let stripe = null;
+        let elements = null;
+        let card = null;
+        let cardMounted = false;
+        let paymentIntents = [];
+        
+        // Initialize Stripe when needed
+        function initializeStripe() {
+            if (!stripe && stripePublishableKey) {
+                stripe = Stripe(stripePublishableKey);
+                elements = stripe.elements();
+                card = elements.create('card');
+                cardMounted = false; // Reset flag
+            }
+        }
+
         // Seller collapsible functionality
         function toggleSeller(sellerId) {
             const content = document.getElementById(`content-${sellerId}`);
@@ -708,17 +699,30 @@
         }
 
         // Payment method selection
-        function selectPaymentMethod(method) {
+        function selectPaymentMethod(method, event) {
             // Remove selected class from all payment methods
             document.querySelectorAll('.payment-method').forEach(pm => {
                 pm.classList.remove('selected');
             });
             
             // Add selected class to clicked payment method
-            event.currentTarget.classList.add('selected');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('selected');
+            }
             
             // Check the radio button
             document.getElementById(method).checked = true;
+
+            if (method === 'stripe') {
+                initializeStripe(); // <-- Make sure this is called!
+                document.getElementById('card-element').style.display = 'block';
+                if (!cardMounted) {
+                    card.mount('#card-element');
+                    cardMounted = true;
+                }
+            } else {
+                document.getElementById('card-element').style.display = 'none';
+            }
         }
 
         // Form validation
@@ -787,10 +791,11 @@
         }
 
         // Payment processing
-        function processPayment() {
+        async function processPayment() {
             const validator = new CheckoutValidator();
             const payNowBtn = document.getElementById('payNowBtn');
             const originalText = payNowBtn.innerHTML;
+            const selectedPaymentMethod = document.querySelector('input[name="payment"]:checked').value;
             
             // Validate form
             if (!validator.validateAllFields()) {
@@ -805,60 +810,208 @@
                 Processing...
             `;
             
-            // Simulate payment processing
-            setTimeout(() => {
+            try {
+                if (selectedPaymentMethod === 'cod') {
+                    // Handle COD payment
+                    await processCODPayment();
+                } else if (selectedPaymentMethod === 'stripe') {
+                    // Handle Stripe payment
+                    await processStripePayment();
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                showErrorModal(error.message || 'Payment failed. Please try again.');
+            } finally {
                 // Reset button
                 payNowBtn.disabled = false;
                 payNowBtn.innerHTML = originalText;
-                
-                // Show receipt modal
-                showReceipt();
-            }, 3000);
+            }
         }
 
-        // Receipt modal functions
-        function showReceipt() {
+        // Process COD payment
+        async function processCODPayment() {
+            const shippingAddress = getShippingAddress();
+            
+            const response = await fetch('{% url "buyer:place_order" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    payment_method: 'cod',
+                    shipping_address: shippingAddress,
+                }),
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showReceipt(result.orders, 'cod');
+            } else {
+                throw new Error(result.error || 'Failed to place order');
+            }
+        }
+
+        // Process Stripe payment
+        async function processStripePayment() {
+            initializeStripe(); // <-- Ensure Stripe and Elements are set up
+            const shippingAddress = getShippingAddress();
+            
+            // First, create payment intents on the server
+            const response = await fetch('{% url "buyer:process_stripe_payment" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    shipping_address: shippingAddress,
+                }),
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                // Handle mixed seller scenario
+                if (result.non_stripe_sellers) {
+                    const sellerList = result.non_stripe_sellers.join(', ');
+                    const errorMessage = `The following sellers are not set up for online payments: ${sellerList}. Please choose Cash on Delivery or contact these sellers to set up payments.`;
+                    showErrorModal(errorMessage);
+                    
+                    // Optionally switch to COD automatically
+                    if (confirm('Would you like to switch to Cash on Delivery instead?')) {
+                        selectPaymentMethod('cod', null);
+                        document.getElementById('cod').checked = true;
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to create payment');
+                }
+                return;
+            }
+            
+            paymentIntents = result.payment_intents;
+            
+            // Confirm each payment intent with Stripe Elements
+            for (const paymentIntent of paymentIntents) {
+                const clientSecret = paymentIntent.client_secret;
+                if (!stripe || !card) {
+                    showErrorModal('Stripe is not initialized.');
+                    return;
+                }
+                const { error, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: card,
+                        billing_details: {
+                            address: {
+                                line1: shippingAddress.street,
+                                city: shippingAddress.city,
+                                postal_code: shippingAddress.zip_code,
+                                country: shippingAddress.country,
+                            },
+                        },
+                    },
+                });
+                if (error) {
+                    document.getElementById('card-errors').textContent = error.message;
+                    showErrorModal(error.message);
+                    return;
+                }
+                if (confirmedIntent.status !== 'succeeded') {
+                    showErrorModal('Payment was not successful.');
+                    return;
+                }
+            }
+            // All payments successful
+            showReceipt(result.orders, 'stripe');
+        }
+
+        // Get shipping address from form
+        function getShippingAddress() {
+            return {
+                street: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+                zip_code: document.getElementById('zipCode').value,
+                country: document.getElementById('country').value,
+            };
+        }
+
+        // Get CSRF token
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        // Show receipt modal
+        function showReceipt(orders, paymentMethod) {
             const modal = document.getElementById('receiptModal');
+            const orderId = orders[0] || 'N/A';
+            
+            document.getElementById('orderId').textContent = orderId;
+            
+            // Populate receipt body with order details
+            const receiptBody = document.getElementById('receiptBody');
+            receiptBody.innerHTML = `
+                <h3 class="text-lg font-semibold mb-4">Order Details</h3>
+                <p class="text-sm text-muted mb-4">Payment Method: ${paymentMethod.toUpperCase()}</p>
+                <div class="text-center mt-6">
+                    <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
+                    <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
+                </div>
+            `;
+            
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
+        // Show error modal
+        function showErrorModal(message) {
+            const modal = document.getElementById('errorModal');
+            document.getElementById('errorMessage').textContent = message;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close receipt modal
         function closeReceipt() {
             const modal = document.getElementById('receiptModal');
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
             
-            // Redirect or show success message
-            alert('Thank you for your purchase! You will receive a confirmation email shortly.');
+            // Redirect to home page
+            window.location.href = '/';
         }
 
+        // Close error modal
+        function closeErrorModal() {
+            const modal = document.getElementById('errorModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Download receipt
         function downloadReceipt() {
-            // Create a simple text receipt
+            const orderId = document.getElementById('orderId').textContent;
+            const totalAmount = '{{ order_summary.total|floatformat:2 }}';
             const receiptData = `
-RECEIPT - Order #12345
+RECEIPT - Order #${orderId}
 ========================
 
-TechWorld Store:
-- Premium Smartphone: $199.99
-- Protective Case: $24.99
-- Wireless Charger: $74.99
-Subtotal: $299.97
-
-Fashion Hub:
-- Premium T-Shirt: $39.99
-- Designer Jeans: $49.99
-Subtotal: $89.98
-
-Total: $438.33
-
 Thank you for your purchase!
+
+Order ID: ${orderId}
+Date: ${new Date().toLocaleDateString()}
+Payment Method: ${document.querySelector('input[name="payment"]:checked').value.toUpperCase()}
+
+Total: $${totalAmount}
+
+Thank you for shopping with us!
             `;
             
             const blob = new Blob([receiptData], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'receipt-12345.txt';
+            a.download = `receipt-${orderId}.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -878,10 +1031,16 @@ Thank you for your purchase!
             };
         };
 
-        // Close modal when clicking outside
+        // Close modals when clicking outside
         document.getElementById('receiptModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeReceipt();
+            }
+        });
+
+        document.getElementById('errorModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeErrorModal();
             }
         });
 
@@ -908,9 +1067,13 @@ Thank you for your purchase!
         // Keyboard accessibility
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                const modal = document.getElementById('receiptModal');
-                if (modal.classList.contains('active')) {
+                const receiptModal = document.getElementById('receiptModal');
+                const errorModal = document.getElementById('errorModal');
+                
+                if (receiptModal.classList.contains('active')) {
                     closeReceipt();
+                } else if (errorModal.classList.contains('active')) {
+                    closeErrorModal();
                 }
             }
         });

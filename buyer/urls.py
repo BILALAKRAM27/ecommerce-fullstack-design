@@ -22,4 +22,6 @@ urlpatterns += [
     path('cart/clear/', views.clear_cart, name='clear_cart'),
     path('cart/page/', views.cart_page_view, name='cart_page'),
     path('cart/remove-all/', views.remove_all_from_cart, name='remove_all_from_cart'),
+    path('stripe/process-payment/', views.process_stripe_payment, name='process_stripe_payment'),
+    path('place-order/', views.place_order_view, name='place_order'),
 ]

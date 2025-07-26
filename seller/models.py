@@ -29,6 +29,7 @@ class Seller(models.Model):
     rating = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+    stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.shop_name

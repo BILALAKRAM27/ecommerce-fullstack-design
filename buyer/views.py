@@ -11,6 +11,12 @@ from django.views.decorators.http import require_POST
 from .utils_order import group_cart_items_by_seller, calculate_order_summary, generate_order_id
 from .models import Order, OrderItem
 import base64
+import stripe
+import json
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from .models import Payment
 
 
 # Create your views here.
@@ -543,7 +549,6 @@ def checkout_view(request):
     cart, _ = Cart.objects.get_or_create(buyer=buyer)
     cart_items = cart.items.select_related('product__seller')
 
-    # Group items by seller
     grouped_sellers = []
     seller_map = {}
     for item in cart_items:
@@ -569,34 +574,25 @@ def checkout_view(request):
         seller_map[seller.id]['subtotal'] += item.product.final_price * item.quantity
     grouped_sellers = list(seller_map.values())
 
-    # Order summary
     subtotal = cart.subtotal
     shipping = 15.99  # Example fixed shipping
     tax = round((subtotal - cart.discount_amount) * 0.10, 2)
     total = round(subtotal - cart.discount_amount + tax + shipping, 2)
     total_items = sum(item.quantity for item in cart_items)
     order_summary = {
-        'subtotal': subtotal,
-        'shipping': shipping,
-        'tax': tax,
-        'total': total,
-        'total_items': total_items,
+        'subtotal': subtotal, 'shipping': shipping, 'tax': tax, 'total': total, 'total_items': total_items,
     }
 
-    # Shipping address
     address_obj = getattr(buyer, 'address', None)
     shipping_address = {
-        'street': address_obj.street if address_obj else '',
-        'city': address_obj.city if address_obj else '',
-        'zip_code': address_obj.zip_code if address_obj else '',
-        'country': address_obj.country if address_obj else 'US',
+        'street': address_obj.street if address_obj else '', 'city': address_obj.city if address_obj else '',
+        'zip_code': address_obj.zip_code if address_obj else '', 'country': address_obj.country if address_obj else 'US',
     }
 
     context = {
-        'grouped_sellers': grouped_sellers,
-        'order_summary': order_summary,
-        'shipping_address': shipping_address,
-        'buyer': buyer,
+        'grouped_sellers': grouped_sellers, 'order_summary': order_summary,
+        'shipping_address': shipping_address, 'buyer': buyer,
+        'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
     }
     return render(request, 'buyer/checkout_page.html', context)
 
@@ -623,54 +619,260 @@ def order_summary_view(request):
     return render(request, 'buyer/checkout_page.html', context)
 
 @login_required
+@require_POST
 def place_order_view(request):
-    buyer = get_object_or_404(Buyer, email=request.user.email)
-    cart, _ = Cart.objects.get_or_create(buyer=buyer)
-    cart_items = cart.items.select_related('product__seller')
-
-    grouped_sellers = group_cart_items_by_seller(cart_items)
-    order_summary = calculate_order_summary(cart)
-
-    shipping_address = buyer.address or ''
-    if request.method == 'POST':
-        shipping_address = request.POST.get('shipping_address', shipping_address)
-        # Place an order for each seller
-        order_ids = []
-        receipts = []
-        for group in grouped_sellers:
-            seller = group['seller']
-            order_id = generate_order_id()
+    """Handle COD order placement"""
+    try:
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        cart, _ = Cart.objects.get_or_create(buyer=buyer)
+        cart_items = cart.items.select_related('product__seller')
+        
+        if not cart_items.exists():
+            return JsonResponse({'success': False, 'error': 'Cart is empty'})
+        
+        # Get shipping address from request
+        import json
+        data = json.loads(request.body)
+        shipping_address = data.get('shipping_address', {})
+        shipping_address_str = f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('zip_code', '')}, {shipping_address.get('country', '')}"
+        
+        # Create orders for each seller
+        orders_created = []
+        
+        for item in cart_items:
+            seller = item.product.seller
+            
+            # Create order
             order = Order.objects.create(
                 buyer=buyer,
                 seller=seller,
                 status='pending',
-                total_amount=order_summary['total'],
+                total_amount=item.get_total_price(),
+                payment_status='pending',
+                delivery_address=shipping_address_str,
+            )
+            
+            # Create order item
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                price_at_purchase=item.product.final_price,
+                quantity=item.quantity,
+            )
+            
+            orders_created.append(order)
+        
+        # Clear cart after creating orders
+        cart.clear()
+        
+        return JsonResponse({
+            'success': True,
+            'orders': [order.id for order in orders_created]
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+def create_stripe_payment_intent(order, seller):
+    # Calculate amounts
+    amount = int(order.total_amount * 100)  # in cents
+    commission = int(order.total_amount * 0.10 * 100)  # 10% commission, in cents
+
+    payment_intent = stripe.PaymentIntent.create(
+        amount=amount,
+        currency="usd",
+        payment_method_types=["card"],
+        application_fee_amount=commission,
+        transfer_data={
+            "destination": seller.stripe_account_id,
+        },
+        metadata={
+            "order_id": order.id,
+        }
+    )
+    return payment_intent.client_secret
+
+@login_required
+@require_POST
+def process_stripe_payment(request):
+    """Handle Stripe payment processing during checkout"""
+    try:
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        cart, _ = Cart.objects.get_or_create(buyer=buyer)
+        cart_items = cart.items.select_related('product__seller')
+        
+        if not cart_items.exists():
+            return JsonResponse({'success': False, 'error': 'Cart is empty'})
+        
+        # Get shipping address from form
+        shipping_address = request.POST.get('shipping_address', '')
+        
+        # Group items by seller and check Stripe setup
+        seller_groups = {}
+        stripe_ready_sellers = []
+        non_stripe_sellers = []
+        
+        for item in cart_items:
+            seller = item.product.seller
+            if seller.id not in seller_groups:
+                seller_groups[seller.id] = {
+                    'seller': seller,
+                    'items': [],
+                    'total': 0
+                }
+            
+            seller_groups[seller.id]['items'].append(item)
+            seller_groups[seller.id]['total'] += item.get_total_price()
+            
+            # Check if seller has Stripe account
+            if seller.stripe_account_id:
+                stripe_ready_sellers.append(seller.id)
+            else:
+                non_stripe_sellers.append(seller.shop_name)
+        
+        # If any seller doesn't have Stripe, provide options
+        if non_stripe_sellers:
+            return JsonResponse({
+                'success': False,
+                'error': 'Some sellers are not set up for online payments',
+                'non_stripe_sellers': non_stripe_sellers,
+                'stripe_ready_sellers': stripe_ready_sellers,
+                'suggestion': 'Please contact these sellers to set up payments or choose Cash on Delivery'
+            })
+        
+        # All sellers have Stripe - proceed with payment
+        payment_intents = []
+        orders_created = []
+        
+        for seller_id, group in seller_groups.items():
+            seller = group['seller']
+            
+            # Create order
+            order = Order.objects.create(
+                buyer=buyer,
+                seller=seller,
+                status='pending',
+                total_amount=group['total'],
                 payment_status='pending',
                 delivery_address=shipping_address,
             )
-            order_ids.append(order_id)
-            for item in group['products']:
+            
+            # Create order items
+            for item in group['items']:
                 OrderItem.objects.create(
                     order=order,
                     product=item.product,
                     price_at_purchase=item.product.final_price,
                     quantity=item.quantity,
                 )
-            receipts.append({
-                'order': order,
-                'seller': seller,
-                'products': group['products'],
+            
+            # Create Stripe PaymentIntent
+            client_secret = create_stripe_payment_intent(order, seller)
+            payment_intents.append({
+                'order_id': order.id,
+                'client_secret': client_secret,
+                'amount': order.total_amount
             })
+            orders_created.append(order)
+        
+        # Clear cart after creating orders
         cart.clear()
-        return render(request, 'buyer/order_receipt.html', {
-            'receipts': receipts,
-            'order_summary': order_summary,
-            'shipping_address': shipping_address,
-            'order_ids': order_ids,
+        
+        return JsonResponse({
+            'success': True,
+            'payment_intents': payment_intents,
+            'orders': [order.id for order in orders_created]
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
         })
 
-    return render(request, 'buyer/checkout_page.html', {
-        'grouped_sellers': grouped_sellers,
-        'order_summary': order_summary,
-        'shipping_address': shipping_address,
-    })
+@csrf_exempt
+def stripe_webhook(request):
+    import stripe
+    from django.conf import settings
+    from .models import Payment
+
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    
+    # For local development, if signature is missing, try to process without verification
+    if not sig_header and settings.DEBUG:
+        try:
+            event = json.loads(payload)
+        except json.JSONDecodeError:
+            return HttpResponse(status=400)
+    else:
+        if not sig_header:
+            return HttpResponse(status=400)
+        
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+            )
+        except ValueError:
+            return HttpResponse(status=400)
+        except stripe.error.SignatureVerificationError:
+            return HttpResponse(status=400)
+
+    if event['type'] == 'payment_intent.succeeded':
+        intent = event['data']['object']
+        order_id = intent['metadata'].get('order_id')
+        
+        if not order_id:
+            print(f"DEBUG: No order_id found in metadata: {intent['metadata']}")
+            return HttpResponse(status=400)
+        
+        try:
+            order = Order.objects.get(id=order_id)
+            order.payment_status = 'paid'
+            order.status = 'processing'
+            order.save()
+            
+            # Create payment record
+            payment = Payment.objects.create(
+                order=order,
+                payment_method='stripe',
+                transaction_id=intent.id,
+                status='paid',
+                payment_time=timezone.now()
+            )
+            print(f"DEBUG: Payment record created: {payment.id} for order {order_id}")
+            
+        except Order.DoesNotExist:
+            print(f"DEBUG: Order {order_id} not found")
+            return HttpResponse(status=404)
+        except Exception as e:
+            print(f"DEBUG: Error creating payment: {str(e)}")
+            return HttpResponse(status=500)
+
+    elif event['type'] == 'payment_intent.payment_failed':
+        intent = event['data']['object']
+        order_id = intent['metadata']['order_id']
+        
+        try:
+            order = Order.objects.get(id=order_id)
+            order.payment_status = 'failed'
+            order.save()
+            
+            # Create payment record
+            Payment.objects.create(
+                order=order,
+                payment_method='stripe',
+                transaction_id=intent.id,
+                status='failed',
+                payment_time=timezone.now()
+            )
+            
+        except Order.DoesNotExist:
+            pass
+
+    return HttpResponse(status=200)

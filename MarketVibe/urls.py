@@ -17,9 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
+from buyer.views import stripe_webhook
+from seller.views import stripe_onboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('stripe/webhook/', stripe_webhook, name='stripe_webhook'),
+    path('stripe/onboard/', stripe_onboard, name='stripe_onboard'),
     path('', include('seller.urls',namespace='seller')),
     path('', include('buyer.urls', namespace='buyer')),
 ]

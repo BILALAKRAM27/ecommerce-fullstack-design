@@ -598,9 +598,9 @@
                                 <div style="display: flex; gap: 0.5rem;">
                                     <button type="button" class="edit-card-btn" onclick="editCard()" style="background: none; border: none; color: #4285F4; cursor: pointer; font-weight: 500; font-size: 0.9em; text-decoration: underline;">Edit</button>
                                     <button type="button" class="remove-card-btn" onclick="removeCard()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-weight: 500; font-size: 0.9em; text-decoration: underline;">Remove</button>
-                                </div>
-                            </div>
                         </div>
+                    </div>
+                </div>
                     </div>
                 </div>
                 <div id="card-element" style="display:none; margin-top:1rem;"></div>
@@ -654,8 +654,8 @@
         <div class="receipt-body" id="receiptBody">
             <!-- Dynamic content will be populated here -->
                     </div>
+                    </div>
                 </div>
-            </div>
 
 <!-- Error Modal -->
 <div class="modal" id="errorModal">
@@ -670,7 +670,7 @@
             <button class="btn btn-primary" onclick="closeErrorModal()">Try Again</button>
         </div>
     </div>
-</div>
+            </div>
 
 <!-- 1. Add Card Entry Modal -->
 <div class="modal" id="cardEntryModal">
@@ -681,12 +681,12 @@
             </div>
         <div id="modal-card-element" style="margin-bottom:1rem; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;"></div>
         <div id="modal-card-errors" role="alert" style="color:red; min-height:1.5em;"></div>
-        <div class="text-center mt-6">
+            <div class="text-center mt-6">
             <button class="btn btn-primary" id="modalPayBtn">Save</button>
             <button class="btn btn-secondary ml-3" onclick="closeCardEntryModal()">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
 
 <!-- Remove inline card input -->
 <style>#card-element, #card-errors { display: none !important; }</style>
@@ -713,8 +713,8 @@
 }
 </style>
 
-<!-- Add a container for saved card info under the Stripe payment method -->
-<div id="saved-card-info" style="display:none;"></div>
+<!-- Add html2canvas CDN for image download -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <script>
         // Initialize Stripe
@@ -1106,10 +1106,56 @@
             const result = await response.json();
             
             if (result.success) {
-                showReceipt(result.orders, 'cod');
+                console.log('COD order created successfully, fetching details...');
+                // Fetch order details from database for receipt
+                const orderData = await fetchOrderDetails(result.orders);
+                console.log('COD order details fetched:', orderData);
+                showReceipt(result.orders, 'cod', orderData.grouped_order_details, orderData.payment_status);
             } else {
                 throw new Error(result.error || 'Failed to place order');
             }
+        }
+
+        // Fetch order details from database
+        async function fetchOrderDetails(orderIds) {
+            console.log('Fetching order details for order IDs:', orderIds);
+            try {
+                const response = await fetch('/fetch-order-details/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({
+                        order_ids: orderIds
+                    }),
+                });
+                
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (result.success) {
+                    console.log('Order details fetched successfully:', result.grouped_order_details);
+                    return {
+                        grouped_order_details: result.grouped_order_details,
+                        payment_status: result.payment_status
+                    };
+                } else {
+                    console.error('Failed to fetch order details:', result.error);
+                    return { grouped_order_details: [], payment_status: 'unknown' };
+                }
+            } catch (error) {
+                console.error('Error fetching order details:', error);
+                return [];
+            }
+        }
+
+        // Create grouped order details from cart data (fallback)
+        function createGroupedOrderDetailsFromCart() {
+            // For now, return empty array - we'll enhance this later
+            // The backend should provide this data in the response
+            return [];
         }
 
         // Stripe payment from modal
@@ -1171,7 +1217,11 @@
                 }
             }
             closeCardEntryModal();
-            showReceipt(result.orders, 'stripe', result.grouped_order_details);
+            console.log('Stripe payment successful, fetching order details...');
+            // Fetch order details from database for receipt
+            const orderData = await pollOrderPaymentStatus(result.orders);
+            console.log('Stripe order details fetched:', orderData);
+            showReceipt(result.orders, 'stripe', orderData.grouped_order_details, orderData.payment_status);
         }
 
         // Use saved PaymentMethod for payment
@@ -1220,7 +1270,25 @@
                     return;
                 }
             }
-            showReceipt(result.orders, 'stripe', result.grouped_order_details);
+            console.log('Stripe payment with saved method successful, fetching order details...');
+            // Fetch order details from database for receipt
+            const orderData = await pollOrderPaymentStatus(result.orders);
+            console.log('Stripe order details fetched:', orderData);
+            showReceipt(result.orders, 'stripe', orderData.grouped_order_details, orderData.payment_status);
+        }
+
+        async function pollOrderPaymentStatus(orderIds, maxAttempts = 5, interval = 1500) {
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                const orderData = await fetchOrderDetails(orderIds);
+                if (orderData.payment_status === 'paid') {
+                    return orderData;
+                }
+                if (attempt < maxAttempts) {
+                    await new Promise(res => setTimeout(res, interval));
+                }
+            }
+            // Return last fetched data (could still be pending)
+            return await fetchOrderDetails(orderIds);
         }
 
         // Get shipping address from form
@@ -1239,43 +1307,107 @@
         }
 
         // Show receipt modal
-        function showReceipt(orders, paymentMethod, groupedOrderDetails) {
+        function showReceipt(orders, paymentMethod, groupedOrderDetails, paymentStatus = 'paid') {
+            console.log('showReceipt called with:', { orders, paymentMethod, groupedOrderDetails, paymentStatus });
             const modal = document.getElementById('receiptModal');
             const orderId = orders[0] || 'N/A';
-            
+            const currentDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
             document.getElementById('orderId').textContent = orderId;
-            
-            // Populate receipt body with order details
             const receiptBody = document.getElementById('receiptBody');
-            let html = `<h3 class="text-lg font-semibold mb-4">Order Details</h3>`;
-            html += `<p class="text-sm text-muted mb-4">Payment Method: ${paymentMethod.toUpperCase()}</p>`;
-            if (groupedOrderDetails) {
-                groupedOrderDetails.forEach(group => {
-                    html += `<div style="margin-bottom:1rem;">
-                        <h4 class="font-semibold mb-2">${group.seller_name}</h4>
-                        <ul style="margin-left:1rem;">`;
-                    group.items.forEach(item => {
-                        html += `<li>${item.name} (x${item.quantity}) - $${item.price.toFixed(2)}</li>`;
-                    });
-                    html += `</ul>`;
-                    html += `<div class="text-right text-sm text-muted">Subtotal: $${group.subtotal.toFixed(2)}</div>`;
-                    html += `</div>`;
-                });
-                html += `<div class="summary-row" style="font-weight:600; font-size:1.1em; border-top:1px solid #eee; padding-top:1em;">
-                    <span>Total</span>
-                    <span class="text-primary-blue">$${groupedOrderDetails.reduce((acc, g) => acc + g.subtotal, 0).toFixed(2)}</span>
+            let html = `
+                <div id="receipt-content" style="margin-bottom: 1.5rem;">
+                    <h3 class="text-lg font-semibold mb-2">Order Details</h3>
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>Order ID:</strong></span>
+                            <span>#${orderId}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>Order Date:</strong></span>
+                            <span>${currentDate}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>Payment Method:</strong></span>
+                            <span>${paymentMethod.toUpperCase()}</span>
+                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span><strong>Payment Status:</strong></span>
+                    <span style="color: ${paymentStatus === 'paid' ? '#28a745' : paymentStatus === 'failed' ? '#dc3545' : '#ffc107'}; font-weight: 600;">
+                        ${paymentStatus === 'paid' ? '✓ Paid' : paymentStatus === 'failed' ? '✗ Failed' : '⏳ Pending'}
+                    </span>
+                </div>
+
+                    </div>
                 </div>`;
-            } else {
-                html += `<div class="text-center">Thank you for your purchase!</div>`;
-            }
-            html += `<div class="text-center mt-6">
-                <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
-                <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
+            if (groupedOrderDetails && groupedOrderDetails.length > 0) {
+                html += `<h4 class="text-md font-semibold mb-3">Order Items by Seller</h4>`;
+                groupedOrderDetails.forEach((group, index) => {
+                    html += `
+                        <div style="border: 1px solid #e9ecef; border-radius: 4px; margin-bottom: 1rem; overflow: hidden;">
+                            <div style="background: #f8f9fa; padding: 0.75rem 1rem; border-bottom: 1px solid #e9ecef;">
+                                <h5 class="font-semibold" style="margin: 0; color: #495057;">${group.seller_name}</h5>
+                            </div>
+                            <div style="padding: 1rem;">
+                                <div style="margin-bottom: 0.75rem;">`;
+            group.items.forEach(item => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f1f3f4;">
+                        <div>
+                            <div style="font-weight: 500;">${item.name}</div>
+                            <div style="font-size: 0.85em; color: #6c757d;">Quantity: ${item.quantity}</div>
+                        </div>
+                        <div style="font-weight: 600; color: #495057;">$${item.price.toFixed(2)}</div>
+                    </div>`;
+            });
+            html += `
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid #e9ecef; font-weight: 600;">
+                            <span>Subtotal:</span>
+                            <span>$${group.subtotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        const subtotal = groupedOrderDetails.reduce((acc, g) => acc + g.subtotal, 0);
+        const shipping = parseFloat('{{ order_summary.shipping|default:0 }}') || 0;
+        // const tax = parseFloat('{{ order_summary.tax|default:0 }}') || 0; // Remove tax from total
+        const total = subtotal + shipping;
+        html += `
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Subtotal:</span>
+                    <span>$${subtotal.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Shipping:</span>
+                    <span>$${shipping.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #dee2e6; font-weight: 600; font-size: 1.1em;">
+                    <span>Total:</span>
+                    <span style="color: #4285F4;">$${total.toFixed(2)}</span>
+                </div>
             </div>`;
-            receiptBody.innerHTML = html;
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+    } else {
+        html += `<div style="text-align: center; padding: 2rem; color: #6c757d;">
+            <p>Thank you for your purchase!</p>
+            <p style="font-size: 0.9em;">Order details will be available shortly.</p>
+        </div>`;
+    }
+    html += `
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
+            <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
+        </div>`;
+    receiptBody.innerHTML = html;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
 
         // Show error modal
         function showErrorModal(message) {
@@ -1304,32 +1436,17 @@
 
         // Download receipt
         function downloadReceipt() {
-            const orderId = document.getElementById('orderId').textContent;
-            const totalAmount = '{{ order_summary.total|floatformat:2 }}';
-            const receiptData = `
-RECEIPT - Order #${orderId}
-========================
-
-Thank you for your purchase!
-
-Order ID: ${orderId}
-Date: ${new Date().toLocaleDateString()}
-Payment Method: ${document.querySelector('input[name="payment"]:checked').value.toUpperCase()}
-
-Total: $${totalAmount}
-
-Thank you for shopping with us!
-            `;
-            
-            const blob = new Blob([receiptData], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `receipt-${orderId}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const receiptContent = document.getElementById('receipt-content');
+            if (!receiptContent) {
+                alert('Receipt content not found!');
+                return;
+            }
+            html2canvas(receiptContent).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'receipt.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
         }
 
         // Utility functions

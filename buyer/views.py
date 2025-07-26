@@ -876,3 +876,75 @@ def stripe_webhook(request):
             pass
 
     return HttpResponse(status=200)
+
+@login_required
+@require_POST
+def fetch_order_details(request):
+    """Fetch order details for receipt display"""
+    print(f"DEBUG: fetch_order_details called with body: {request.body}")
+    try:
+        data = json.loads(request.body)
+        order_ids = data.get('order_ids', [])
+        print(f"DEBUG: Order IDs received: {order_ids}")
+        
+        if not order_ids:
+            print("DEBUG: No order IDs provided")
+            return JsonResponse({
+                'success': False,
+                'error': 'No order IDs provided'
+            })
+        
+        grouped_order_details = []
+        
+        for order_id in order_ids:
+            try:
+                order = Order.objects.get(id=order_id)
+                order_items = OrderItem.objects.filter(order=order).select_related('product')
+                
+                # Group items by seller
+                seller_items = {}
+                for item in order_items:
+                    seller = item.product.seller
+                    if seller.id not in seller_items:
+                        seller_items[seller.id] = {
+                            'seller_name': seller.shop_name,
+                            'items': [],
+                            'subtotal': 0
+                        }
+                    
+                    seller_items[seller.id]['items'].append({
+                        'name': item.product.name,
+                        'quantity': item.quantity,
+                        'price': item.price_at_purchase
+                    })
+                    seller_items[seller.id]['subtotal'] += item.price_at_purchase * item.quantity
+                
+                # Add order payment status - check if there's a successful payment record
+                payment_status = order.payment_status
+                # Check if there's a successful payment record for this order
+                try:
+                    payment = Payment.objects.get(order=order, status='paid')
+                    payment_status = 'paid'
+                except Payment.DoesNotExist:
+                    # If no successful payment found, use the order's payment_status
+                    pass
+                
+                # Convert to list format
+                for seller_data in seller_items.values():
+                    grouped_order_details.append(seller_data)
+                    
+            except Order.DoesNotExist:
+                continue
+        
+        print(f"DEBUG: Returning grouped order details: {grouped_order_details}")
+        return JsonResponse({
+            'success': True,
+            'grouped_order_details': grouped_order_details,
+            'payment_status': payment_status if 'payment_status' in locals() else 'unknown'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

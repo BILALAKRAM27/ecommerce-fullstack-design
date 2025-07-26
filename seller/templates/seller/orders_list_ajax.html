@@ -6,6 +6,7 @@
         <div>Total</div>
         <div>Status</div>
         <div>Payment</div>
+        <div>Type</div>
         <div>Date</div>
         <div>Actions</div>
     </div>
@@ -33,6 +34,11 @@
             <div>
                 <span class="status-badge status-{{ order.payment_status|lower }}">
                     {{ order.get_payment_status_display }}
+                </span>
+            </div>
+            <div>
+                <span class="status-badge status-{{ order.order_type|lower }}">
+                    {{ order.order_type|upper }}
                 </span>
             </div>
             <div class="text-sm text-gray-600">

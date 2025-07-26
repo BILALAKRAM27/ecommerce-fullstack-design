@@ -1407,7 +1407,7 @@
         function openDeleteModal(productId, productName) {
             currentProductId = productId;
             deleteProductName.textContent = productName;
-            deleteForm.action = `{% url 'sellers:product_delete' 0 %}`.replace('0', productId);
+            deleteForm.action = `{% url 'sellers:delete_product' 0 %}`.replace('0', productId);
             deleteModal.style.display = 'block';
         }
 
@@ -1421,22 +1421,38 @@
             e.preventDefault();
             const formData = new FormData(updateForm);
             formData.append('product_id', currentProductId);
+            
+            // Debug: Log form data
+            console.log('Form data being sent:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            
             fetch(`{% url 'sellers:product_update' 0 %}`.replace('0', currentProductId), {
                 method: 'POST',
                 body: formData,
                 headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
             })
-            .then(response => {
-                if (response.ok) {
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+                if (data.success) {
                     closeUpdateModal();
                     location.reload();
                 } else {
-                    return response.text().then(text => {
-                        updateFormContent.innerHTML = text; // Show form with errors
-                    });
+                    alert('Error updating product: ' + (data.error || 'Unknown error'));
                 }
             })
-            .catch(() => alert('Error updating product'));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating product. Please try again.');
+            });
+        });
+
+        // Handle delete form submission
+        deleteForm.addEventListener('submit', function(e) {
+            // Don't prevent default - let the form submit normally for redirect
+            // The form will submit to the delete_product view which redirects to products_list
         });
 
         // Close modals when clicking outside

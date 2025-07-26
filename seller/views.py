@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
-from .models import Seller, Product, ProductImage, Brand, Category, CategoryAttribute, AttributeOption
+from .models import Seller, Product, ProductImage, Brand, Category, CategoryAttribute, AttributeOption, ProductAttributeValue
 from .forms import UserRegisterForm, SellerUpdateForm, SellerLoginForm, ProductForm, ProductImageForm, DynamicProductForm
 from django.utils import timezone
 from buyer.models import Buyer, Order, OrderStatus, Payment
@@ -260,7 +260,7 @@ def create_product_view(request):
                     img.is_thumbnail = (str(img.id) == existing_thumbnail_id)
                     img.save()
             messages.success(request, 'Product created successfully!')
-            return redirect('sellers:product_list')
+            return redirect('seller:products_list')
     else:
         form = ProductForm()
     
@@ -277,16 +277,6 @@ def create_product_view(request):
 
 
 # READ Product List
-@login_required
-def product_list_view(request):
-    seller = get_object_or_404(Seller, user=request.user)
-    products = Product.objects.filter(seller=seller).order_by('-created_at')
-    
-    context = {
-        'products': products,
-        'seller': seller
-    }
-    return render(request, 'seller/product_list.html', context)
 
 
 # READ Product Detail
@@ -436,7 +426,7 @@ def delete_product_view(request, product_id):
     if request.method == 'POST':
         product.delete()
         messages.success(request, 'Product deleted successfully!')
-        return redirect('sellers:product_list')
+        return redirect('seller:products_list')
     
     context = {
         'product': product,
@@ -942,7 +932,7 @@ def seller_delete_product(request, product_id):
         'seller': seller,
         'product': product,
     }
-    return render(request, 'seller/delete_product.html', context)
+    return render(request, 'seller/product_delete.html', context)
 
 @login_required
 def seller_reports(request):
@@ -1120,19 +1110,135 @@ def product_update(request, product_id):
     seller = get_object_or_404(Seller, user=request.user)
     product = get_object_or_404(Product, id=product_id, seller=seller)
     
+    # Debug: Print POST data
+    print(f"POST data: {request.POST}")
+    print(f"FILES data: {request.FILES}")
+    
     try:
-        product.name = request.POST.get('name')
-        product.final_price = request.POST.get('price')
-        product.stock = request.POST.get('stock')
-        product.description = request.POST.get('description', '')
-        product.is_active = request.POST.get('is_active') == 'true'
+        # Update basic fields
+        product.name = request.POST.get('name', product.name)
+        product.description = request.POST.get('description', product.description)
+        product.condition = request.POST.get('condition', product.condition)
         
+        # Update pricing
+        base_price = request.POST.get('base_price')
+        if base_price:
+            product.base_price = float(base_price)
+        
+        discount_percentage = request.POST.get('discount_percentage')
+        if discount_percentage:
+            product.discount_percentage = float(discount_percentage)
+            # Calculate final price
+            if product.base_price and product.discount_percentage:
+                product.final_price = product.base_price * (1 - product.discount_percentage / 100)
+        else:
+            product.discount_percentage = 0
+            product.final_price = product.base_price
+        
+        # Update stock
+        stock = request.POST.get('stock')
+        if stock:
+            product.stock = int(stock)
+        
+        # Update category
         category_id = request.POST.get('category')
         if category_id:
-            product.category = Category.objects.get(id=category_id)
+            try:
+                product.category = Category.objects.get(id=category_id)
+            except Category.DoesNotExist:
+                pass
+        
+        # Update brand
+        brand_id = request.POST.get('brand')
+        if brand_id:
+            try:
+                product.brand = Brand.objects.get(id=brand_id)
+            except Brand.DoesNotExist:
+                pass
+        
+        # Handle images
+        if 'image_file' in request.FILES:
+            image_mode = request.POST.get('image_mode', 'add')
+            files = request.FILES.getlist('image_file')
+            
+            if image_mode == 'replace':
+                # Delete existing images and replace with new ones
+                product.images.all().delete()
+                
+                for i, file in enumerate(files):
+                    image_data = file.read()
+                    ProductImage.objects.create(
+                        product=product,
+                        image=image_data,
+                        is_thumbnail=(i == 0)  # First new image becomes thumbnail
+                    )
+            else:  # 'add' mode
+                # Keep existing images and add new ones
+                existing_count = product.images.count()
+                
+                for i, file in enumerate(files):
+                    image_data = file.read()
+                    ProductImage.objects.create(
+                        product=product,
+                        image=image_data,
+                        is_thumbnail=(existing_count == 0 and i == 0)  # Only thumbnail if no existing images
+                    )
+        
+        # Handle thumbnail selection
+        existing_thumbnail_id = request.POST.get('existing_thumbnail')
+        new_thumbnail_index = request.POST.get('new_thumbnail')
+        
+        if existing_thumbnail_id:
+            # Reset all existing images to not be thumbnail
+            product.images.all().update(is_thumbnail=False)
+            # Set the selected existing image as thumbnail
+            try:
+                selected_image = ProductImage.objects.get(id=existing_thumbnail_id, product=product)
+                selected_image.is_thumbnail = True
+                selected_image.save()
+            except ProductImage.DoesNotExist:
+                pass
+        elif new_thumbnail_index is not None and 'image_file' in request.FILES:
+            # Set the selected new image as thumbnail
+            try:
+                new_thumbnail_index = int(new_thumbnail_index)
+                # Find the newly created image at the specified index
+                new_images = ProductImage.objects.filter(product=product).order_by('-id')[:len(request.FILES.getlist('image_file'))]
+                if new_thumbnail_index < len(new_images):
+                    # Reset all images to not be thumbnail
+                    product.images.all().update(is_thumbnail=False)
+                    # Set the selected new image as thumbnail
+                    new_images[new_thumbnail_index].is_thumbnail = True
+                    new_images[new_thumbnail_index].save()
+            except (ValueError, IndexError):
+                pass
+        
+        # Handle attribute values
+        for key, value in request.POST.items():
+            if key.startswith('attribute_'):
+                attr_id = key.replace('attribute_', '')
+                try:
+                    attr = CategoryAttribute.objects.get(id=attr_id)
+                    # Update or create attribute value
+                    attr_value, created = ProductAttributeValue.objects.get_or_create(
+                        product=product,
+                        attribute=attr,
+                        defaults={'value': value}
+                    )
+                    if not created:
+                        attr_value.value = value
+                        attr_value.save()
+                except CategoryAttribute.DoesNotExist:
+                    pass
         
         product.save()
-        return JsonResponse({'success': True})
+        
+        # Update product order count if needed
+        if not hasattr(product, 'order_count'):
+            product.order_count = 0
+            product.save()
+        
+        return JsonResponse({'success': True, 'message': 'Product updated successfully!'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
@@ -1213,6 +1319,7 @@ def order_details(request, order_id):
         'created_at': order.created_at.isoformat(),
         'status': order.status,
         'payment_status': order.payment_status,
+        'order_type': order.order_type,
         'total_amount': float(order.total_amount),
         'delivery_address': order.delivery_address,
         'tracking_number': order.tracking_number or 'Not provided',

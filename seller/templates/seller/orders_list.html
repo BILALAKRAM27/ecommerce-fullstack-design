@@ -148,7 +148,7 @@
             padding: 1rem;
             border-bottom: 1px solid #E5E7EB;
             display: grid;
-            grid-template-columns: 80px 1fr 120px 100px 100px 120px 100px;
+            grid-template-columns: 80px 1fr 120px 100px 100px 80px 120px 100px;
             gap: 1rem;
             align-items: center;
         }
@@ -389,6 +389,7 @@
                 <div>Total</div>
                 <div>Status</div>
                 <div>Payment</div>
+                <div>Type</div>
                 <div>Date</div>
                 <div>Actions</div>
             </div>
@@ -413,15 +414,20 @@
                             {{ order.get_status_display }}
                         </span>
                     </div>
-                    <div>
-                        <span class="status-badge status-{{ order.payment_status|lower }}">
-                            {{ order.get_payment_status_display }}
-                        </span>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        {{ order.created_at|date:"M d, Y" }}
-                        <div class="text-xs">{{ order.created_at|time:"H:i" }}</div>
-                    </div>
+                                <div>
+                <span class="status-badge status-{{ order.payment_status|lower }}">
+                    {{ order.get_payment_status_display }}
+                </span>
+            </div>
+            <div>
+                <span class="status-badge status-{{ order.order_type|lower }}">
+                    {{ order.order_type|upper }}
+                </span>
+            </div>
+            <div class="text-sm text-gray-600">
+                {{ order.created_at|date:"M d, Y" }}
+                <div class="text-xs">{{ order.created_at|time:"H:i" }}</div>
+            </div>
                     <div style="display: flex; gap: 0.25rem;">
                         <button onclick="viewOrderDetails('{{ order.id }}')" title="View Details" class="action-btn view-btn">
                             <svg width="30" height="30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -585,6 +591,10 @@
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: #6B7280;">Payment Status:</span>
                                 <span class="status-badge status-${orderData.payment_status}">${orderData.get_payment_status_display}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #6B7280;">Order Type:</span>
+                                <span class="status-badge status-${orderData.order_type}">${orderData.order_type.toUpperCase()}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: #6B7280;">Total:</span>

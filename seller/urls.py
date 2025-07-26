@@ -13,7 +13,7 @@ urlpatterns = [
     path('profile/delete/', views.delete_seller_view, name='seller_delete'),
     
     # Product CRUD URLs
-    path('products/', views.product_list_view, name='product_list'),
+    
     path('products/create/', views.create_product_view, name='product_create'),
     path('products/<int:product_id>/', views.product_page_view, name='product_page'),
     path('products/<int:product_id>/update/', views.update_product_view, name='product_update'),
@@ -32,7 +32,7 @@ urlpatterns = [
     
     path('orders/list/', views.seller_orders_list, name='orders_list'),
     path('products/list/', views.seller_products_list, name='products_list'),
-    path('products/add/', views.seller_add_product, name='product_create'),
+    path('products/add/', views.create_product_view, name='product_create'),
     path('products/<int:product_id>/edit/', views.seller_edit_product, name='edit_product'),
     path('products/<int:product_id>/delete/', views.seller_delete_product, name='delete_product'),
     path('reports/', views.seller_reports, name='reports'),

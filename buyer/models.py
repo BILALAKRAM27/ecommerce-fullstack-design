@@ -186,6 +186,7 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=OrderStatus.choices, default=OrderStatus.PENDING)
     total_amount = models.FloatField()
     payment_status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
+    order_type = models.CharField(max_length=20, choices=[('cod', 'Cash on Delivery'), ('stripe', 'Stripe')], default='cod')
     delivery_address = models.TextField()
     tracking_number = models.CharField(max_length=100, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)

@@ -649,6 +649,7 @@ def place_order_view(request):
                 status='pending',
                 total_amount=item.get_total_price(),
                 payment_status='pending',
+                order_type='cod',
                 delivery_address=shipping_address_str,
             )
             
@@ -659,6 +660,11 @@ def place_order_view(request):
                 price_at_purchase=item.product.final_price,
                 quantity=item.quantity,
             )
+            
+            # Increment product order count and decrement stock
+            item.product.order_count += 1
+            item.product.stock -= item.quantity
+            item.product.save()
             
             orders_created.append(order)
         
@@ -762,6 +768,7 @@ def process_stripe_payment(request):
                 status='pending',
                 total_amount=group['total'] + shipping_per_seller,  # Add shipping here
                 payment_status='pending',
+                order_type='stripe',
                 delivery_address=shipping_address,
             )
             
@@ -773,6 +780,11 @@ def process_stripe_payment(request):
                     price_at_purchase=item.product.final_price,
                     quantity=item.quantity,
                 )
+                
+                # Increment product order count and decrement stock
+                item.product.order_count += 1
+                item.product.stock -= item.quantity
+                item.product.save()
             
             # Create Stripe PaymentIntent
             client_secret = create_stripe_payment_intent(order, seller)

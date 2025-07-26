@@ -1,0 +1,87 @@
+<!-- Orders Table -->
+<div class="orders-table" id="ordersTableContainer">
+    <div class="table-header table-row">
+        <div>Order ID</div>
+        <div>Customer</div>
+        <div>Total</div>
+        <div>Status</div>
+        <div>Payment</div>
+        <div>Date</div>
+        <div>Actions</div>
+    </div>
+    
+    {% if orders %}
+        {% for order in orders %}
+        <div class="table-row">
+            <div class="font-mono text-sm">#{{ order.id }}</div>
+            <div>
+                {% if order.buyer.name %}
+                    {{ order.buyer.name }}
+                {% elif order.buyer.user %}
+                    {{ order.buyer.user.username }}
+                {% else %}
+                    Anonymous
+                {% endif %}
+                <div class="text-xs text-gray-500">{{ order.buyer.email }}</div>
+            </div>
+            <div class="font-semibold">${{ order.total_amount|floatformat:2 }}</div>
+            <div>
+                <span class="status-badge status-{{ order.status|lower }}">
+                    {{ order.get_status_display }}
+                </span>
+            </div>
+            <div>
+                <span class="status-badge status-{{ order.payment_status|lower }}">
+                    {{ order.get_payment_status_display }}
+                </span>
+            </div>
+            <div class="text-sm text-gray-600">
+                {{ order.created_at|date:"M d, Y" }}
+                <div class="text-xs">{{ order.created_at|time:"H:i" }}</div>
+            </div>
+            <div style="display: flex; gap: 0.25rem;">
+                <button onclick="viewOrderDetails('{{ order.id }}')" title="View Details" class="action-btn view-btn">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                </button>
+                <button onclick="updateOrderStatus('{{ order.id }}')" title="Update Status" class="action-btn update-btn">
+                    <svg width="30" height="30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mx-auto mb-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+            </svg>
+            <h3 class="text-lg font-semibold mb-2">No orders found</h3>
+            <p>No orders match your current filters.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if orders.has_other_pages %}
+<div class="pagination" id="paginationContainer">
+    {% if orders.has_previous %}
+        <a href="#" onclick="loadPage({{ orders.previous_page_number }})" class="pagination-link">&laquo; Previous</a>
+    {% endif %}
+    
+    {% for num in orders.paginator.page_range %}
+        {% if orders.number == num %}
+            <span class="current">{{ num }}</span>
+        {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+            <a href="#" onclick="loadPage({{ num }})" class="pagination-link">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if orders.has_next %}
+        <a href="#" onclick="loadPage({{ orders.next_page_number }})" class="pagination-link">Next &raquo;</a>
+    {% endif %}
+</div>
+{% endif %} 

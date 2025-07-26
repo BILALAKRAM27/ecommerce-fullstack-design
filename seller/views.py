@@ -828,6 +828,12 @@ def seller_orders_list(request):
         'orders': page_obj,
         'total_orders': orders.count(),
     }
+    
+    # Check if it's an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Return only the orders table and pagination content
+        return render(request, 'seller/orders_list_ajax.html', context)
+    
     return render(request, 'seller/orders_list.html', context)
 
 @login_required

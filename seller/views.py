@@ -94,6 +94,7 @@ def create_seller_view(request):
                     email=user.email,
                     shop_name=form.cleaned_data.get('shop_name', ''),
                     shop_description='',
+                    address='',  # Empty address initially
                     created_at=timezone.now()
                 )
                 
@@ -159,6 +160,29 @@ def logout_view(request):
 @login_required
 def seller_profile_view(request):
     seller = get_object_or_404(Seller, user=request.user)
+    
+    if request.method == 'POST':
+        # Handle form submission
+        try:
+            # Update basic fields
+            seller.name = request.POST.get('name', seller.name)
+            seller.shop_name = request.POST.get('shop_name', seller.shop_name)
+            seller.shop_description = request.POST.get('shop_description', seller.shop_description)
+            seller.address = request.POST.get('address', seller.address)
+            
+            # Handle image upload
+            if 'image' in request.FILES:
+                image_file = request.FILES['image']
+                # Read the image file and store as binary data
+                seller.image = image_file.read()
+            
+            seller.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('sellers:seller_profile')
+            
+        except Exception as e:
+            messages.error(request, f'Error updating profile: {str(e)}')
+    
     context = {
         'seller': seller,
         'image_base64': seller.get_image_base64()
@@ -772,7 +796,26 @@ def seller_dashboard_overview(request):
 def seller_orders_list(request):
     """Detailed orders list for seller"""
     seller = get_object_or_404(Seller, user=request.user)
-    orders = Order.objects.filter(seller=seller).order_by('-created_at')
+    orders = Order.objects.filter(seller=seller).select_related('buyer').order_by('-created_at')
+    
+    # Apply search filter
+    search_query = request.GET.get('search', '')
+    if search_query:
+        orders = orders.filter(
+            Q(id__icontains=search_query) |
+            Q(buyer__name__icontains=search_query) |
+            Q(buyer__email__icontains=search_query)
+        )
+    
+    # Apply status filter
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    
+    # Apply payment status filter
+    payment_status_filter = request.GET.get('payment_status', '')
+    if payment_status_filter:
+        orders = orders.filter(payment_status=payment_status_filter)
     
     # Add pagination
     from django.core.paginator import Paginator

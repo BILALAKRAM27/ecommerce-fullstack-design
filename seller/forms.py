@@ -90,7 +90,7 @@ class SellerRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = Seller
-        fields = ['name', 'email', 'shop_name', 'shop_description']
+        fields = ['name', 'email', 'shop_name', 'shop_description', 'address']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -129,7 +129,7 @@ class SellerUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Seller
-        fields = ['name', 'email', 'shop_name', 'shop_description', 'image']
+        fields = ['name', 'email', 'shop_name', 'shop_description', 'address', 'image']
 
     def save(self, commit=True):
         seller = super().save(commit=False)

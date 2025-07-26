@@ -1,0 +1,388 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders List - {{ seller.shop_name }}</title>
+    <style>
+        .orders-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3B82F6;
+        }
+        
+        .stat-label {
+            color: #6B7280;
+            font-size: 0.875rem;
+        }
+        
+        .filters-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .form-input, .form-select {
+            padding: 0.5rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #3B82F6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563EB;
+        }
+        
+        .btn-secondary {
+            background: #6B7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4B5563;
+        }
+        
+        .orders-table {
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table-header {
+            background: #F9FAFB;
+            padding: 1rem;
+            border-bottom: 1px solid #E5E7EB;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .table-row {
+            padding: 1rem;
+            border-bottom: 1px solid #E5E7EB;
+            display: grid;
+            grid-template-columns: 80px 1fr 120px 100px 100px 120px 100px;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .table-row:hover {
+            background: #F9FAFB;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .status-processing {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+        
+        .status-shipped {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .status-delivered {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .status-cancelled {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        .status-paid {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .status-failed {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+        
+        .pagination a {
+            padding: 0.5rem 1rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.375rem;
+            text-decoration: none;
+            color: #374151;
+        }
+        
+        .pagination a:hover {
+            background: #F3F4F6;
+        }
+        
+        .pagination .current {
+            background: #3B82F6;
+            color: white;
+            border-color: #3B82F6;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6B7280;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #3B82F6;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="orders-container">
+        <!-- Back Link -->
+        <a href="{% url 'seller:seller_dashboard' %}" class="back-link">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Dashboard
+        </a>
+        
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="text-3xl font-bold mb-2">Orders Management</h1>
+            <p class="text-blue-100">Manage and track all your orders</p>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ total_orders }}</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ orders|length }}</div>
+                <div class="stat-label">Showing</div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters-section">
+            <form method="GET" class="filters-grid">
+                <div class="form-group">
+                    <label class="form-label">Search Orders</label>
+                    <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search by order ID or customer..." class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="processing" {% if request.GET.status == 'processing' %}selected{% endif %}>Processing</option>
+                        <option value="shipped" {% if request.GET.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                        <option value="delivered" {% if request.GET.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Status</label>
+                    <select name="payment_status" class="form-select">
+                        <option value="">All Payment Status</option>
+                        <option value="pending" {% if request.GET.payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="paid" {% if request.GET.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                        <option value="failed" {% if request.GET.payment_status == 'failed' %}selected{% endif %}>Failed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="{% url 'seller:orders_list' %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Orders Table -->
+        <div class="orders-table">
+            <div class="table-header table-row">
+                <div>Order ID</div>
+                <div>Customer</div>
+                <div>Total</div>
+                <div>Status</div>
+                <div>Payment</div>
+                <div>Date</div>
+                <div>Actions</div>
+            </div>
+            
+            {% if orders %}
+                {% for order in orders %}
+                <div class="table-row">
+                    <div class="font-mono text-sm">#{{ order.id }}</div>
+                    <div>
+                        {% if order.buyer.name %}
+                            {{ order.buyer.name }}
+                        {% elif order.buyer.user %}
+                            {{ order.buyer.user.username }}
+                        {% else %}
+                            Anonymous
+                        {% endif %}
+                        <div class="text-xs text-gray-500">{{ order.buyer.email }}</div>
+                    </div>
+                    <div class="font-semibold">${{ order.total_amount|floatformat:2 }}</div>
+                    <div>
+                        <span class="status-badge status-{{ order.status|lower }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="status-badge status-{{ order.payment_status|lower }}">
+                            {{ order.get_payment_status_display }}
+                        </span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        {{ order.created_at|date:"M d, Y" }}
+                        <div class="text-xs">{{ order.created_at|time:"H:i" }}</div>
+                    </div>
+                    <div>
+                        <button onclick="viewOrderDetails('{{ order.id }}')" class="btn btn-primary btn-sm">
+                            View
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mx-auto mb-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                    <h3 class="text-lg font-semibold mb-2">No orders found</h3>
+                    <p>No orders match your current filters.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if orders.has_other_pages %}
+        <div class="pagination">
+            {% if orders.has_previous %}
+                <a href="?page={{ orders.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}">&laquo; Previous</a>
+            {% endif %}
+            
+            {% for num in orders.paginator.page_range %}
+                {% if orders.number == num %}
+                    <span class="current">{{ num }}</span>
+                {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                    <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if orders.has_next %}
+                <a href="?page={{ orders.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.payment_status %}&payment_status={{ request.GET.payment_status }}{% endif %}">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        function viewOrderDetails(orderId) {
+            // You can implement a modal or redirect to order details page
+            window.open(`/order/${orderId}/details/`, '_blank');
+        }
+    </script>
+</body>
+</html>
+{% endblock %} 

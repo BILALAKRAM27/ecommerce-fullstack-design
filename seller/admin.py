@@ -11,11 +11,11 @@ from .models import (
 class SellerAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'shop_name', 'rating', 'created_at', 'image_preview')
     list_filter = ('rating', 'created_at', 'updated_at')
-    search_fields = ('name', 'email', 'shop_name')
+    search_fields = ('name', 'email', 'shop_name', 'address')
     readonly_fields = ('created_at', 'updated_at', 'image_preview')
     fieldsets = (
         ('Basic Information', {
-            'fields': ('user', 'name', 'email', 'shop_name', 'shop_description')
+            'fields': ('user', 'name', 'email', 'shop_name', 'shop_description', 'address')
         }),
         ('Media', {
             'fields': ('image', 'image_preview'),

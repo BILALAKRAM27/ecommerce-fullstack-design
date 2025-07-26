@@ -25,6 +25,7 @@ class Seller(models.Model):
     email = models.EmailField(unique=True)
     shop_name = models.CharField(max_length=100)
     shop_description = models.TextField(null=True, blank=True)
+    address = models.TextField(null=True, blank=True)  # Business address field
     image = models.BinaryField(blank=True, null=True, editable=True)  # Storing image as binary data (BLOB)
     rating = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)

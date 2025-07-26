@@ -591,6 +591,16 @@
                                 Stripe
                             </label>
                         </div>
+                        <!-- Saved card info container - placed right after the Stripe payment method -->
+                        <div id="saved-card-info" style="display:none; margin-top: 0.5rem; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 0.75rem 1rem; font-size: 0.9em;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span id="saved-card-text"></span>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button type="button" class="edit-card-btn" onclick="editCard()" style="background: none; border: none; color: #4285F4; cursor: pointer; font-weight: 500; font-size: 0.9em; text-decoration: underline;">Edit</button>
+                                    <button type="button" class="remove-card-btn" onclick="removeCard()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-weight: 500; font-size: 0.9em; text-decoration: underline;">Remove</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div id="card-element" style="display:none; margin-top:1rem;"></div>
@@ -662,22 +672,120 @@
     </div>
 </div>
 
+<!-- 1. Add Card Entry Modal -->
+<div class="modal" id="cardEntryModal">
+    <div class="modal-content">
+        <div class="receipt-header">
+            <h2 class="text-2xl font-bold">Enter Card Details</h2>
+            <p class="text-muted mb-4">Pay securely with Stripe</p>
+            </div>
+        <div id="modal-card-element" style="margin-bottom:1rem; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: white;"></div>
+        <div id="modal-card-errors" role="alert" style="color:red; min-height:1.5em;"></div>
+        <div class="text-center mt-6">
+            <button class="btn btn-primary" id="modalPayBtn">Save</button>
+            <button class="btn btn-secondary ml-3" onclick="closeCardEntryModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Remove inline card input -->
+<style>#card-element, #card-errors { display: none !important; }</style>
+
+<style>
+#saved-card-info {
+    margin-top: 0.5rem;
+    background: #f5f5f5;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.95em;
+}
+#saved-card-info .edit-card-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #4285F4;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95em;
+    text-decoration: underline;
+}
+</style>
+
+<!-- Add a container for saved card info under the Stripe payment method -->
+<div id="saved-card-info" style="display:none;"></div>
+
     <script>
         // Initialize Stripe
         const stripePublishableKey = '{{ stripe_publishable_key }}';
         let stripe = null;
         let elements = null;
         let card = null;
-        let cardMounted = false;
+        let cardMountedTo = null; // Track where card is mounted
         let paymentIntents = [];
+        let savedPaymentMethodId = null; // Store saved payment method ID
+        let savedCardBrand = null;
+        let savedCardLast4 = null;
         
         // Initialize Stripe when needed
         function initializeStripe() {
             if (!stripe && stripePublishableKey) {
                 stripe = Stripe(stripePublishableKey);
                 elements = stripe.elements();
-                card = elements.create('card');
-                cardMounted = false; // Reset flag
+                card = elements.create('card', {
+                    style: {
+                        base: {
+                            fontSize: '16px',
+                            color: '#424770',
+                            '::placeholder': {
+                                color: '#aab7c4',
+                            },
+                        },
+                        invalid: {
+                            color: '#9e2146',
+                        },
+                    },
+                });
+                cardMountedTo = null;
+            }
+        }
+
+        function mountCardElement(targetSelector) {
+            if (!card) {
+                console.error('Card element not initialized');
+                return;
+            }
+            
+            const targetElement = document.querySelector(targetSelector);
+            if (!targetElement) {
+                console.error('Target element not found:', targetSelector);
+                return;
+            }
+            
+            // Unmount from previous location if needed
+            if (cardMountedTo && card.unmount) {
+                try {
+                    card.unmount();
+                } catch (e) {
+                    console.log('Card was not mounted, continuing...');
+                }
+            }
+            
+            try {
+                card.mount(targetSelector);
+                cardMountedTo = targetSelector;
+                console.log('Card mounted successfully to:', targetSelector);
+                
+                // Clear errors
+                if (targetSelector === '#modal-card-element') {
+                    const errorElement = document.getElementById('modal-card-errors');
+                    if (errorElement) {
+                        errorElement.textContent = '';
+                    }
+                }
+            } catch (error) {
+                console.error('Error mounting card:', error);
             }
         }
 
@@ -713,16 +821,162 @@
             // Check the radio button
             document.getElementById(method).checked = true;
 
+            // Update button text based on payment method
+            updatePayButtonText(method);
+
             if (method === 'stripe') {
                 initializeStripe(); // <-- Make sure this is called!
-                document.getElementById('card-element').style.display = 'block';
-                if (!cardMounted) {
-                    card.mount('#card-element');
-                    cardMounted = true;
-                }
+                openCardEntryModal();
             } else {
-                document.getElementById('card-element').style.display = 'none';
+                closeCardEntryModal();
             }
+        }
+
+        // Update button text based on selected payment method
+        function updatePayButtonText(method) {
+            const payButton = document.getElementById('payNowBtn');
+            if (payButton) {
+                if (method === 'cod') {
+                    payButton.textContent = 'Order Now';
+                } else {
+                    payButton.textContent = 'Pay Now';
+                }
+            }
+        }
+
+        // Change modal button to 'Save' and update logic
+        function openCardEntryModal() {
+            const modal = document.getElementById('cardEntryModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            initializeStripe();
+            setTimeout(() => {
+                mountCardElement('#modal-card-element');
+            }, 100);
+        }
+
+        function closeCardEntryModal() {
+            const modal = document.getElementById('cardEntryModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Save card details function
+        async function saveCardDetails() {
+            console.log('Saving card details...');
+            
+            try {
+                // Initialize Stripe
+                initializeStripe();
+                if (!stripe) {
+                    throw new Error('Stripe not initialized');
+                }
+                
+                // Do NOT mount card element here!
+                if (!card) {
+                    throw new Error('Card element not available');
+                }
+                
+                // Get shipping address
+                const shippingAddress = getShippingAddress();
+                console.log('Shipping address:', shippingAddress);
+                
+                // Create PaymentMethod
+                console.log('Creating PaymentMethod...');
+                const {error, paymentMethod} = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: card,
+                    billing_details: {
+                        address: {
+                            line1: shippingAddress.street,
+                            city: shippingAddress.city,
+                            postal_code: shippingAddress.zip_code,
+                            country: shippingAddress.country,
+                        },
+                    },
+                });
+                
+                console.log('PaymentMethod result:', { error, paymentMethod });
+                
+                if (error) {
+                    console.error('PaymentMethod creation error:', error);
+                    document.getElementById('modal-card-errors').textContent = error.message;
+                    showErrorModal(`Card validation failed: ${error.message}`);
+                    return;
+                }
+                
+                if (!paymentMethod) {
+                    throw new Error('No payment method returned from Stripe');
+                }
+                
+                // Store the payment method details
+                savedPaymentMethodId = paymentMethod.id;
+                savedCardBrand = paymentMethod.card.brand;
+                savedCardLast4 = paymentMethod.card.last4;
+                
+                console.log('Card saved successfully:', {
+                    id: savedPaymentMethodId,
+                    brand: savedCardBrand,
+                    last4: savedCardLast4
+                });
+                
+                closeCardEntryModal();
+                showSavedCardInfo();
+                
+                // Show success message
+                setTimeout(() => {
+                    alert('Card details saved successfully! You can now click "Pay Now" to complete your order.');
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error saving card:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    stripe: !!stripe,
+                    card: !!card
+                });
+                showErrorModal(`Failed to save card details: ${error.message}. Please check your card details and try again.`);
+            }
+        }
+
+        function showSavedCardInfo() {
+            const infoDiv = document.getElementById('saved-card-info');
+            const cardText = document.getElementById('saved-card-text');
+            
+            if (savedPaymentMethodId && savedCardBrand && savedCardLast4) {
+                cardText.innerHTML = `Saved card: <strong>${capitalize(savedCardBrand)}</strong> ending in <strong>${savedCardLast4}</strong>`;
+                infoDiv.style.display = 'block';
+                console.log('Card saved successfully:', { brand: savedCardBrand, last4: savedCardLast4, id: savedPaymentMethodId });
+            } else {
+                infoDiv.style.display = 'none';
+                console.log('No saved card found');
+            }
+        }
+
+        function editCard() {
+            // Clear previous card info (optional, or keep until new card is saved)
+            openCardEntryModal();
+        }
+
+        function removeCard() {
+            // Clear saved card details
+            savedPaymentMethodId = null;
+            savedCardBrand = null;
+            savedCardLast4 = null;
+            
+            // Hide the saved card info
+            showSavedCardInfo();
+            
+            // Show confirmation message
+            alert('Card details removed. You can add a new card by selecting Stripe again.');
+            
+            console.log('Card removed successfully');
+        }
+
+        function capitalize(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
         // Form validation
@@ -816,7 +1070,12 @@
                     await processCODPayment();
                 } else if (selectedPaymentMethod === 'stripe') {
                     // Handle Stripe payment
-                    await processStripePayment();
+                    if (!savedPaymentMethodId) {
+                        showErrorModal('Please enter and save your card details first. Select Stripe and click "Save" to add your card.');
+                        return;
+                    }
+                    console.log('Processing payment with saved card:', savedPaymentMethodId);
+                    await processStripePaymentWithSavedMethod();
                 }
             } catch (error) {
                 console.error('Payment error:', error);
@@ -853,46 +1112,35 @@
             }
         }
 
-        // Process Stripe payment
-        async function processStripePayment() {
-            initializeStripe(); // <-- Ensure Stripe and Elements are set up
+        // Stripe payment from modal
+        async function processStripePaymentFromModal() {
+            initializeStripe();
+            mountCardElement('#modal-card-element');
             const shippingAddress = getShippingAddress();
-            
-            // First, create payment intents on the server
             const response = await fetch('{% url "buyer:process_stripe_payment" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCSRFToken(),
                 },
-                body: JSON.stringify({
-                    shipping_address: shippingAddress,
-                }),
+                body: JSON.stringify({ shipping_address: shippingAddress }),
             });
-            
             const result = await response.json();
-            
             if (!result.success) {
-                // Handle mixed seller scenario
                 if (result.non_stripe_sellers) {
                     const sellerList = result.non_stripe_sellers.join(', ');
                     const errorMessage = `The following sellers are not set up for online payments: ${sellerList}. Please choose Cash on Delivery or contact these sellers to set up payments.`;
                     showErrorModal(errorMessage);
-                    
-                    // Optionally switch to COD automatically
                     if (confirm('Would you like to switch to Cash on Delivery instead?')) {
                         selectPaymentMethod('cod', null);
                         document.getElementById('cod').checked = true;
                     }
                 } else {
-                    throw new Error(result.error || 'Failed to create payment');
+                    showErrorModal(result.error || 'Failed to create payment');
                 }
                 return;
             }
-            
             paymentIntents = result.payment_intents;
-            
-            // Confirm each payment intent with Stripe Elements
             for (const paymentIntent of paymentIntents) {
                 const clientSecret = paymentIntent.client_secret;
                 if (!stripe || !card) {
@@ -913,7 +1161,7 @@
                     },
                 });
                 if (error) {
-                    document.getElementById('card-errors').textContent = error.message;
+                    document.getElementById('modal-card-errors').textContent = error.message;
                     showErrorModal(error.message);
                     return;
                 }
@@ -922,8 +1170,57 @@
                     return;
                 }
             }
-            // All payments successful
-            showReceipt(result.orders, 'stripe');
+            closeCardEntryModal();
+            showReceipt(result.orders, 'stripe', result.grouped_order_details);
+        }
+
+        // Use saved PaymentMethod for payment
+        async function processStripePaymentWithSavedMethod() {
+            initializeStripe();
+            const shippingAddress = getShippingAddress();
+            const response = await fetch('{% url "buyer:process_stripe_payment" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ shipping_address: shippingAddress }),
+            });
+            const result = await response.json();
+            if (!result.success) {
+                if (result.non_stripe_sellers) {
+                    const sellerList = result.non_stripe_sellers.join(', ');
+                    const errorMessage = `The following sellers are not set up for online payments: ${sellerList}. Please choose Cash on Delivery or contact these sellers to set up payments.`;
+                    showErrorModal(errorMessage);
+                    if (confirm('Would you like to switch to Cash on Delivery instead?')) {
+                        selectPaymentMethod('cod', null);
+                        document.getElementById('cod').checked = true;
+                    }
+                } else {
+                    showErrorModal(result.error || 'Failed to create payment');
+                }
+                return;
+            }
+            paymentIntents = result.payment_intents;
+            for (const paymentIntent of paymentIntents) {
+                const clientSecret = paymentIntent.client_secret;
+                if (!stripe || !card) {
+                    showErrorModal('Stripe is not initialized.');
+                    return;
+                }
+                const { error, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: savedPaymentMethodId,
+                });
+                if (error) {
+                    showErrorModal(error.message);
+                    return;
+                }
+                if (confirmedIntent.status !== 'succeeded') {
+                    showErrorModal('Payment was not successful.');
+                    return;
+                }
+            }
+            showReceipt(result.orders, 'stripe', result.grouped_order_details);
         }
 
         // Get shipping address from form
@@ -942,7 +1239,7 @@
         }
 
         // Show receipt modal
-        function showReceipt(orders, paymentMethod) {
+        function showReceipt(orders, paymentMethod, groupedOrderDetails) {
             const modal = document.getElementById('receiptModal');
             const orderId = orders[0] || 'N/A';
             
@@ -950,15 +1247,32 @@
             
             // Populate receipt body with order details
             const receiptBody = document.getElementById('receiptBody');
-            receiptBody.innerHTML = `
-                <h3 class="text-lg font-semibold mb-4">Order Details</h3>
-                <p class="text-sm text-muted mb-4">Payment Method: ${paymentMethod.toUpperCase()}</p>
-                <div class="text-center mt-6">
-                    <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
-                    <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
-                </div>
-            `;
-            
+            let html = `<h3 class="text-lg font-semibold mb-4">Order Details</h3>`;
+            html += `<p class="text-sm text-muted mb-4">Payment Method: ${paymentMethod.toUpperCase()}</p>`;
+            if (groupedOrderDetails) {
+                groupedOrderDetails.forEach(group => {
+                    html += `<div style="margin-bottom:1rem;">
+                        <h4 class="font-semibold mb-2">${group.seller_name}</h4>
+                        <ul style="margin-left:1rem;">`;
+                    group.items.forEach(item => {
+                        html += `<li>${item.name} (x${item.quantity}) - $${item.price.toFixed(2)}</li>`;
+                    });
+                    html += `</ul>`;
+                    html += `<div class="text-right text-sm text-muted">Subtotal: $${group.subtotal.toFixed(2)}</div>`;
+                    html += `</div>`;
+                });
+                html += `<div class="summary-row" style="font-weight:600; font-size:1.1em; border-top:1px solid #eee; padding-top:1em;">
+                    <span>Total</span>
+                    <span class="text-primary-blue">$${groupedOrderDetails.reduce((acc, g) => acc + g.subtotal, 0).toFixed(2)}</span>
+                </div>`;
+            } else {
+                html += `<div class="text-center">Thank you for your purchase!</div>`;
+            }
+            html += `<div class="text-center mt-6">
+                <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>
+                <button class="btn btn-primary" onclick="closeReceipt()">Continue Shopping</button>
+            </div>`;
+            receiptBody.innerHTML = html;
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -1044,6 +1358,12 @@ Thank you for shopping with us!
             }
         });
 
+        document.getElementById('cardEntryModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCardEntryModal();
+            }
+        });
+
         // Initialize checkout functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize form validation
@@ -1062,6 +1382,18 @@ Thank you for shopping with us!
                     firstHeader.classList.add('active');
                 }
             }
+            
+            // Attach event handler for Save button
+            const saveBtn = document.getElementById('modalPayBtn');
+            if (saveBtn) {
+                saveBtn.onclick = saveCardDetails;
+            }
+            
+            // Set initial button text based on default selected payment method
+            const defaultMethod = document.querySelector('input[name="payment"]:checked').value;
+            updatePayButtonText(defaultMethod);
+            
+            showSavedCardInfo(); // Show if already saved (e.g. after reload)
         });
 
         // Keyboard accessibility
@@ -1069,11 +1401,14 @@ Thank you for shopping with us!
             if (e.key === 'Escape') {
                 const receiptModal = document.getElementById('receiptModal');
                 const errorModal = document.getElementById('errorModal');
+                const cardEntryModal = document.getElementById('cardEntryModal');
                 
                 if (receiptModal.classList.contains('active')) {
                     closeReceipt();
                 } else if (errorModal.classList.contains('active')) {
                     closeErrorModal();
+                } else if (cardEntryModal.classList.contains('active')) {
+                    closeCardEntryModal();
                 }
             }
         });

@@ -220,3 +220,24 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.street}, {self.city}, {self.country}"
+
+class BuyerNotification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('stock', 'Low Stock'),
+        ('price', 'Price Drop'),
+        ('order', 'Order Update'),
+        ('system', 'System'),
+    ]
+    
+    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.buyer.name} - {self.title}"

@@ -236,6 +236,1946 @@
   position: relative;
   height: 300px;
   margin: 2rem 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.chart-container canvas {
+  border-radius: 8px;
+}
+
+/* Revenue Metrics Grid */
+.revenue-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.revenue-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.revenue-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.15),
+    0 8px 25px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.card-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.revenue-card:hover .card-glow {
+  opacity: 1;
+}
+
+.weekly-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.weekly-card .card-glow {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  filter: blur(20px);
+}
+
+.monthly-card {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.monthly-card .card-glow {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  filter: blur(20px);
+}
+
+.yearly-card {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.yearly-card .card-glow {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  filter: blur(20px);
+}
+
+.card-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.revenue-card:hover .card-icon {
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.card-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.025em;
+}
+
+.card-label {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+
+.card-subtitle {
+  font-size: 0.875rem;
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+/* Status Breakdown Card */
+.status-breakdown-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  margin-bottom: 32px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-breakdown-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.status-card-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 24px 28px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.status-card-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.status-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-icon {
+  color: #667eea;
+}
+
+.status-card-body {
+  padding: 28px;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.status-item {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.status-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.status-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.status-item:hover::before {
+  opacity: 0.05;
+}
+
+.pending-status {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+}
+
+.pending-status::before {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.processing-status {
+  background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+  color: #1e40af;
+}
+
+.processing-status::before {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.shipped-status {
+  background: linear-gradient(135deg, #e9d5ff 0%, #c4b5fd 100%);
+  color: #6b21a8;
+}
+
+.shipped-status::before {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.delivered-status {
+  background: linear-gradient(135deg, #dcfce7 0%, #86efac 100%);
+  color: #166534;
+}
+
+.delivered-status::before {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.cancelled-status {
+  background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%);
+  color: #991b1b;
+}
+
+.cancelled-status::before {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.status-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.status-item:hover .status-icon-wrapper {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.status-value {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.status-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+/* Top Products Card */
+.top-products-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.top-products-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.top-products-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 24px 28px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.top-products-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.top-products-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.top-products-icon {
+  color: #667eea;
+}
+
+.top-products-body {
+  padding: 28px;
+}
+
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.product-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.05), transparent);
+  transition: left 0.6s ease;
+}
+
+.product-item:hover {
+  transform: translateX(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.product-item:hover::before {
+  left: 100%;
+}
+
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.product-image-wrapper {
+  position: relative;
+}
+
+.product-thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.product-item:hover .product-thumbnail {
+  transform: scale(1.1);
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.product-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.product-item:hover .product-placeholder {
+  transform: scale(1.1);
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.product-details {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.product-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.order-count, .units-sold {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.order-count::before {
+  content: '📦';
+  font-size: 0.75rem;
+}
+
+.units-sold::before {
+  content: '📊';
+  font-size: 0.75rem;
+}
+
+.product-revenue {
+  text-align: right;
+}
+
+.product-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 4px;
+}
+
+.revenue-amount {
+  font-size: 0.875rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.empty-products {
+  text-align: center;
+  padding: 48px 24px;
+  color: #64748b;
+}
+
+.empty-icon {
+  margin: 0 auto 16px;
+  color: #cbd5e1;
+}
+
+.empty-products p {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Enhanced Chart Container Styles */
+.chart-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chart-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.chart-container canvas {
+  border-radius: 12px;
+}
+
+/* Products Dashboard Card */
+.products-dashboard-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.products-dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Products Header */
+.products-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 28px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.products-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.products-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.products-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.products-icon {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.products-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.products-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* Search Container */
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #9ca3af;
+  z-index: 2;
+  transition: color 0.3s ease;
+}
+
+.search-input {
+  padding: 12px 16px 12px 44px;
+  border: 2px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  font-size: 0.875rem;
+  color: #1e293b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 240px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.search-input:focus + .search-icon {
+  color: #667eea;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* View All Button */
+.view-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.view-all-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.view-all-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.view-all-btn:hover::before {
+  left: 100%;
+}
+
+/* Products Content */
+.products-content {
+  padding: 0;
+}
+
+/* Table Header */
+.products-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 120px;
+  gap: 20px;
+  padding: 20px 32px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* Table Body */
+.products-table-body {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.product-table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 120px;
+  gap: 20px;
+  padding: 20px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.product-table-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.03), transparent);
+  transition: left 0.6s ease;
+}
+
+.product-table-row:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateX(4px);
+}
+
+.product-table-row:hover::before {
+  left: 100%;
+}
+
+.product-table-row:last-child {
+  border-bottom: none;
+}
+
+/* Product Info */
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.product-image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.product-table-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.product-table-row:hover .product-table-image {
+  transform: scale(1.05);
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.product-table-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.product-table-row:hover .product-table-placeholder {
+  transform: scale(1.05);
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.product-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-category {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Price Cell */
+.price-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Stock Cell */
+.stock-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stock-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.low-stock {
+  color: #dc2626;
+}
+
+.low-stock-badge {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+/* Sales Cell */
+.sales-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sales-count {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.sales-revenue {
+  font-size: 0.875rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+/* Actions Cell */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.edit-btn {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.edit-btn::before {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.edit-btn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  transform: scale(1.05);
+}
+
+.delete-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.delete-btn::before {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  transform: scale(1.05);
+}
+
+/* Empty State */
+.empty-products-state {
+  text-align: center;
+  padding: 60px 32px;
+  color: #64748b;
+}
+
+.empty-icon {
+  margin: 0 auto 24px;
+  color: #cbd5e1;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.empty-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.add-product-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.add-product-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.add-product-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.add-product-btn:hover::before {
+  left: 100%;
+}
+
+/* Orders Dashboard Card */
+.orders-dashboard-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.orders-dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Orders Header */
+.orders-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 28px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.orders-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.orders-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.orders-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.orders-icon {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.orders-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.orders-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* View All Orders Button */
+.view-all-orders-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.view-all-orders-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.view-all-orders-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.view-all-orders-btn:hover::before {
+  left: 100%;
+}
+
+/* Orders Content */
+.orders-content {
+  padding: 0;
+}
+
+/* Orders Table Header */
+.orders-table-header {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 120px;
+  gap: 16px;
+  padding: 20px 32px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Orders Table Body */
+.orders-table-body {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.order-table-row {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 120px;
+  gap: 16px;
+  padding: 20px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.order-table-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.03), transparent);
+  transition: left 0.6s ease;
+}
+
+.order-table-row:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateX(4px);
+}
+
+.order-table-row:hover::before {
+  left: 100%;
+}
+
+.order-table-row:last-child {
+  border-bottom: none;
+}
+
+/* Order ID */
+.order-id {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+/* Customer Name */
+.customer-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Products List */
+.products-list {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.product-item {
+  color: #374151;
+  font-weight: 500;
+}
+
+.more-products {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Order Total */
+.order-total {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+}
+
+.status-pending {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-processing {
+  background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+  color: #1e40af;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.status-shipped {
+  background: linear-gradient(135deg, #e9d5ff 0%, #c4b5fd 100%);
+  color: #6b21a8;
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.status-delivered {
+  background: linear-gradient(135deg, #dcfce7 0%, #86efac 100%);
+  color: #166534;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.status-cancelled {
+  background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%);
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.status-paid {
+  background: linear-gradient(135deg, #dcfce7 0%, #86efac 100%);
+  color: #166534;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.status-pending {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-failed {
+  background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%);
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Type Badges */
+.type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+}
+
+.type-cod {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.type-stripe {
+  background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+  color: #1e40af;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Order Actions */
+.order-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.order-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.order-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.view-btn {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.view-btn::before {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.view-btn:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  transform: scale(1.05);
+}
+
+.update-btn {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.update-btn::before {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.update-btn:hover {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  transform: scale(1.05);
+}
+
+/* Empty Orders State */
+.empty-orders-state {
+  text-align: center;
+  padding: 60px 32px;
+  color: #64748b;
+}
+
+.empty-orders-state .empty-icon {
+  margin: 0 auto 24px;
+  color: #cbd5e1;
+  opacity: 0.6;
+}
+
+.empty-orders-state .empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.empty-orders-state .empty-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Activity Dashboard Card */
+.activity-dashboard-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 24px;
+}
+
+.activity-dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Activity Header */
+.activity-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 28px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.activity-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.activity-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.activity-icon {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.activity-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.activity-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Clear Activity Button */
+.clear-activity-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clear-activity-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Activity Content */
+.activity-content {
+  padding: 0;
+}
+
+.activity-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.03), transparent);
+  transition: left 0.6s ease;
+}
+
+.activity-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateX(4px);
+}
+
+.activity-item:hover::before {
+  left: 100%;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+/* Activity Icon */
+.activity-icon-wrapper {
+  flex-shrink: 0;
+}
+
+.activity-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.activity-order {
+  background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+  color: #1e40af;
+  border: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+.activity-item:hover .activity-icon-badge {
+  transform: scale(1.1);
+}
+
+/* Activity Details */
+.activity-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-details .activity-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.activity-description {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.activity-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Mark Read Button */
+.mark-read-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.activity-item:hover .mark-read-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.mark-read-btn:hover {
+  background: rgba(34, 197, 94, 0.2);
+  color: #16a34a;
+  transform: scale(1.1);
+}
+
+/* Empty Activity State */
+.empty-activity-state {
+  text-align: center;
+  padding: 60px 32px;
+  color: #64748b;
+}
+
+.empty-activity-state .empty-icon {
+  margin: 0 auto 24px;
+  color: #cbd5e1;
+  opacity: 0.6;
+}
+
+.empty-activity-state .empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.empty-activity-state .empty-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Notifications Dashboard Card */
+.notifications-dashboard-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notifications-dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Notifications Header */
+.notifications-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 28px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.notifications-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.notifications-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.notifications-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notifications-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.notifications-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.notifications-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Notification Action Buttons */
+.mark-all-read-btn,
+.clear-notifications-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid;
+}
+
+.mark-all-read-btn {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.mark-all-read-btn:hover {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
+
+.clear-notifications-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.clear-notifications-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Notifications Content */
+.notifications-content {
+  padding: 0;
+}
+
+.notifications-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.notification-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.03), transparent);
+  transition: left 0.6s ease;
+}
+
+.notification-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateX(4px);
+}
+
+.notification-item:hover::before {
+  left: 100%;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+/* Notification Icon */
+.notification-icon-wrapper {
+  flex-shrink: 0;
+}
+
+.notification-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border: 2px solid;
+}
+
+.notification-order {
+  background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+  color: #1e40af;
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.notification-warning {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.notification-info {
+  background: linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 100%);
+  color: #0c4a6e;
+  border-color: rgba(14, 165, 233, 0.2);
+}
+
+.notification-item:hover .notification-icon-badge {
+  transform: scale(1.1);
+}
+
+/* Notification Details */
+.notification-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.notification-message {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Empty Notifications State */
+.empty-notifications-state {
+  text-align: center;
+  padding: 60px 32px;
+  color: #64748b;
+}
+
+.empty-notifications-state .empty-icon {
+  margin: 0 auto 24px;
+  color: #cbd5e1;
+  opacity: 0.6;
+}
+
+.empty-notifications-state .empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 12px 0;
+}
+
+.empty-notifications-state .empty-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Enhanced card styles for reports */
+.card {
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Gradient cards for revenue metrics */
+.card.bg-gradient-to-r {
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.card.bg-gradient-to-r:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 768px) {
@@ -275,6 +2215,281 @@
   
   .form-input, .form-select {
     width: 100%;
+  }
+  
+  /* Mobile responsive for new components */
+  .revenue-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .revenue-card {
+    padding: 24px 20px;
+  }
+  
+  .card-value {
+    font-size: 2rem;
+  }
+  
+  .status-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .status-item {
+    padding: 20px 16px;
+  }
+  
+  .status-value {
+    font-size: 1.5rem;
+  }
+  
+  .product-item {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .product-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .product-revenue {
+    text-align: center;
+  }
+  
+  .chart-container {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .status-card-header,
+  .top-products-header {
+    padding: 20px 24px;
+  }
+  
+  .status-card-body,
+  .top-products-body {
+    padding: 20px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .revenue-metrics-grid {
+    gap: 12px;
+  }
+  
+  .revenue-card {
+    padding: 20px 16px;
+  }
+  
+  .card-value {
+    font-size: 1.75rem;
+  }
+  
+  .card-label {
+    font-size: 1rem;
+  }
+  
+  .status-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .status-item {
+    padding: 16px 12px;
+  }
+  
+  .status-value {
+    font-size: 1.25rem;
+  }
+  
+  .product-item {
+    padding: 16px;
+  }
+  
+  .product-thumbnail,
+  .product-placeholder {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .product-name {
+    font-size: 1rem;
+  }
+  
+  .product-stats {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .chart-container {
+    padding: 16px;
+  }
+  
+  .status-card-header,
+  .top-products-header {
+    padding: 16px 20px;
+  }
+  
+  .status-card-body,
+  .top-products-body {
+    padding: 16px 20px;
+  }
+  
+  /* Products tab responsive */
+  .products-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+  
+  .products-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .search-input {
+    min-width: 100%;
+  }
+  
+  .products-table-header,
+  .product-table-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+  
+  .products-table-header {
+    display: none;
+  }
+  
+  .product-table-row {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.6);
+  }
+  
+  .product-info {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .product-details {
+    text-align: center;
+  }
+  
+  .price-value,
+  .stock-indicator,
+  .sales-info {
+    justify-content: center;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+    margin-top: 12px;
+  }
+  
+  .empty-products-state {
+    padding: 40px 20px;
+  }
+  
+  /* Orders tab responsive */
+  .orders-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+  
+  .orders-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .orders-table-header,
+  .order-table-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+  
+  .orders-table-header {
+    display: none;
+  }
+  
+  .order-table-row {
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.6);
+  }
+  
+  .order-id,
+  .customer-name,
+  .products-list,
+  .order-total,
+  .order-status,
+  .payment-status,
+  .order-type {
+    text-align: center;
+  }
+  
+  .order-actions {
+    justify-content: center;
+    margin-top: 12px;
+  }
+  
+  .empty-orders-state {
+    padding: 40px 20px;
+  }
+  
+  /* Activity and Notifications responsive */
+  .activity-header,
+  .notifications-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+  
+  .activity-actions,
+  .notifications-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .activity-item,
+  .notification-item {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    padding: 16px 20px;
+  }
+  
+  .activity-icon-wrapper,
+  .notification-icon-wrapper {
+    align-self: center;
+  }
+  
+  .activity-details,
+  .notification-details {
+    text-align: center;
+  }
+  
+  .mark-read-btn {
+    align-self: center;
+    margin-top: 8px;
+  }
+  
+  .empty-activity-state,
+  .empty-notifications-state {
+    padding: 40px 20px;
   }
 }
 
@@ -420,6 +2635,235 @@
 .fixed.top-4.right-4 {
   animation: slideInRight 0.3s ease-out;
 }
+
+/* Modal Styles for Update Product */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+/* Prevent body scrolling when modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 32px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 32px;
+    border-radius: 32px 32px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+.modal-header h3 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.close {
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+.close:hover {
+    opacity: 0.7;
+}
+.modal-body {
+    padding: 24px 32px 16px 32px;
+    overflow-y: visible;
+    flex: 1;
+}
+.modal-footer {
+    padding: 20px 32px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    flex-shrink: 0;
+    background: #f8f9fa;
+    border-radius: 0 0 32px 32px;
+}
+.modal-footer .btn {
+    padding: 16px 32px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    min-width: 140px;
+}
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+.modal-footer .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+.modal-footer .btn-secondary {
+    background: #6c757d;
+    border: none;
+    color: white;
+}
+.modal-footer .btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+.modal-footer .btn-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+.modal-footer .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+.warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.warning-box h4 {
+    color: #856404;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.warning-box ul {
+    color: #856404;
+    margin: 0;
+    padding-left: 20px;
+}
+.warning-box li {
+    margin-bottom: 5px;
+}
+/* Enhanced Form Styles for Modal */
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+.modal-content label {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+    color: #333;
+    letter-spacing: 0.2px;
+}
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="file"],
+.modal-content select,
+.modal-content textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 10px;
+    font-size: 1.13rem;
+    background: #f5f7fa;
+    margin-bottom: 18px;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+.modal-content input[type="file"] {
+    padding: 10px 8px;
+    font-size: 1.05rem;
+}
+.modal-content input[type="text"]:focus,
+.modal-content input[type="number"]:focus,
+.modal-content input[type="file"]:focus,
+.modal-content select:focus,
+.modal-content textarea:focus {
+    border-color: #764ba2;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(118, 75, 162, 0.08);
+}
+.modal-content textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+.modal-content .errorlist {
+    color: #e74c3c;
+    font-size: 1rem;
+    margin-top: 2px;
+    list-style: none;
+    padding: 0;
+}
+.modal-content .help-text {
+    font-size: 0.98rem;
+    color: #666;
+    margin-top: 2px;
+}
+@media (max-width: 600px) {
+    .modal-content {
+        max-width: 98vw;
+        padding: 0;
+    }
+    .modal-header, .modal-footer {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .modal-body {
+        padding: 10px;
+    }
+    .modal-content form {
+        gap: 14px;
+    }
+    .modal-content input[type="text"],
+    .modal-content input[type="number"],
+    .modal-content input[type="file"],
+    .modal-content select,
+    .modal-content textarea {
+        font-size: 1rem;
+        padding: 10px 8px;
+    }
+    .modal-header h3 {
+        font-size: 1.3rem;
+    }
+    .modal-footer .btn {
+        font-size: 1rem;
+        padding: 12px 10px;
+        min-width: 90px;
+    }
+}
 </style>
 {% endblock %}
 
@@ -515,157 +2959,227 @@
 
       <!-- Orders Tab -->
       <div class="tab-content active" id="orders">
-        <div class="card">
-          <div class="card-header flex justify-between items-center">
-            <h3 class="text-lg font-semibold">Recent Orders</h3>
-            <div class="flex items-center space-x-3">
-              <div class="flex items-center space-x-2">
-                <input type="text" id="orderSearch" placeholder="Search orders..." class="form-input text-sm w-48">
-                <select id="orderStatusFilter" class="form-select text-sm">
-                  <option value="">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="shipped">Shipped</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
-              <a href="{% url 'seller:orders_list' %}" class="btn btn-primary btn-sm" style="background-color: #3B82F6; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; text-decoration: none; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;">View All</a>
+        <div class="orders-dashboard-card">
+          <div class="orders-header">
+            <div class="orders-title-section">
+              <h3 class="orders-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="orders-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Recent Orders
+              </h3>
+              <div class="orders-subtitle">Track and manage your customer orders</div>
+            </div>
+            <div class="orders-actions">
+              <a href="{% url 'seller:orders_list' %}" class="view-all-orders-btn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                View All Orders
+              </a>
             </div>
           </div>
-          <div class="card-body p-0">
-            <div class="order-row font-semibold bg-neutral-50 text-sm">
-              <div>Order ID</div>
-              <div>Customer</div>
-              <div>Products</div>
-              <div>Total</div>
-              <div>Status</div>
-              <div>Payment</div>
-              <div>Type</div>
-              <div>Actions</div>
+          
+          <div class="orders-content">
+            <div class="orders-table-header">
+              <div class="table-cell order-id-cell">Order ID</div>
+              <div class="table-cell customer-cell">Customer</div>
+              <div class="table-cell products-cell">Products</div>
+              <div class="table-cell total-cell">Total</div>
+              <div class="table-cell status-cell">Status</div>
+              <div class="table-cell payment-cell">Payment</div>
+              <div class="table-cell type-cell">Type</div>
+              <div class="table-cell actions-cell">Actions</div>
             </div>
-            {% for order in recent_orders %}
-            <div class="order-row" data-order-id="{{ order.id }}" data-status="{{ order.status }}">
-              <div class="font-mono text-sm">#{{ order.id }}</div>
-              <div>{% if order.buyer.name %}
-  {{ order.buyer.name }}
-{% elif order.buyer.user %}
-  {{ order.buyer.user.username }}
-{% else %}
-  Anonymous
-{% endif %}</div>
-              <div class="text-sm">
-                {% for item in order.items.all|slice:":2" %}
-                  {{ item.product.name }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
-                {% if order.items.count > 2 %}
-                  <span class="text-neutral-500">+{{ order.items.count|add:"-2" }} more</span>
-                {% endif %}
+            
+            <div class="orders-table-body">
+              {% for order in recent_orders %}
+              <div class="order-table-row" data-order-id="{{ order.id }}" data-status="{{ order.status }}">
+                <div class="table-cell order-id-cell">
+                  <div class="order-id">#{{ order.id }}</div>
+                </div>
+                
+                <div class="table-cell customer-cell">
+                  <div class="customer-name">
+                    {% if order.buyer.name %}
+                      {{ order.buyer.name }}
+                    {% elif order.buyer.user %}
+                      {{ order.buyer.user.username }}
+                    {% else %}
+                      Anonymous
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="table-cell products-cell">
+                  <div class="products-list">
+                    {% for item in order.items.all|slice:":2" %}
+                      <span class="product-item">{{ item.product.name }}</span>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                    {% if order.items.count > 2 %}
+                      <span class="more-products">+{{ order.items.count|add:"-2" }} more</span>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="table-cell total-cell">
+                  <div class="order-total">${{ order.total_amount|floatformat:2 }}</div>
+                </div>
+                
+                <div class="table-cell status-cell">
+                  <div class="order-status">
+                    <span class="status-badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                  </div>
+                </div>
+                
+                <div class="table-cell payment-cell">
+                  <div class="payment-status">
+                    <span class="status-badge status-{{ order.payment_status|lower }}">{{ order.get_payment_status_display }}</span>
+                  </div>
+                </div>
+                
+                <div class="table-cell type-cell">
+                  <div class="order-type">
+                    <span class="type-badge type-{{ order.order_type|lower }}">{{ order.order_type|upper }}</span>
+                  </div>
+                </div>
+                
+                <div class="table-cell actions-cell">
+                  <div class="order-actions">
+                    <button class="order-action-btn view-btn" onclick="viewOrderDetails('{{ order.id }}')" title="View Details">
+                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                    </button>
+                    <button class="order-action-btn update-btn" onclick="updateOrderStatus('{{ order.id }}')" title="Update Status">
+                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div class="font-semibold">${{ order.total_amount|floatformat:2 }}</div>
-              <div>
-                <span class="status-badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+              {% empty %}
+              <div class="empty-orders-state">
+                <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="empty-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                <h4 class="empty-title">No Orders Yet</h4>
+                <p class="empty-description">Orders from your customers will appear here</p>
               </div>
-              <div>
-                <span class="status-badge status-{{ order.payment_status|lower }}">{{ order.get_payment_status_display }}</span>
-              </div>
-              <div>
-                <span class="status-badge status-{{ order.order_type|lower }}">{{ order.order_type|upper }}</span>
-              </div>
-              <div class="action-buttons">
-                <button class="btn" onclick="viewOrderDetails('{{ order.id }}')" title="View Details">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                  </svg>
-                </button>
-                <button class="btn" onclick="updateOrderStatus('{{ order.id }}')" title="Update Status">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                  </svg>
-                </button>
-              </div>
+              {% endfor %}
             </div>
-            {% empty %}
-            <div class="order-row">
-              <div class="col-span-6 text-center text-neutral-500 py-8">No orders yet</div>
-            </div>
-            {% endfor %}
           </div>
         </div>
       </div>
 
       <!-- Products Tab -->
       <div class="tab-content" id="products">
-        <div class="card">
-          <div class="card-header flex justify-between items-center">
-            <h3 class="text-lg font-semibold">Your Products</h3>
-            <div class="flex items-center space-x-3">
-              <div class="flex items-center space-x-2">
-                <input type="text" id="productSearch" placeholder="Search products..." class="form-input text-sm w-48">
-              </div>
-              <a href="{% url 'seller:products_list' %}" class="btn btn-primary" style="background-color: #3B82F6; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; text-decoration: none; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;">View All Products</a>
+        <div class="products-dashboard-card">
+          <div class="products-header">
+            <div class="products-title-section">
+              <h3 class="products-title">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="products-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+                Your Products
+              </h3>
+              <div class="products-subtitle">Manage your product inventory and sales</div>
+            </div>
+            <div class="products-actions">
+              <a href="{% url 'seller:products_list' %}" class="view-all-btn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                View All Products
+              </a>
             </div>
           </div>
-          <div class="card-body p-0">
-            <div class="product-row font-semibold bg-neutral-50 text-sm">
-              <div>Product</div>
-              <div>Price</div>
-              <div>Stock</div>
-              <div>Sales</div>
-              <div>Actions</div>
+          
+          <div class="products-content">
+            <div class="products-table-header">
+              <div class="table-cell product-cell">Product</div>
+              <div class="table-cell price-cell">Price</div>
+              <div class="table-cell stock-cell">Stock</div>
+              <div class="table-cell sales-cell">Sales</div>
+              <div class="table-cell actions-cell">Actions</div>
             </div>
-            {% for product in products %}
-            <div class="product-row" data-product-id="{{ product.id }}" data-status="{% if product.is_active %}active{% else %}inactive{% endif %}" data-stock="{{ product.stock|default:0 }}">
-              <div class="flex items-center">
-                {% if product.images.first %}
-                  <img src="data:image/png;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}" class="product-image mr-3">
-                {% else %}
-                  <div class="product-image mr-3 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                    {{ product.name|first|upper }}
+            
+            <div class="products-table-body">
+              {% for product in products|slice:":5" %}
+              <div class="product-table-row" data-product-id="{{ product.id }}" data-product-name="{{ product.name|lower }}" data-status="{% if product.is_active %}active{% else %}inactive{% endif %}" data-stock="{{ product.stock|default:0 }}">
+                <div class="table-cell product-cell">
+                  <div class="product-info">
+                    <div class="product-image-wrapper">
+                      {% if product.images.first %}
+                        <img src="data:image/png;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}" class="product-table-image">
+                      {% else %}
+                        <div class="product-table-placeholder">
+                          {{ product.name|first|upper }}
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div class="product-details">
+                      <div class="product-name">{{ product.name }}</div>
+                      <div class="product-category">{{ product.category.name|default:"Uncategorized" }}</div>
+                    </div>
                   </div>
-                {% endif %}
-                <div>
-                  <div class="font-semibold">{{ product.name }}</div>
-                  <div class="text-sm text-neutral-600">{{ product.category.name|default:"Uncategorized" }}</div>
+                </div>
+                
+                <div class="table-cell price-cell">
+                  <div class="price-value">${{ product.final_price|floatformat:2 }}</div>
+                </div>
+                
+                <div class="table-cell stock-cell">
+                  <div class="stock-indicator {% if product.stock <= 5 %}low-stock{% endif %}">
+                    <span class="stock-value">{{ product.stock|default:"0" }}</span>
+                    {% if product.stock <= 5 and product.stock > 0 %}
+                      <span class="low-stock-badge">Low</span>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="table-cell sales-cell">
+                  <div class="sales-info">
+                    <div class="sales-count">{{ product.dashboard_order_count|default:"0" }} sold</div>
+                    {% if product.dashboard_total_revenue %}
+                      <div class="sales-revenue">${{ product.dashboard_total_revenue|floatformat:2 }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <div class="table-cell actions-cell">
+                  <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="openUpdateModal({{ product.id }}, '{{ product.name|escapejs }}')" title="Edit Product">
+                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </button>
+                    <button class="action-btn delete-btn" onclick="openDeleteModal({{ product.id }}, '{{ product.name|escapejs }}')" title="Delete Product">
+                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div class="font-semibold">${{ product.final_price|floatformat:2 }}</div>
-              <div class="{% if product.stock <= 5 %}text-red-600 font-semibold{% endif %}">
-                {{ product.stock|default:"0" }}
-                {% if product.stock <= 5 and product.stock > 0 %}
-                  <span class="text-xs text-red-500">(Low)</span>
-                {% endif %}
+              {% empty %}
+              <div class="empty-products-state">
+                <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="empty-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                </svg>
+                <h4 class="empty-title">No Products Yet</h4>
+                <p class="empty-description">Start building your inventory by adding your first product</p>
+                <a href="{% url 'sellers:product_create' %}" class="add-product-btn">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  Add Your First Product
+                </a>
               </div>
-                              <div class="text-sm text-neutral-600">
-                  {{ product.dashboard_order_count|default:"0" }} sold
-                  {% if product.dashboard_total_revenue %}
-                  <br><span class="text-green-600">${{ product.dashboard_total_revenue|floatformat:2 }}</span>
-                  {% endif %}
-                </div>
-              <div class="action-buttons">
-                <button class="btn" onclick="editProduct('{{ product.id }}')" title="Edit Product">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                  </svg>
-                </button>
-                <button class="btn" onclick="duplicateProduct('{{ product.id }}')" title="Duplicate Product">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                  </svg>
-                </button>
-                <button class="btn text-red-600" onclick="deleteProduct('{{ product.id }}')" title="Delete Product">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
-              </div>
+              {% endfor %}
             </div>
-            {% empty %}
-            <div class="product-row">
-              <div class="col-span-6 text-center text-neutral-500 py-8">No products yet</div>
-            </div>
-            {% endfor %}
           </div>
         </div>
       </div>
@@ -674,106 +3188,242 @@
 
       <!-- Reports Tab -->
       <div class="tab-content" id="reports">
+        <!-- Revenue Breakdown Chart -->
         <div class="card mb-6">
+          <div class="card-header">
+            <h3 class="text-lg font-semibold">Revenue Breakdown</h3>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height: 300px;">
+              <canvas id="revenueBreakdownChart"></canvas>
+              <div id="revenueBreakdownFallback" style="display: none; text-align: center; padding: 50px; color: #666;">
+                <p>Revenue data will appear here</p>
+                <p>Weekly: ${{ weekly_revenue|floatformat:2|default:"0.00" }}</p>
+                <p>Monthly: ${{ monthly_revenue|floatformat:2|default:"0.00" }}</p>
+                <p>Yearly: ${{ yearly_revenue|floatformat:2|default:"0.00" }}</p>
+              </div>
+              <div id="chartTest" style="display: none; text-align: center; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-top: 10px;">
+                <p><strong>Chart Test</strong></p>
+                <p>If you see this, charts are not loading properly</p>
+                <button onclick="testChart()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Test Chart.js</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales Analytics Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- Sales Overview Chart -->
+          <div class="card">
             <div class="card-header">
-            <h3 class="text-lg font-semibold">Sales Analytics</h3>
+              <h3 class="text-lg font-semibold">Sales Overview (6 Months)</h3>
             </div>
             <div class="card-body">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h4 class="text-md font-semibold mb-4">Sales Overview</h4>
-              <div class="chart-container">
+              <div class="chart-container" style="height: 250px;">
                 <canvas id="salesChart"></canvas>
               </div>
             </div>
-              <div>
-                <h4 class="text-md font-semibold mb-4">Revenue Breakdown</h4>
-              <div class="space-y-4">
-                <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
-                  <span>This Week</span>
-                  <span class="font-semibold text-primary-blue">${{ weekly_revenue|floatformat:2|default:"0.00" }}</span>
-                </div>
-                <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
-                  <span>This Month</span>
-                  <span class="font-semibold text-primary-blue">${{ monthly_revenue|floatformat:2|default:"0.00" }}</span>
-                </div>
-                <div class="flex justify-between items-center p-3 bg-neutral-50 rounded">
-                  <span>This Year</span>
-                  <span class="font-semibold text-primary-blue">${{ yearly_revenue|floatformat:2|default:"0.00" }}</span>
-                  </div>
-                </div>
+          </div>
+
+          <!-- Payment Method Distribution -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="text-lg font-semibold">Payment Method Distribution</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-container" style="height: 250px;">
+                <canvas id="paymentMethodChart"></canvas>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Status and Category Performance -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- Order Status Breakdown -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="text-lg font-semibold">Order Status Breakdown</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-container" style="height: 250px;">
+                <canvas id="orderStatusChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Performance -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="text-lg font-semibold">Category Performance</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-container" style="height: 250px;">
+                <canvas id="categoryPerformanceChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue Metrics Cards -->
+        <div class="revenue-metrics-grid">
+          <div class="revenue-card weekly-card">
+            <div class="card-glow"></div>
+            <div class="card-content">
+              <div class="card-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6l1 12H7L8 7z"></path>
+                </svg>
+              </div>
+              <div class="card-value">${{ weekly_revenue|floatformat:2|default:"0.00" }}</div>
+              <div class="card-label">This Week</div>
+              <div class="card-subtitle">Weekly Revenue</div>
+            </div>
+          </div>
+          
+          <div class="revenue-card monthly-card">
+            <div class="card-glow"></div>
+            <div class="card-content">
+              <div class="card-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <div class="card-value">${{ monthly_revenue|floatformat:2|default:"0.00" }}</div>
+              <div class="card-label">This Month</div>
+              <div class="card-subtitle">Monthly Revenue</div>
+            </div>
+          </div>
+          
+          <div class="revenue-card yearly-card">
+            <div class="card-glow"></div>
+            <div class="card-content">
+              <div class="card-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+              </div>
+              <div class="card-value">${{ yearly_revenue|floatformat:2|default:"0.00" }}</div>
+              <div class="card-label">This Year</div>
+              <div class="card-subtitle">Annual Revenue</div>
             </div>
           </div>
         </div>
         
         <!-- Order Status Breakdown -->
-        <div class="card mb-6">
-          <div class="card-header">
-            <h3 class="text-lg font-semibold">Order Status Breakdown</h3>
+        <div class="status-breakdown-card">
+          <div class="status-card-header">
+            <h3 class="status-card-title">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="status-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              Order Status Breakdown
+            </h3>
           </div>
-          <div class="card-body">
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div class="text-center p-4 bg-yellow-50 rounded-lg">
-                <div class="text-2xl font-bold text-yellow-600">{{ pending_orders }}</div>
-                <div class="text-sm text-yellow-700">Pending</div>
+          <div class="status-card-body">
+            <div class="status-grid">
+              <div class="status-item pending-status">
+                <div class="status-icon-wrapper">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div class="status-value">{{ pending_orders }}</div>
+                <div class="status-label">Pending</div>
               </div>
-              <div class="text-center p-4 bg-blue-50 rounded-lg">
-                <div class="text-2xl font-bold text-blue-600">{{ processing_orders }}</div>
-                <div class="text-sm text-blue-700">Processing</div>
+              
+              <div class="status-item processing-status">
+                <div class="status-icon-wrapper">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                </div>
+                <div class="status-value">{{ processing_orders }}</div>
+                <div class="status-label">Processing</div>
               </div>
-              <div class="text-center p-4 bg-purple-50 rounded-lg">
-                <div class="text-2xl font-bold text-purple-600">{{ shipped_orders }}</div>
-                <div class="text-sm text-purple-700">Shipped</div>
+              
+              <div class="status-item shipped-status">
+                <div class="status-icon-wrapper">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                </div>
+                <div class="status-value">{{ shipped_orders }}</div>
+                <div class="status-label">Shipped</div>
               </div>
-              <div class="text-center p-4 bg-green-50 rounded-lg">
-                <div class="text-2xl font-bold text-green-600">{{ delivered_orders }}</div>
-                <div class="text-sm text-green-700">Delivered</div>
+              
+              <div class="status-item delivered-status">
+                <div class="status-icon-wrapper">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <div class="status-value">{{ delivered_orders }}</div>
+                <div class="status-label">Delivered</div>
               </div>
-              <div class="text-center p-4 bg-red-50 rounded-lg">
-                <div class="text-2xl font-bold text-red-600">{{ cancelled_orders }}</div>
-                <div class="text-sm text-red-700">Cancelled</div>
+              
+              <div class="status-item cancelled-status">
+                <div class="status-icon-wrapper">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </div>
+                <div class="status-value">{{ cancelled_orders }}</div>
+                <div class="status-label">Cancelled</div>
               </div>
             </div>
           </div>
         </div>
         
-          <div class="card">
-            <div class="card-header">
-              <h3 class="text-lg font-semibold">Top Selling Products</h3>
+          <div class="top-products-card">
+            <div class="top-products-header">
+              <h3 class="top-products-title">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="top-products-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+                Top Selling Products
+              </h3>
             </div>
-            <div class="card-body">
-              <div class="space-y-3">
+            <div class="top-products-body">
+              <div class="products-list">
                 {% for product in top_products %}
-                <div class="flex items-center justify-between p-3 bg-neutral-50 rounded">
-                  <div class="flex items-center">
-                  {% if product.images.first %}
-                    <img src="data:image/png;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}" class="w-10 h-10 rounded mr-3 object-cover">
-                  {% else %}
-                    <div class="w-10 h-10 rounded mr-3 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                      {{ product.name|first|upper }}
-                    </div>
-                  {% endif %}
-                    <div>
-                      <div class="font-semibold">{{ product.name }}</div>
-                    <div class="text-sm text-neutral-600">
-                      {{ product.dashboard_order_count|default:"0" }} orders
-                      {% if product.dashboard_total_sold %}
-                        • {{ product.dashboard_total_sold }} units sold
+                <div class="product-item">
+                  <div class="product-info">
+                    <div class="product-image-wrapper">
+                      {% if product.images.first %}
+                        <img src="data:image/png;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}" class="product-thumbnail">
+                      {% else %}
+                        <div class="product-placeholder">
+                          {{ product.name|first|upper }}
+                        </div>
                       {% endif %}
                     </div>
+                    <div class="product-details">
+                      <div class="product-name">{{ product.name }}</div>
+                      <div class="product-stats">
+                        <span class="order-count">{{ product.dashboard_order_count|default:"0" }} orders</span>
+                        {% if product.dashboard_total_sold %}
+                          <span class="units-sold">{{ product.dashboard_total_sold }} units sold</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="product-revenue">
+                    <div class="product-price">${{ product.final_price|floatformat:2 }}</div>
+                    {% if product.dashboard_total_revenue %}
+                      <div class="revenue-amount">${{ product.dashboard_total_revenue|floatformat:2 }} revenue</div>
+                    {% endif %}
                   </div>
                 </div>
-                <div class="text-right">
-                  <div class="font-semibold text-primary-blue">${{ product.final_price|floatformat:2 }}</div>
-                  {% if product.dashboard_total_revenue %}
-                    <div class="text-sm text-green-600">${{ product.dashboard_total_revenue|floatformat:2 }} revenue</div>
-                  {% endif %}
-                </div>
-                </div>
                 {% empty %}
-                <p class="text-center text-neutral-500 py-4">No sales data available</p>
+                <div class="empty-products">
+                  <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="empty-icon">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                  </svg>
+                  <p>No sales data available</p>
+                </div>
                 {% endfor %}
+              </div>
             </div>
           </div>
         </div>
@@ -816,60 +3466,132 @@
       </div>
 
       <!-- Recent Activity -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="text-lg font-semibold">Recent Activity</h3>
+      <div class="activity-dashboard-card">
+        <div class="activity-header">
+          <div class="activity-title-section">
+            <h3 class="activity-title">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="activity-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+              </svg>
+              Recent Activity
+            </h3>
+            <div class="activity-subtitle">Track your latest business activities</div>
+          </div>
+          <div class="activity-actions">
+            <button class="clear-activity-btn" onclick="clearAllActivity()" title="Clear All Activity">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Clear All
+            </button>
+          </div>
         </div>
-        <div class="card-body p-0">
-          {% for order in recent_activity %}
-          <div class="notification-item">
-            <div class="notification-icon notification-new">
-              📦
-            </div>
-            <div class="flex-1">
-              <div class="font-semibold text-sm">Order #{{ order.id }}</div>
-              <div class="text-xs text-neutral-600">
-                {% if order.buyer.name %}
-  {{ order.buyer.name }}
-{% elif order.buyer.user %}
-  {{ order.buyer.user.username }}
-{% else %}
-  Anonymous
-{% endif %} • ${{ order.total_amount|floatformat:2 }}
+        
+        <div class="activity-content">
+          <div class="activity-list">
+            {% for activity in recent_activity %}
+            <div class="activity-item" data-activity-id="{{ activity.id }}">
+              <div class="activity-icon-wrapper">
+                <div class="activity-icon-badge activity-order">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                  </svg>
+                </div>
               </div>
-              <div class="text-xs text-neutral-500 mt-1">{{ order.created_at|timesince }} ago</div>
+              <div class="activity-details">
+                <div class="activity-title">{{ activity.title }}</div>
+                <div class="activity-description">{{ activity.description }}</div>
+                <div class="activity-time">{{ activity.created_at|timesince }} ago</div>
+              </div>
+              <button class="mark-read-btn" onclick="markActivityAsRead({{ activity.id }})" title="Mark as Read">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
             </div>
+            {% empty %}
+            <div class="empty-activity-state">
+              <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="empty-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+              </svg>
+              <h4 class="empty-title">No Recent Activity</h4>
+              <p class="empty-description">Your business activities will appear here</p>
+            </div>
+            {% endfor %}
           </div>
-          {% empty %}
-          <div class="notification-item">
-            <div class="text-center text-neutral-500 w-full py-4">No recent activity</div>
-          </div>
-          {% endfor %}
         </div>
       </div>
 
       <!-- Notifications -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="text-lg font-semibold">Notifications</h3>
+      <div class="notifications-dashboard-card">
+        <div class="notifications-header">
+          <div class="notifications-title-section">
+            <h3 class="notifications-title">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="notifications-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.19 4.19A2 2 0 004 6v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-1.81-1.81z"></path>
+              </svg>
+              Notifications
+            </h3>
+            <div class="notifications-subtitle">Stay updated with important alerts</div>
+          </div>
+          <div class="notifications-actions">
+            <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()" title="Mark All as Read">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Mark All Read
+            </button>
+            <button class="clear-notifications-btn" onclick="clearAllNotifications()" title="Clear All Notifications">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Clear All
+            </button>
+          </div>
         </div>
-        <div class="card-body p-0">
-          {% for notification in notifications %}
-          <div class="notification-item">
-            <div class="notification-icon {% if notification.type == 'order' %}notification-new{% elif notification.type == 'stock' %}notification-warning{% endif %}">
-              {% if notification.type == 'order' %}📦{% elif notification.type == 'stock' %}⚠️{% endif %}
+        
+        <div class="notifications-content">
+          <div class="notifications-list">
+            {% for notification in notifications %}
+            <div class="notification-item" data-notification-id="{{ notification.id }}">
+              <div class="notification-icon-wrapper">
+                <div class="notification-icon-badge {% if notification.type == 'order' %}notification-order{% elif notification.type == 'stock' %}notification-warning{% else %}notification-info{% endif %}">
+                  {% if notification.type == 'order' %}
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                  {% elif notification.type == 'stock' %}
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                  {% else %}
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="notification-details">
+                <div class="notification-title">{{ notification.title }}</div>
+                <div class="notification-message">{{ notification.message }}</div>
+                <div class="notification-time">{{ notification.created_at|timesince }} ago</div>
+              </div>
+              <button class="mark-read-btn" onclick="markNotificationAsRead({{ notification.id }})" title="Mark as Read">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
             </div>
-            <div class="flex-1">
-              <div class="font-semibold text-sm">{{ notification.title }}</div>
-              <div class="text-xs text-neutral-600">{{ notification.message }}</div>
-              <div class="text-xs text-neutral-500 mt-1">{{ notification.created_at|timesince }} ago</div>
+            {% empty %}
+            <div class="empty-notifications-state">
+              <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="empty-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.19 4.19A2 2 0 004 6v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-1.81-1.81z"></path>
+              </svg>
+              <h4 class="empty-title">No New Notifications</h4>
+              <p class="empty-description">You're all caught up!</p>
             </div>
+            {% endfor %}
           </div>
-          {% empty %}
-          <div class="notification-item">
-            <div class="text-center text-neutral-500 w-full py-4">No new notifications</div>
-          </div>
-          {% endfor %}
         </div>
       </div>
     </div>
@@ -932,89 +3654,97 @@
 
 <!-- Update Order Status Modal -->
 <div class="modal" id="updateStatusModal">
-  <div class="modal-content bg-white">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-semibold text-gray-800">Update Order Status</h3>
-      <button class="btn btn-ghost text-gray-600 hover:text-gray-800" onclick="closeModal('updateStatusModal')">&times;</button>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Update Order Status</h3>
+      <span class="close" onclick="closeModal('updateStatusModal')">&times;</span>
     </div>
     <form id="updateStatusForm">
       {% csrf_token %}
-      <input type="hidden" id="orderIdForUpdate" name="order_id">
-      <div class="form-group">
-        <label class="form-label text-gray-700">New Status</label>
-        <select name="status" class="form-input bg-white border-gray-300 text-gray-800" required>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+      <div class="modal-body">
+        <input type="hidden" id="orderIdForUpdate" name="order_id">
+        <div class="form-group">
+          <label class="form-label">New Status</label>
+          <select name="status" class="form-input" required>
+            <option value="">Select Status</option>
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="form-group" id="paymentStatusGroup" style="display: none;">
+          <label class="form-label">Payment Status</label>
+          <select name="payment_status" class="form-input">
+            <option value="">Keep Current Status</option>
+            <option value="paid">Mark as Paid</option>
+            <option value="pending">Mark as Pending</option>
+            <option value="failed">Mark as Failed</option>
+          </select>
+          <small class="text-sm text-gray-600 mt-1">For COD orders: Mark as 'Paid' when payment is received, but COD revenue is only added when order status is 'Delivered'</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tracking Number (Optional)</label>
+          <input type="text" name="tracking_number" class="form-input" placeholder="Enter tracking number">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (Optional)</label>
+          <textarea name="notes" class="form-input" rows="3" placeholder="Add any notes about this order"></textarea>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label text-gray-700">Tracking Number (Optional)</label>
-        <input type="text" name="tracking_number" class="form-input bg-white border-gray-300 text-gray-800" placeholder="Enter tracking number">
-      </div>
-      <div class="form-group">
-        <label class="form-label text-gray-700">Notes (Optional)</label>
-        <textarea name="notes" class="form-input bg-white border-gray-300 text-gray-800" rows="3" placeholder="Add any notes about this order"></textarea>
-      </div>
-      <div class="flex justify-end space-x-3">
-        <button type="button" class="btn btn-secondary bg-gray-200 text-gray-800 hover:bg-gray-300" onclick="closeModal('updateStatusModal')">Cancel</button>
-        <button type="submit" class="btn btn-primary bg-blue-600 text-white hover:bg-blue-700">Update Status</button>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('updateStatusModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Status</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Product Edit Modal -->
-<div class="modal" id="productEditModal">
-  <div class="modal-content max-w-4xl bg-white">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-semibold">Edit Product</h3>
-      <button class="btn btn-ghost" onclick="closeModal('productEditModal')">&times;</button>
+<!-- Update Product Modal -->
+<div id="updateModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Update Product</h3>
+            <span class="close" onclick="closeUpdateModal()">&times;</span>
+        </div>
+        <form method="POST" enctype="multipart/form-data" id="updateForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div id="updateFormContent">
+                    <!-- Dynamic form content will be loaded here -->
+                </div>
+            </div>
+        </form>
     </div>
-    <form id="productEditForm">
-      {% csrf_token %}
-      <input type="hidden" id="productIdForEdit" name="product_id">
-      <div class="grid grid-cols-2 gap-4">
-        <div class="form-group">
-          <label class="form-label">Product Name</label>
-          <input type="text" name="name" class="form-input" required>
+</div>
+
+<!-- Delete Product Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Delete Product</h3>
+            <span class="close" onclick="closeDeleteModal()">&times;</span>
         </div>
-        <div class="form-group">
-          <label class="form-label">Price</label>
-          <input type="number" name="price" class="form-input" step="0.01" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Stock</label>
-          <input type="number" name="stock" class="form-input" required>
-      </div>
-      <div class="form-group">
-          <label class="form-label">Category</label>
-          <select name="category" class="form-input" required>
-            {% for category in categories %}
-            <option value="{{ category.id }}">{{ category.name }}</option>
-          {% endfor %}
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <textarea name="description" class="form-input" rows="4"></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Status</label>
-        <select name="is_active" class="form-input">
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
-        </select>
-      </div>
-      <div class="flex justify-end space-x-3">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('productEditModal')">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-      </div>
-    </form>
-  </div>
+        <form method="POST" id="deleteForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="warning-box">
+                    <h4>⚠️ Warning</h4>
+                    <ul>
+                        <li>This action will permanently delete the product</li>
+                        <li>All product information will be lost</li>
+                        <li>This action cannot be undone</li>
+                    </ul>
+                </div>
+                <p>Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger">Yes, Delete Product</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Export Data Modal -->
@@ -1059,8 +3789,18 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script>
+// Modal DOM elements
+const updateModal = document.getElementById('updateModal');
+const deleteModal = document.getElementById('deleteModal');
+const updateFormContent = document.getElementById('updateFormContent');
+const updateForm = document.getElementById('updateForm');
+const deleteForm = document.getElementById('deleteForm');
+const deleteProductName = document.getElementById('deleteProductName');
+let currentProductId = null;
+let currentDeleteProductId = null;
+
 // Tab switching functionality
 function switchTab(tabName) {
   // Hide all tab contents
@@ -1078,6 +3818,14 @@ function switchTab(tabName) {
   
   // Add active class to clicked tab button
   document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+  
+  // Initialize charts when reports tab is selected
+  if (tabName === 'reports') {
+    console.log('Reports tab selected, initializing charts...');
+    setTimeout(() => {
+      initAllCharts();
+    }, 100);
+  }
 }
 
 // Add event listeners for tab buttons
@@ -1091,12 +3839,12 @@ document.querySelectorAll('.tab-button').forEach(button => {
 // Modal functionality
 function openModal(modalId) {
   document.getElementById(modalId).classList.add('active');
-  document.body.style.overflow = 'hidden';
+  document.body.classList.add('modal-open');
 }
 
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('active');
-  document.body.style.overflow = 'auto';
+  document.body.classList.remove('modal-open');
 }
 
 
@@ -1213,94 +3961,100 @@ document.addEventListener('DOMContentLoaded', () => {
     new FormValidator(form);
   });
   
-  // Initialize sales chart
-  initSalesChart();
+  // Initialize charts only if reports tab is active (for direct URL access)
+  if (document.querySelector('[data-tab="reports"].active') || document.getElementById('reports').classList.contains('active')) {
+    console.log('Reports tab is active on page load, initializing charts...');
+    setTimeout(() => {
+      initAllCharts();
+    }, 100);
+  }
 });
 
 // Enhanced Product Management Functions
-async function editProduct(productId) {
+async function openUpdateModal(productId, productName) {
+    currentProductId = productId;
+    updateFormContent.innerHTML = '<div class="loading">Loading product form...</div>';
+    updateModal.classList.add('active');
+    document.body.classList.add('modal-open');
+    fetch(`/products/${productId}/update/form/`, {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.text())
+    .then(html => {
+        updateFormContent.innerHTML = html;
+        setMultipleFileInput();
+        initializeUpdateForm();
+    })
+    .catch(error => {
+        updateFormContent.innerHTML = '<div style="color: #e74c3c;">Error loading form</div>';
+    });
+}
+
+function closeUpdateModal() {
+    if (updateModal) {
+        updateModal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        updateFormContent.innerHTML = '';
+        // Reset form
+        if (updateForm) {
+            updateForm.reset();
+        }
+        // Clear current product ID
+        currentProductId = null;
+    }
+}
+
+// Delete modal functions
+function openDeleteModal(productId, productName) {
+    currentDeleteProductId = productId;
+    deleteProductName.textContent = productName;
+    deleteForm.action = `/products/${productId}/delete/`;
+    deleteModal.classList.add('active');
+    document.body.classList.add('modal-open');
+}
+
+function closeDeleteModal() {
+    if (deleteModal) {
+        deleteModal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        currentDeleteProductId = null;
+    }
+}
+
+// Generic modal close function for other modals
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+    }
+}
+
+async function deleteProduct(productId) {
   try {
-    const response = await fetch(`/product/${productId}/edit/`, {
-      method: 'GET',
+    const response = await fetch(`/products/${productId}/delete/`, {
+      method: 'POST',
       headers: {
+        'X-CSRFToken': getCSRFToken(),
         'X-Requested-With': 'XMLHttpRequest',
       }
     });
     
     if (response.ok) {
-      const productData = await response.json();
-      populateProductEditForm(productData);
-      openModal('productEditModal');
+      showNotification('Product deleted successfully', 'success');
+      // Remove the product row from the table
+      const productRow = document.querySelector(`[data-product-id="${productId}"]`);
+      if (productRow) {
+        productRow.remove();
+      }
+      closeDeleteModal();
     } else {
-      showNotification('Failed to load product data', 'error');
+      showNotification('Failed to delete product', 'error');
     }
   } catch (error) {
-    console.error('Error loading product:', error);
-    showNotification('Error loading product data', 'error');
-  }
-}
-
-function populateProductEditForm(productData) {
-  document.getElementById('productIdForEdit').value = productData.id;
-  document.querySelector('#productEditForm input[name="name"]').value = productData.name;
-  document.querySelector('#productEditForm input[name="price"]').value = productData.price;
-  document.querySelector('#productEditForm input[name="stock"]').value = productData.stock;
-  document.querySelector('#productEditForm select[name="category"]').value = productData.category;
-  document.querySelector('#productEditForm textarea[name="description"]').value = productData.description || '';
-  document.querySelector('#productEditForm select[name="is_active"]').value = productData.is_active.toString();
-}
-
-async function deleteProduct(productId) {
-  if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-    try {
-      const response = await fetch(`/product/${productId}/delete/`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': getCSRFToken(),
-          'X-Requested-With': 'XMLHttpRequest',
-        }
-      });
-      
-      if (response.ok) {
-        showNotification('Product deleted successfully', 'success');
-        // Remove the product row from the table
-        const productRow = document.querySelector(`[data-product-id="${productId}"]`);
-        if (productRow) {
-          productRow.remove();
-        }
-      } else {
-        showNotification('Failed to delete product', 'error');
-      }
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      showNotification('Error deleting product', 'error');
-    }
-  }
-}
-
-async function duplicateProduct(productId) {
-  if (confirm('Create a copy of this product?')) {
-    try {
-      const response = await fetch(`/product/${productId}/duplicate/`, {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': getCSRFToken(),
-          'X-Requested-With': 'XMLHttpRequest',
-        }
-      });
-      
-      if (response.ok) {
-        showNotification('Product duplicated successfully', 'success');
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        showNotification('Failed to duplicate product', 'error');
-      }
-    } catch (error) {
-      console.error('Error duplicating product:', error);
-      showNotification('Error duplicating product', 'error');
-    }
+    console.error('Error deleting product:', error);
+    showNotification('Error deleting product', 'error');
   }
 }
 
@@ -1440,8 +4194,38 @@ function displayOrderDetails(orderData) {
   `;
 }
 
-function updateOrderStatus(orderId) {
+async function updateOrderStatus(orderId) {
   document.getElementById('orderIdForUpdate').value = orderId;
+  
+  // Fetch order details to check if it's COD
+  try {
+    const response = await fetch(`/order/${orderId}/details/`, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    });
+    
+    if (response.ok) {
+      const orderData = await response.json();
+      const paymentStatusGroup = document.getElementById('paymentStatusGroup');
+      
+      // Show payment status field only for COD orders
+      if (orderData.order_type === 'cod') {
+        paymentStatusGroup.style.display = 'block';
+        // Set current payment status as selected
+        const paymentStatusSelect = document.querySelector('select[name="payment_status"]');
+        if (paymentStatusSelect) {
+          paymentStatusSelect.value = orderData.payment_status || '';
+        }
+      } else {
+        paymentStatusGroup.style.display = 'none';
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching order details:', error);
+  }
+  
   openModal('updateStatusModal');
 }
 
@@ -1517,64 +4301,297 @@ async function refreshDashboard() {
   }
 }
 
-// Search and Filter Functions
+// Search and Filter Functions - Removed search functionality
 function initSearchAndFilter() {
-  // Order search
-  const orderSearch = document.getElementById('orderSearch');
-  if (orderSearch) {
-    orderSearch.addEventListener('input', debounce(filterOrders, 300));
-  }
-  
-  // Order status filter
-  const orderStatusFilter = document.getElementById('orderStatusFilter');
-  if (orderStatusFilter) {
-    orderStatusFilter.addEventListener('change', filterOrders);
-  }
-  
-  // Product search
-  const productSearch = document.getElementById('productSearch');
-  if (productSearch) {
-    productSearch.addEventListener('input', debounce(filterProducts, 300));
-  }
-  
-  
+  // Search functionality has been removed from both orders and products tabs
+  console.log('Search functionality removed from dashboard');
 }
 
-function filterOrders() {
-  const searchTerm = document.getElementById('orderSearch').value.toLowerCase();
-  const statusFilter = document.getElementById('orderStatusFilter').value;
-  const orderRows = document.querySelectorAll('#orders .order-row:not(.font-semibold)');
-  
-  orderRows.forEach(row => {
-    const orderId = row.querySelector('div:first-child').textContent.toLowerCase();
-    const customer = row.querySelector('div:nth-child(2)').textContent.toLowerCase();
-    const status = row.getAttribute('data-status');
+// Activity and Notifications Management Functions
+async function markActivityAsRead(activityId) {
+  try {
+    // Make AJAX call to backend
+    const response = await fetch('{% url "sellers:mark_activity_as_cleared" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCSRFToken()
+      },
+      body: `activity_id=${activityId}`
+    });
     
-    const matchesSearch = orderId.includes(searchTerm) || customer.includes(searchTerm);
-    const matchesStatus = !statusFilter || status === statusFilter;
+    const data = await response.json();
     
-    row.style.display = matchesSearch && matchesStatus ? '' : 'none';
-  });
+    if (data.success) {
+      const activityItem = document.querySelector(`[data-activity-id="${activityId}"]`);
+      if (activityItem) {
+        // Add fade out animation
+        activityItem.style.transition = 'all 0.3s ease';
+        activityItem.style.opacity = '0';
+        activityItem.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+          activityItem.remove();
+          
+          // Check if no more activities
+          const activityList = document.querySelector('.activity-list');
+          if (activityList && activityList.children.length === 0) {
+            showEmptyActivityState();
+          }
+        }, 300);
+      }
+      
+      showNotification(data.message || 'Activity marked as read', 'success');
+    } else {
+      showNotification(data.message || 'Failed to mark activity as read', 'error');
+    }
+  } catch (error) {
+    console.error('Error marking activity as read:', error);
+    showNotification('Failed to mark activity as read', 'error');
+  }
 }
 
-function filterProducts() {
-  const searchTerm = document.getElementById('productSearch').value.toLowerCase();
-  const productRows = document.querySelectorAll('#products .product-row:not(.font-semibold)');
-  
-  productRows.forEach(row => {
-    const productName = row.querySelector('div:first-child .font-semibold').textContent.toLowerCase();
-    const matchesSearch = productName.includes(searchTerm);
+async function clearAllActivity() {
+  try {
+    // Make AJAX call to backend
+    const response = await fetch('{% url "sellers:clear_all_activity" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCSRFToken()
+      }
+    });
     
-    row.style.display = matchesSearch ? '' : 'none';
-  });
+    const data = await response.json();
+    
+    if (data.success) {
+      const activityList = document.querySelector('.activity-list');
+      if (activityList) {
+        const activityItems = activityList.querySelectorAll('.activity-item');
+        
+        if (activityItems.length === 0) {
+          showNotification('No activities to clear', 'info');
+          return;
+        }
+        
+        // Add fade out animation for all items
+        activityItems.forEach((item, index) => {
+          setTimeout(() => {
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+            
+            setTimeout(() => {
+              item.remove();
+            }, 300);
+          }, index * 100);
+        });
+        
+        // Show empty state after all animations
+        setTimeout(() => {
+          showEmptyActivityState();
+        }, activityItems.length * 100 + 300);
+      }
+      
+      showNotification(data.message || 'All activities cleared', 'success');
+    } else {
+      showNotification(data.message || 'Failed to clear activities', 'error');
+    }
+  } catch (error) {
+    console.error('Error clearing activities:', error);
+    showNotification('Failed to clear activities', 'error');
+  }
+}
+
+async function markNotificationAsRead(notificationId) {
+  try {
+    // Make AJAX call to backend
+    const response = await fetch('{% url "sellers:mark_notification_as_read" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCSRFToken()
+      },
+      body: `notification_id=${notificationId}`
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+      if (notificationItem) {
+        // Add fade out animation
+        notificationItem.style.transition = 'all 0.3s ease';
+        notificationItem.style.opacity = '0';
+        notificationItem.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+          notificationItem.remove();
+          
+          // Check if no more notifications
+          const notificationsList = document.querySelector('.notifications-list');
+          if (notificationsList && notificationsList.children.length === 0) {
+            showEmptyNotificationsState();
+          }
+        }, 300);
+      }
+      
+      showNotification(data.message || 'Notification marked as read', 'success');
+    } else {
+      showNotification(data.message || 'Failed to mark notification as read', 'error');
+    }
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    showNotification('Failed to mark notification as read', 'error');
+  }
+}
+
+async function markAllNotificationsAsRead() {
+  try {
+    // Make AJAX call to backend
+    const response = await fetch('{% url "sellers:mark_all_notifications_as_read" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCSRFToken()
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      const notificationsList = document.querySelector('.notifications-list');
+      if (notificationsList) {
+        const notificationItems = notificationsList.querySelectorAll('.notification-item');
+        
+        if (notificationItems.length === 0) {
+          showNotification('No notifications to mark as read', 'info');
+          return;
+        }
+        
+        // Add fade out animation for all items
+        notificationItems.forEach((item, index) => {
+          setTimeout(() => {
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+            
+            setTimeout(() => {
+              item.remove();
+            }, 300);
+          }, index * 100);
+        });
+        
+        // Show empty state after all animations
+        setTimeout(() => {
+          showEmptyNotificationsState();
+        }, notificationItems.length * 100 + 300);
+      }
+      
+      showNotification(data.message || 'All notifications marked as read', 'success');
+    } else {
+      showNotification(data.message || 'Failed to mark notifications as read', 'error');
+    }
+  } catch (error) {
+    console.error('Error marking notifications as read:', error);
+    showNotification('Failed to mark notifications as read', 'error');
+  }
+}
+
+async function clearAllNotifications() {
+  try {
+    // Make AJAX call to backend
+    const response = await fetch('{% url "sellers:clear_all_notifications" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCSRFToken()
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      const notificationsList = document.querySelector('.notifications-list');
+      if (notificationsList) {
+        const notificationItems = notificationsList.querySelectorAll('.notification-item');
+        
+        if (notificationItems.length === 0) {
+          showNotification('No notifications to clear', 'info');
+          return;
+        }
+        
+        // Add fade out animation for all items
+        notificationItems.forEach((item, index) => {
+          setTimeout(() => {
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+            
+            setTimeout(() => {
+              item.remove();
+            }, 300);
+          }, index * 100);
+        });
+        
+        // Show empty state after all animations
+        setTimeout(() => {
+          showEmptyNotificationsState();
+        }, notificationItems.length * 100 + 300);
+      }
+      
+      showNotification(data.message || 'All notifications cleared', 'success');
+    } else {
+      showNotification(data.message || 'Failed to clear notifications', 'error');
+    }
+  } catch (error) {
+    console.error('Error clearing notifications:', error);
+    showNotification('Failed to clear notifications', 'error');
+  }
+}
+
+function showEmptyActivityState() {
+  const activityList = document.querySelector('.activity-list');
+  if (activityList) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-activity-state';
+    emptyState.innerHTML = `
+      <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="empty-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+      </svg>
+      <h4 class="empty-title">No Recent Activity</h4>
+      <p class="empty-description">Your business activities will appear here</p>
+    `;
+    activityList.appendChild(emptyState);
+  }
+}
+
+function showEmptyNotificationsState() {
+  const notificationsList = document.querySelector('.notifications-list');
+  if (notificationsList) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-notifications-state';
+    emptyState.innerHTML = `
+      <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="empty-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.19 4.19A2 2 0 004 6v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-1.81-1.81z"></path>
+      </svg>
+      <h4 class="empty-title">No New Notifications</h4>
+      <p class="empty-description">You're all caught up!</p>
+    `;
+    notificationsList.appendChild(emptyState);
+  }
 }
 
 // Form submission handlers
 function initFormHandlers() {
-  // Product edit form
-  const productEditForm = document.getElementById('productEditForm');
-  if (productEditForm) {
-    productEditForm.addEventListener('submit', handleProductEdit);
+  // Update form
+  if (updateForm) {
+    updateForm.addEventListener('submit', handleProductUpdate);
+  }
+  
+  // Delete form
+  if (deleteForm) {
+    deleteForm.addEventListener('submit', handleProductDelete);
   }
   
   // Order status update form
@@ -1590,26 +4607,40 @@ function initFormHandlers() {
   }
 }
 
-async function handleProductEdit(e) {
+// Handle product delete form submission
+async function handleProductDelete(e) {
   e.preventDefault();
-  const formData = new FormData(e.target);
-  const productId = formData.get('product_id');
+  if (currentDeleteProductId) {
+    await deleteProduct(currentDeleteProductId);
+  }
+}
+
+// Handle product update form submission
+async function handleProductUpdate(e) {
+  e.preventDefault();
+  const formData = new FormData(updateForm);
+  formData.append('product_id', currentProductId);
   
   try {
-    const response = await fetch(`/product/${productId}/update/`, {
+    const response = await fetch(`/products/${currentProductId}/update/`, {
       method: 'POST',
-      headers: {
-        'X-CSRFToken': getCSRFToken(),
-      },
-      body: formData
+      body: formData,
+      headers: { 'X-CSRFToken': getCSRFToken() }
     });
     
     if (response.ok) {
-      showNotification('Product updated successfully', 'success');
-      closeModal('productEditModal');
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      const data = await response.json();
+      if (data.success) {
+        showNotification('Product updated successfully', 'success');
+        // Update the product row dynamically first
+        updateProductRow(currentProductId, data.product);
+        // Close modal after updating
+        setTimeout(() => {
+          closeUpdateModal();
+        }, 100);
+      } else {
+        showNotification('Failed to update product: ' + (data.error || 'Unknown error'), 'error');
+      }
     } else {
       showNotification('Failed to update product', 'error');
     }
@@ -1618,6 +4649,249 @@ async function handleProductEdit(e) {
     showNotification('Error updating product', 'error');
   }
 }
+
+// Function to dynamically update product row
+function updateProductRow(productId, productData) {
+  const productRow = document.querySelector(`[data-product-id="${productId}"]`);
+  if (productRow) {
+    // Update product name
+    const nameElement = productRow.querySelector('.font-semibold');
+    if (nameElement) {
+      nameElement.textContent = productData.name;
+    }
+    
+    // Update data attribute for search
+    productRow.setAttribute('data-product-name', productData.name.toLowerCase());
+    
+    // Update price
+    const priceElement = productRow.querySelector('.font-semibold').nextElementSibling.nextElementSibling;
+    if (priceElement) {
+      priceElement.textContent = `$${parseFloat(productData.final_price || productData.base_price).toFixed(2)}`;
+    }
+    
+    // Update stock
+    const stockElement = priceElement.nextElementSibling;
+    if (stockElement) {
+      stockElement.textContent = productData.stock || '0';
+      // Update stock styling
+      if (productData.stock <= 5 && productData.stock > 0) {
+        stockElement.className = 'text-red-600 font-semibold';
+        stockElement.innerHTML = `${productData.stock} <span class="text-xs text-red-500">(Low)</span>`;
+      } else {
+        stockElement.className = '';
+        stockElement.textContent = productData.stock || '0';
+      }
+    }
+    
+    // Update category
+    const categoryElement = productRow.querySelector('.text-sm.text-neutral-600');
+    if (categoryElement && productData.category_name) {
+      categoryElement.textContent = productData.category_name;
+    }
+  }
+}
+
+// Set multiple file input
+function setMultipleFileInput() {
+  const fileInputs = updateFormContent.querySelectorAll('input[type="file"]');
+  fileInputs.forEach(input => input.setAttribute('multiple', 'multiple'));
+}
+
+// Initialize update form
+function initializeUpdateForm() {
+  const parentCategorySelect = document.getElementById('parent_category');
+  const childCategorySelect = document.getElementById('child_category');
+  const finalCategorySelect = document.getElementById('id_category');
+  const attributesSection = document.getElementById('attributesSection');
+  const attributesContainer = document.getElementById('attributesContainer');
+
+  if (parentCategorySelect) {
+    parentCategorySelect.addEventListener('change', handleParentCategoryChange);
+  }
+  if (childCategorySelect) {
+    childCategorySelect.addEventListener('change', handleChildCategoryChange);
+  }
+  if (finalCategorySelect) {
+    finalCategorySelect.addEventListener('change', handleFinalCategoryChange);
+  }
+
+  // Auto-calculate final price
+  const basePriceField = document.getElementById('id_base_price');
+  const discountField = document.getElementById('id_discount_percentage');
+  const finalPriceField = document.getElementById('id_final_price');
+
+  if (basePriceField && discountField && finalPriceField) {
+    function calculateFinalPrice() {
+      const basePrice = parseFloat(basePriceField.value) || 0;
+      const discount = parseFloat(discountField.value) || 0;
+      if (basePrice > 0 && discount > 0) {
+        const finalPrice = basePrice * (1 - discount / 100);
+        finalPriceField.value = finalPrice.toFixed(2);
+      }
+    }
+    basePriceField.addEventListener('input', calculateFinalPrice);
+    discountField.addEventListener('input', calculateFinalPrice);
+  }
+}
+
+// Category change handlers
+function handleParentCategoryChange() {
+  const parentCategorySelect = document.getElementById('parent_category');
+  const childCategorySelect = document.getElementById('child_category');
+  const finalCategorySelect = document.getElementById('id_category');
+  const attributesSection = document.getElementById('attributesSection');
+  const parentId = parentCategorySelect.value;
+  childCategorySelect.innerHTML = '<option value="">Select Child Category (if any)</option>';
+  childCategorySelect.disabled = !parentId;
+  finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+  finalCategorySelect.disabled = true;
+  if (attributesSection) attributesSection.style.display = 'none';
+  if (parentId) loadChildCategories(parentId);
+}
+
+function handleChildCategoryChange() {
+  const childCategorySelect = document.getElementById('child_category');
+  const parentCategorySelect = document.getElementById('parent_category');
+  const finalCategorySelect = document.getElementById('id_category');
+  const childId = childCategorySelect.value;
+  const parentId = parentCategorySelect.value;
+  finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+  if (childId) setFinalCategory(childId, childCategorySelect.options[childCategorySelect.selectedIndex].text);
+  else if (parentId) setFinalCategory(parentId, parentCategorySelect.options[parentCategorySelect.selectedIndex].text);
+}
+
+function handleFinalCategoryChange() {
+  const finalCategorySelect = document.getElementById('id_category');
+  const attributesSection = document.getElementById('attributesSection');
+  const categoryId = finalCategorySelect.value;
+  if (categoryId) {
+    loadCategoryAttributes(categoryId);
+  } else {
+    if (attributesSection) attributesSection.style.display = 'none';
+  }
+}
+
+// Load child categories
+function loadChildCategories(parentId) {
+  const childCategorySelect = document.getElementById('child_category');
+  const parentCategorySelect = document.getElementById('parent_category');
+  const finalCategorySelect = document.getElementById('id_category');
+  fetch('/ajax/get-category-children/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    },
+    body: JSON.stringify({ parent_id: parentId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.children.length > 0) {
+      data.children.forEach(child => {
+        const option = document.createElement('option');
+        option.value = child.id;
+        option.textContent = child.name;
+        childCategorySelect.appendChild(option);
+      });
+      childCategorySelect.disabled = false;
+    } else {
+      setFinalCategory(parentId, parentCategorySelect.options[parentCategorySelect.selectedIndex].text);
+    }
+  })
+  .catch(error => {
+    console.error('Error loading child categories:', error);
+  });
+}
+
+function setFinalCategory(categoryId, categoryName) {
+  const finalCategorySelect = document.getElementById('id_category');
+  finalCategorySelect.innerHTML = '<option value="">Select Final Category</option>';
+  const option = document.createElement('option');
+  option.value = categoryId;
+  option.textContent = categoryName;
+  finalCategorySelect.appendChild(option);
+  finalCategorySelect.value = categoryId;
+  finalCategorySelect.disabled = false;
+  finalCategorySelect.dispatchEvent(new Event('change'));
+}
+
+function loadCategoryAttributes(categoryId) {
+  const attributesSection = document.getElementById('attributesSection');
+  const attributesContainer = document.getElementById('attributesContainer');
+  if (attributesSection) attributesSection.style.display = 'block';
+  if (attributesContainer) attributesContainer.innerHTML = '<div class="loading">Loading attributes...</div>';
+  fetch('/ajax/get-category-attributes/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    },
+    body: JSON.stringify({ category_id: categoryId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    renderAttributes(data.attributes);
+  })
+  .catch(error => {
+    if (attributesContainer) attributesContainer.innerHTML = '<div style="color: #e74c3c;">Error loading attributes</div>';
+  });
+}
+
+function renderAttributes(attributes) {
+  const attributesContainer = document.getElementById('attributesContainer');
+  if (!attributesContainer) return;
+  if (attributes.length === 0) {
+    attributesContainer.innerHTML = '<div style="color: #666;">No attributes found for this category</div>';
+    return;
+  }
+  let html = '';
+  attributes.forEach(attr => {
+    html += `
+      <div class="attribute-group">
+        <div class="attribute-label">
+          ${attr.name}
+          ${attr.is_required ? '<span class="attribute-required">*</span>' : ''}
+          ${attr.unit ? `<span class="attribute-unit">(${attr.unit})</span>` : ''}
+        </div>
+        ${renderAttributeInput(attr)}
+      </div>
+    `;
+  });
+  attributesContainer.innerHTML = html;
+}
+
+function renderAttributeInput(attr) {
+  const inputName = `attribute_${attr.id}`;
+  const required = attr.is_required ? 'required' : '';
+  switch (attr.input_type) {
+    case 'dropdown':
+      let options = '<option value="">Select ' + attr.name + '</option>';
+      attr.options.forEach(option => {
+        options += `<option value="${option.value}">${option.value}</option>`;
+      });
+      return `<select name="${inputName}" ${required} class="form-control">${options}</select>`;
+    case 'number':
+      return `<input type="number" name="${inputName}" ${required} class="form-control" placeholder="Enter ${attr.name}">`;
+    case 'boolean':
+      return `<select name="${inputName}" ${required} class="form-control">
+        <option value="">Select ${attr.name}</option>
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      </select>`;
+    default:
+      let inputHtml = `<input type="text" name="${inputName}" ${required} class="form-control" placeholder="Enter ${attr.name}" list="options_${attr.id}">`;
+      if (attr.options.length > 0) {
+        inputHtml += `<datalist id="options_${attr.id}">`;
+        attr.options.forEach(option => {
+          inputHtml += `<option value="${option.value}">`;
+        });
+        inputHtml += `</datalist>`;
+      }
+      return inputHtml;
+  }
+}
+
+
 
 async function handleOrderStatusUpdate(e) {
   e.preventDefault();
@@ -1633,16 +4907,65 @@ async function handleOrderStatusUpdate(e) {
     });
 
     if (response.ok) {
-      showNotification('Order status updated successfully', 'success');
-      closeModal('updateStatusModal');
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      const data = await response.json();
+      if (data.success) {
+        showNotification('Order status updated successfully', 'success');
+        closeModal('updateStatusModal');
+        
+                // If payment status was updated for COD order, refresh dashboard stats
+        if (data.payment_updated && data.order_type === 'cod') {
+            // Update dashboard stats dynamically
+            updateDashboardStats(data.updated_stats);
+        }
+        
+        // If order status was changed to 'delivered' for a paid COD order, refresh dashboard stats
+        if (data.order_type === 'cod' && data.updated_stats) {
+            // Update dashboard stats dynamically
+            updateDashboardStats(data.updated_stats);
+        }
+        
+        // Refresh the page after a short delay to show updated data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        showNotification('Failed to update order status: ' + (data.error || 'Unknown error'), 'error');
+      }
     } else {
       showNotification('Failed to update order status', 'error');
     }
   } catch (error) {
+    console.error('Error updating order status:', error);
     showNotification('Error updating order status', 'error');
+  }
+}
+
+// Function to update dashboard stats dynamically
+function updateDashboardStats(stats) {
+  if (stats) {
+    // Update total earnings
+    const totalEarningsElement = document.querySelector('.stat-card .stat-value');
+    if (totalEarningsElement && stats.total_earnings !== undefined) {
+      totalEarningsElement.textContent = `$${parseFloat(stats.total_earnings).toFixed(2)}`;
+    }
+    
+    // Update COD revenue
+    const codRevenueElement = document.querySelectorAll('.stat-card .stat-value')[4]; // 5th stat card
+    if (codRevenueElement && stats.cod_revenue !== undefined) {
+      codRevenueElement.textContent = `$${parseFloat(stats.cod_revenue).toFixed(2)}`;
+    }
+    
+    // Update monthly sales
+    const monthlySalesElement = document.querySelectorAll('.stat-card .stat-value')[3]; // 4th stat card
+    if (monthlySalesElement && stats.monthly_sales !== undefined) {
+      monthlySalesElement.textContent = `$${parseFloat(stats.monthly_sales).toFixed(2)}`;
+    }
+    
+    // Update Stripe revenue (if displayed)
+    const stripeRevenueElement = document.querySelectorAll('.stat-card .stat-value')[5]; // 6th stat card (if exists)
+    if (stripeRevenueElement && stats.stripe_revenue !== undefined) {
+      stripeRevenueElement.textContent = `$${parseFloat(stats.stripe_revenue).toFixed(2)}`;
+    }
   }
 }
 
@@ -1693,57 +5016,453 @@ function showNotification(message, type = 'info') {
   }, 3000);
 }
 
-// Chart initialization
+// Enhanced Chart Initialization
 function initSalesChart() {
   const ctx = document.getElementById('salesChart');
-  if (!ctx) return;
+  if (!ctx) {
+    console.log('Sales chart canvas not found');
+    return;
+  }
   
-  // Get sales data from Django template
-  const salesData = JSON.parse('{{ sales_data|escapejs }}');
-  const labels = salesData.map(item => item.month);
-  const data = salesData.map(item => item.sales);
-  
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Sales',
-        data: data,
-        borderColor: 'rgb(66, 133, 244)',
-        backgroundColor: 'rgba(66, 133, 244, 0.1)',
-        tension: 0.4,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        }
+  try {
+    // Get real sales data from Django template
+    const salesData = JSON.parse('{{ sales_data|escapejs }}');
+    const labels = salesData.map(item => item.month);
+    const data = salesData.map(item => item.sales);
+    
+    console.log('Real sales data from backend:', { labels, data });
+    
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Sales',
+          data: data,
+          borderColor: 'rgb(66, 133, 244)',
+          backgroundColor: 'rgba(66, 133, 244, 0.1)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 3
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: 'rgba(0, 0, 0, 0.1)'
-          },
-          ticks: {
-            callback: function(value) {
-              return '$' + value.toLocaleString();
-            }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
           }
         },
-        x: {
-          grid: {
-            display: false
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.1)'
+            },
+            ticks: {
+              callback: function(value) {
+                return '$' + value.toLocaleString();
+              }
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
           }
         }
       }
+    });
+    console.log('Sales chart initialized successfully');
+  } catch (error) {
+    console.error('Error initializing sales chart:', error);
+  }
+}
+
+// Revenue Breakdown Chart (Bar Chart)
+function initRevenueBreakdownChart() {
+  const ctx = document.getElementById('revenueBreakdownChart');
+  if (!ctx) {
+    console.log('Revenue breakdown chart canvas not found');
+    return;
+  }
+  
+  try {
+    const weeklyRevenue = parseFloat('{{ weekly_revenue|default:0 }}') || 0;
+    const monthlyRevenue = parseFloat('{{ monthly_revenue|default:0 }}') || 0;
+    const yearlyRevenue = parseFloat('{{ yearly_revenue|default:0 }}') || 0;
+    
+    console.log('Real revenue data from backend:', { weeklyRevenue, monthlyRevenue, yearlyRevenue });
+    
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['This Week', 'This Month', 'This Year'],
+        datasets: [{
+          label: 'Revenue',
+          data: [weeklyRevenue, monthlyRevenue, yearlyRevenue],
+          backgroundColor: [
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(34, 197, 94, 0.8)',
+            'rgba(168, 85, 247, 0.8)'
+          ],
+          borderColor: [
+            'rgb(59, 130, 246)',
+            'rgb(34, 197, 94)',
+            'rgb(168, 85, 247)'
+          ],
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.1)'
+            },
+            ticks: {
+              callback: function(value) {
+                return '$' + value.toLocaleString();
+              }
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+    console.log('Revenue breakdown chart initialized successfully');
+  } catch (error) {
+    console.error('Error initializing revenue breakdown chart:', error);
+  }
+}
+
+// Payment Method Distribution Chart (Doughnut)
+function initPaymentMethodChart() {
+  const ctx = document.getElementById('paymentMethodChart');
+  if (!ctx) {
+    console.log('Payment method chart canvas not found');
+    return;
+  }
+  
+  try {
+    const codRevenue = parseFloat('{{ cod_revenue|default:0 }}') || 0;
+    const stripeRevenue = parseFloat('{{ stripe_revenue|default:0 }}') || 0;
+    
+    console.log('Real payment method data from backend:', { codRevenue, stripeRevenue });
+    
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Cash on Delivery', 'Stripe'],
+        datasets: [{
+          data: [codRevenue, stripeRevenue],
+          backgroundColor: [
+            'rgba(251, 191, 36, 0.8)',
+            'rgba(59, 130, 246, 0.8)'
+          ],
+          borderColor: [
+            'rgb(251, 191, 36)',
+            'rgb(59, 130, 246)'
+          ],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true
+            }
+          }
+        }
+      }
+    });
+    console.log('Payment method chart initialized successfully');
+  } catch (error) {
+    console.error('Error initializing payment method chart:', error);
+  }
+}
+
+// Order Status Breakdown Chart (Pie)
+function initOrderStatusChart() {
+  const ctx = document.getElementById('orderStatusChart');
+  if (!ctx) {
+    console.log('Order status chart canvas not found');
+    return;
+  }
+  
+  try {
+    const pendingOrders = parseInt('{{ pending_orders|default:0 }}') || 0;
+    const processingOrders = parseInt('{{ processing_orders|default:0 }}') || 0;
+    const shippedOrders = parseInt('{{ shipped_orders|default:0 }}') || 0;
+    const deliveredOrders = parseInt('{{ delivered_orders|default:0 }}') || 0;
+    const cancelledOrders = parseInt('{{ cancelled_orders|default:0 }}') || 0;
+    
+    console.log('Real order status data from backend:', { pendingOrders, processingOrders, shippedOrders, deliveredOrders, cancelledOrders });
+    
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+        datasets: [{
+          data: [pendingOrders, processingOrders, shippedOrders, deliveredOrders, cancelledOrders],
+          backgroundColor: [
+            'rgba(251, 191, 36, 0.8)',
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(168, 85, 247, 0.8)',
+            'rgba(34, 197, 94, 0.8)',
+            'rgba(239, 68, 68, 0.8)'
+          ],
+          borderColor: [
+            'rgb(251, 191, 36)',
+            'rgb(59, 130, 246)',
+            'rgb(168, 85, 247)',
+            'rgb(34, 197, 94)',
+            'rgb(239, 68, 68)'
+          ],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true
+            }
+          }
+        }
+      }
+    });
+    console.log('Order status chart initialized successfully');
+  } catch (error) {
+    console.error('Error initializing order status chart:', error);
+  }
+}
+
+// Category Performance Chart (Horizontal Bar)
+function initCategoryPerformanceChart() {
+  const ctx = document.getElementById('categoryPerformanceChart');
+  if (!ctx) {
+    console.log('Category performance chart canvas not found');
+    return;
+  }
+  
+  try {
+    // Get real category data from backend - using top products data
+    const topProducts = [
+      {% for product in top_products %}
+        {
+          name: '{{ product.name|escapejs }}',
+          revenue: {{ product.dashboard_total_revenue|default:0 }},
+          orders: {{ product.dashboard_order_count|default:0 }}
+        }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ];
+    
+    // If no top products, use sample data
+    const categoryData = topProducts.length > 0 ? topProducts : [
+      { name: 'Electronics', revenue: 2500, orders: 45 },
+      { name: 'Clothing', revenue: 1800, orders: 32 },
+      { name: 'Furniture', revenue: 1200, orders: 18 },
+      { name: 'Books', revenue: 800, orders: 25 },
+      { name: 'Sports', revenue: 600, orders: 12 }
+    ];
+    
+    console.log('Real category performance data from backend:', categoryData);
+    
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: categoryData.map(item => item.name),
+        datasets: [{
+          label: 'Revenue',
+          data: categoryData.map(item => item.revenue),
+          backgroundColor: 'rgba(59, 130, 246, 0.8)',
+          borderColor: 'rgb(59, 130, 246)',
+          borderWidth: 2,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.1)'
+            },
+            ticks: {
+              callback: function(value) {
+                return '$' + value.toLocaleString();
+              }
+            }
+          },
+          y: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+    console.log('Category performance chart initialized successfully');
+  } catch (error) {
+    console.error('Error initializing category performance chart:', error);
+  }
+}
+
+// Initialize all charts
+function initAllCharts() {
+  console.log('Initializing all charts...');
+  
+  // Check if Chart.js is loaded
+  if (typeof Chart === 'undefined') {
+    console.error('Chart.js is not loaded!');
+    showFallbackContent();
+    return;
+  }
+  
+  console.log('Chart.js is loaded, version:', Chart.version);
+  
+  // Log backend data for debugging
+  console.log('Backend data summary:');
+  console.log('- Weekly revenue:', '{{ weekly_revenue|default:0 }}');
+  console.log('- Monthly revenue:', '{{ monthly_revenue|default:0 }}');
+  console.log('- Yearly revenue:', '{{ yearly_revenue|default:0 }}');
+  console.log('- COD revenue:', '{{ cod_revenue|default:0 }}');
+  console.log('- Stripe revenue:', '{{ stripe_revenue|default:0 }}');
+  console.log('- Pending orders:', '{{ pending_orders|default:0 }}');
+  console.log('- Sales data:', '{{ sales_data|escapejs }}');
+  
+  // Wait a bit for DOM to be fully ready
+  setTimeout(() => {
+    try {
+      initSalesChart();
+      initRevenueBreakdownChart();
+      initPaymentMethodChart();
+      initOrderStatusChart();
+      initCategoryPerformanceChart();
+      console.log('All charts initialized successfully');
+      
+      // Check if charts are visible after initialization
+      setTimeout(() => {
+        checkChartVisibility();
+      }, 500);
+    } catch (error) {
+      console.error('Error initializing charts:', error);
+      showFallbackContent();
+    }
+  }, 100);
+}
+
+// Check if charts are visible and show fallback if not
+function checkChartVisibility() {
+  const charts = [
+    'revenueBreakdownChart',
+    'salesChart', 
+    'paymentMethodChart',
+    'orderStatusChart',
+    'categoryPerformanceChart'
+  ];
+  
+  let chartsVisible = 0;
+  charts.forEach(chartId => {
+    const canvas = document.getElementById(chartId);
+    if (canvas && canvas.style.display !== 'none') {
+      chartsVisible++;
     }
   });
+  
+  console.log(`Charts visible: ${chartsVisible}/${charts.length}`);
+  
+  if (chartsVisible === 0) {
+    console.log('No charts visible, showing fallback content');
+    showFallbackContent();
+  }
+}
+
+// Show fallback content when charts fail
+function showFallbackContent() {
+  const fallback = document.getElementById('revenueBreakdownFallback');
+  if (fallback) {
+    fallback.style.display = 'block';
+  }
+  
+  const testDiv = document.getElementById('chartTest');
+  if (testDiv) {
+    testDiv.style.display = 'block';
+  }
+}
+
+// Test Chart.js functionality
+function testChart() {
+  console.log('Testing Chart.js...');
+  
+  if (typeof Chart === 'undefined') {
+    alert('Chart.js is not loaded!');
+    return;
+  }
+  
+  // Create a simple test chart
+  const testCanvas = document.createElement('canvas');
+  testCanvas.id = 'testChart';
+  testCanvas.style.width = '300px';
+  testCanvas.style.height = '200px';
+  
+  const testDiv = document.getElementById('chartTest');
+  testDiv.appendChild(testCanvas);
+  
+  try {
+    new Chart(testCanvas, {
+      type: 'bar',
+      data: {
+        labels: ['Test 1', 'Test 2', 'Test 3'],
+        datasets: [{
+          label: 'Test Data',
+          data: [10, 20, 30],
+          backgroundColor: ['red', 'green', 'blue']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+    
+    alert('Chart.js is working! Test chart created successfully.');
+  } catch (error) {
+    alert('Chart.js error: ' + error.message);
+  }
 }
 
 // Theme handling (if dark mode toggle exists)
@@ -2063,6 +5782,29 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Set up real-time notifications
   setupRealTimeNotifications();
+  
+  // Close modals when clicking outside
+  window.onclick = function(event) {
+    if (event.target === updateModal) closeUpdateModal();
+    if (event.target === deleteModal) closeDeleteModal();
+    if (event.target.classList.contains('modal')) {
+      event.target.style.display = 'none';
+    }
+  };
+
+  // Close modals with Escape key
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeUpdateModal();
+      closeDeleteModal();
+      // Close any other open modals
+      document.querySelectorAll('.modal').forEach(modal => {
+        if (modal.style.display === 'block') {
+          modal.style.display = 'none';
+        }
+      });
+    }
+  });
 });
 
 // Real-time notifications setup

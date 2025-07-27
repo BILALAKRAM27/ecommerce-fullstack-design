@@ -153,3 +153,51 @@ class ProductReview(models.Model):
 
     def __str__(self):
         return f"{self.buyer.name} - {self.product.name} ({self.rating}/5)"
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('order', 'Order'),
+        ('stock', 'Stock'),
+        ('payment', 'Payment'),
+        ('system', 'System'),
+    ]
+    
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.seller.shop_name} - {self.title}"
+
+class Activity(models.Model):
+    ACTIVITY_TYPES = [
+        ('order_placed', 'Order Placed'),
+        ('order_updated', 'Order Updated'),
+        ('order_delivered', 'Order Delivered'),
+        ('payment_received', 'Payment Received'),
+        ('product_added', 'Product Added'),
+        ('product_updated', 'Product Updated'),
+        ('product_deleted', 'Product Deleted'),
+        ('stock_low', 'Low Stock'),
+        ('system', 'System'),
+    ]
+    
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='activities')
+    type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    is_cleared = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Activities'
+    
+    def __str__(self):
+        return f"{self.seller.shop_name} - {self.title}"

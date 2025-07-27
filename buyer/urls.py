@@ -25,4 +25,9 @@ urlpatterns += [
     path('stripe/process-payment/', views.process_stripe_payment, name='process_stripe_payment'),
     path('place-order/', views.place_order_view, name='place_order'),
     path('fetch-order-details/', views.fetch_order_details, name='fetch_order_details'),
+    
+    # Buyer Notification Management URLs
+    path('notification/mark-read/', views.mark_buyer_notification_as_read, name='mark_buyer_notification_as_read'),
+    path('notification/mark-all-read/', views.mark_all_buyer_notifications_as_read, name='mark_all_buyer_notifications_as_read'),
+    path('notification/clear-all/', views.clear_all_buyer_notifications, name='clear_all_buyer_notifications'),
 ]

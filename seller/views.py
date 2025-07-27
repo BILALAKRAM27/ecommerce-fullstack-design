@@ -4,10 +4,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
-from .models import Seller, Product, ProductImage, Brand, Category, CategoryAttribute, AttributeOption, ProductAttributeValue
+from .models import Seller, Product, ProductImage, Brand, Category, CategoryAttribute, AttributeOption, ProductAttributeValue, Notification, Activity
 from .forms import UserRegisterForm, SellerUpdateForm, SellerLoginForm, ProductForm, ProductImageForm, DynamicProductForm
 from django.utils import timezone
-from buyer.models import Buyer, Order, OrderStatus, Payment
+from buyer.models import Buyer, Order, OrderStatus, Payment, PaymentStatus
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -658,33 +658,46 @@ def seller_dashboard_overview(request):
     ).order_by('-created_at')
 
     # Calculate comprehensive statistics
-    total_earnings = all_orders.filter(payment_status='paid').aggregate(
-        total=Sum('total_amount')
-    )['total'] or 0
-
     total_orders = all_orders.count()
     total_products = products.count()
 
-    # Payment method breakdown - need to check Payment model for actual payment method
-    cod_revenue = 0
-    stripe_revenue = 0
+    # Payment method breakdown - use Order model's order_type field
+    cod_revenue = all_orders.filter(
+        order_type='cod',
+        payment_status='paid',
+        status='delivered'
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
 
-    # Get payments for this seller's orders
-    payments = Payment.objects.filter(order__seller=seller, status='paid')
-    for payment in payments:
-        if payment.payment_method == 'cash_on_delivery':
-            cod_revenue += payment.order.total_amount
-        elif payment.payment_method == 'stripe':
-            stripe_revenue += payment.order.total_amount
+    stripe_revenue = all_orders.filter(
+        order_type='stripe',
+        payment_status='paid'
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
 
-    # Monthly sales (current month)
+    # Total earnings = COD revenue (paid + delivered) + Stripe revenue (paid)
+    total_earnings = cod_revenue + stripe_revenue
+
+    # Monthly sales (current month) - COD (paid + delivered) + Stripe (paid)
     current_month = datetime.now().month
     current_year = datetime.now().year
-    monthly_sales = all_orders.filter(
+    
+    # Monthly COD revenue (paid + delivered orders in current month)
+    monthly_cod_revenue = all_orders.filter(
+        order_type='cod',
+        payment_status='paid',
+        status='delivered',
+        created_at__month=current_month,
+        created_at__year=current_year
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Monthly Stripe revenue (paid orders in current month)
+    monthly_stripe_revenue = all_orders.filter(
+        order_type='stripe',
         payment_status='paid',
         created_at__month=current_month,
         created_at__year=current_year
     ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    monthly_sales = monthly_cod_revenue + monthly_stripe_revenue
 
     # Revenue breakdown by time periods
     weekly_revenue = all_orders.filter(
@@ -717,13 +730,13 @@ def seller_dashboard_overview(request):
     ).order_by('-dashboard_total_revenue')[:5]
 
     # Low stock products
-    low_stock_products = products.filter(stock__lte=5, stock__gt=0).count()
+    low_stock_products = products.filter(stock__lte=15, stock__gt=0).count()
 
     # Categories for product forms
     categories = Category.objects.all()
 
-    # Recent activity (last 5 orders with details)
-    recent_activity = all_orders.select_related('buyer').prefetch_related('items__product')[:5]
+    # Get recent activities from database
+    recent_activity = seller.activities.filter(is_cleared=False)[:5]
 
     # Sales chart data (last 6 months)
     sales_data = []
@@ -740,20 +753,8 @@ def seller_dashboard_overview(request):
         })
     sales_data.reverse()
 
-    notifications = [
-        {
-            'type': 'order',
-            'title': f'New Order Received',
-            'message': f'You have {pending_orders} pending orders',
-            'created_at': datetime.now() - timedelta(hours=2)
-        },
-        {
-            'type': 'stock',
-            'title': 'Low Stock Alert',
-            'message': f'{low_stock_products} products are running low on stock',
-            'created_at': datetime.now() - timedelta(hours=5)
-        }
-    ]
+    # Get notifications from database
+    notifications = seller.notifications.filter(is_read=False)[:10]
 
     context = {
         'seller': seller,
@@ -1351,10 +1352,11 @@ def order_details(request, order_id):
 @login_required
 @require_POST
 def order_update_status(request):
-    """Update order status"""
+    """Update order status and payment status"""
     seller = get_object_or_404(Seller, user=request.user)
     order_id = request.POST.get('order_id')
     new_status = request.POST.get('status')
+    payment_status = request.POST.get('payment_status', '')
     tracking_number = request.POST.get('tracking_number', '')
     notes = request.POST.get('notes', '')
     
@@ -1369,6 +1371,18 @@ def order_update_status(request):
         if new_status not in valid_statuses:
             return JsonResponse({'success': False, 'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'})
         
+        # Validate payment status if provided
+        payment_updated = False
+        if payment_status:
+            valid_payment_statuses = [choice[0] for choice in PaymentStatus.choices]
+            if payment_status not in valid_payment_statuses:
+                return JsonResponse({'success': False, 'error': f'Invalid payment status. Must be one of: {", ".join(valid_payment_statuses)}'})
+            
+            # Only update payment status if it's different from current
+            if order.payment_status != payment_status:
+                order.payment_status = payment_status
+                payment_updated = True
+        
         order.status = new_status
         
         # Store tracking number and notes
@@ -1378,7 +1392,55 @@ def order_update_status(request):
             order.notes = notes
             
         order.save()
-        return JsonResponse({'success': True, 'message': f'Order status updated to {order.get_status_display()}'})
+        
+        # Create activity for order status update
+        Activity.objects.create(
+            seller=seller,
+            type='order_updated',
+            title=f'Order #{order.id} Status Updated',
+            description=f'Order status changed to {order.get_status_display()}'
+        )
+        
+        # If order is delivered, create delivery activity
+        if new_status == 'delivered':
+            Activity.objects.create(
+                seller=seller,
+                type='order_delivered',
+                title=f'Order #{order.id} Delivered',
+                description=f'Order has been successfully delivered to customer'
+            )
+        
+        # If payment status was updated, create payment activity
+        if payment_updated and order.payment_status == 'paid':
+            Activity.objects.create(
+                seller=seller,
+                type='payment_received',
+                title=f'Payment Received for Order #{order.id}',
+                description=f'Payment of ${order.total_amount} received for order #{order.id}'
+            )
+        
+        # Prepare response data
+        response_data = {
+            'success': True, 
+            'message': f'Order status updated to {order.get_status_display()}',
+            'payment_updated': payment_updated,
+            'order_type': order.order_type
+        }
+        
+        # If payment status was updated for COD order, include updated stats
+        if payment_updated and order.order_type == 'cod' and order.payment_status == 'paid':
+            # Calculate updated stats
+            updated_stats = calculate_seller_stats(seller)
+            response_data['updated_stats'] = updated_stats
+        
+        # If order status is changed to 'delivered' for a paid COD order, include updated stats
+        elif new_status == 'delivered' and order.order_type == 'cod' and order.payment_status == 'paid':
+            # Calculate updated stats
+            updated_stats = calculate_seller_stats(seller)
+            response_data['updated_stats'] = updated_stats
+        
+        return JsonResponse(response_data)
+        
     except Order.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Order not found'})
     except Exception as e:
@@ -1482,8 +1544,143 @@ def check_low_stock(request):
     
     low_stock_products = Product.objects.filter(
         seller=seller,
-        stock__lte=5,
+        stock__lte=15,
         stock__gt=0
     ).count()
     
     return JsonResponse({'low_stock_products': low_stock_products})
+
+def calculate_seller_stats(seller):
+    """Calculate seller statistics for dashboard"""
+    from datetime import datetime, timedelta
+    
+    # Get current month
+    now = datetime.now()
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # COD revenue (paid COD orders that are delivered)
+    cod_revenue = Order.objects.filter(
+        seller=seller,
+        order_type='cod',
+        payment_status='paid',
+        status='delivered'
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Stripe revenue (paid Stripe orders)
+    stripe_revenue = Order.objects.filter(
+        seller=seller,
+        order_type='stripe',
+        payment_status='paid'
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Total earnings = COD revenue + Stripe revenue
+    total_earnings = cod_revenue + stripe_revenue
+    
+    # Monthly sales (current month) - COD (paid + delivered) + Stripe (paid)
+    monthly_cod_revenue = Order.objects.filter(
+        seller=seller,
+        order_type='cod',
+        payment_status='paid',
+        status='delivered',
+        created_at__gte=start_of_month
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    monthly_stripe_revenue = Order.objects.filter(
+        seller=seller,
+        order_type='stripe',
+        payment_status='paid',
+        created_at__gte=start_of_month
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    monthly_sales = monthly_cod_revenue + monthly_stripe_revenue
+    
+    return {
+        'total_earnings': total_earnings,
+        'monthly_sales': monthly_sales,
+        'cod_revenue': cod_revenue,
+        'stripe_revenue': stripe_revenue
+    }
+
+@login_required
+@require_POST
+def mark_notification_as_read(request):
+    """Mark a specific notification as read"""
+    try:
+        notification_id = request.POST.get('notification_id')
+        seller = get_object_or_404(Seller, user=request.user)
+        
+        notification = get_object_or_404(Notification, id=notification_id, seller=seller)
+        notification.is_read = True
+        notification.save()
+        
+        return JsonResponse({'success': True, 'message': 'Notification marked as read'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def mark_all_notifications_as_read(request):
+    """Mark all notifications as read for a seller"""
+    try:
+        seller = get_object_or_404(Seller, user=request.user)
+        
+        # Mark all unread notifications as read
+        updated_count = seller.notifications.filter(is_read=False).update(is_read=True)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'{updated_count} notifications marked as read'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def clear_all_notifications(request):
+    """Delete all notifications for a seller"""
+    try:
+        seller = get_object_or_404(Seller, user=request.user)
+        
+        # Delete all notifications
+        deleted_count = seller.notifications.count()
+        seller.notifications.all().delete()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'{deleted_count} notifications cleared'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def clear_all_activity(request):
+    """Clear all activities for a seller"""
+    try:
+        seller = get_object_or_404(Seller, user=request.user)
+        
+        # Mark all activities as cleared
+        updated_count = seller.activities.filter(is_cleared=False).update(is_cleared=True)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'{updated_count} activities cleared'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def mark_activity_as_cleared(request):
+    """Mark a specific activity as cleared"""
+    try:
+        activity_id = request.POST.get('activity_id')
+        seller = get_object_or_404(Seller, user=request.user)
+        
+        activity = get_object_or_404(Activity, id=activity_id, seller=seller)
+        activity.is_cleared = True
+        activity.save()
+        
+        return JsonResponse({'success': True, 'message': 'Activity marked as cleared'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)

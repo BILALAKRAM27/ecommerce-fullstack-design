@@ -51,4 +51,11 @@ urlpatterns = [
     path('export-data/', views.export_data, name='export_data'),
     path('check-new-orders/', views.check_new_orders, name='check_new_orders'),
     path('check-low-stock/', views.check_low_stock, name='check_low_stock'),
+    
+    # Notification Management URLs
+    path('notification/mark-read/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('notification/mark-all-read/', views.mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
+    path('notification/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
+    path('activity/mark-cleared/', views.mark_activity_as_cleared, name='mark_activity_as_cleared'),
+    path('activity/clear-all/', views.clear_all_activity, name='clear_all_activity'),
 ]

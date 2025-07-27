@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from .models import Buyer, Cart, CartItem, Wishlist, Address
+from .models import Buyer, Cart, CartItem, Wishlist, Address, BuyerNotification
 from .forms import BuyerUpdateForm
 from seller.models import Product
 from .utils import get_cart_from_cookie, set_cart_cookie, clear_cart_cookie
@@ -963,3 +963,54 @@ def fetch_order_details(request):
             'success': False,
             'error': str(e)
         })
+
+@login_required
+@require_POST
+def mark_buyer_notification_as_read(request):
+    """Mark a specific buyer notification as read"""
+    try:
+        notification_id = request.POST.get('notification_id')
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        
+        notification = get_object_or_404(BuyerNotification, id=notification_id, buyer=buyer)
+        notification.is_read = True
+        notification.save()
+        
+        return JsonResponse({'success': True, 'message': 'Notification marked as read'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def mark_all_buyer_notifications_as_read(request):
+    """Mark all buyer notifications as read"""
+    try:
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        
+        # Mark all unread notifications as read
+        updated_count = buyer.notifications.filter(is_read=False).update(is_read=True)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'{updated_count} notifications marked as read'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def clear_all_buyer_notifications(request):
+    """Delete all buyer notifications"""
+    try:
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        
+        # Delete all notifications
+        deleted_count = buyer.notifications.count()
+        buyer.notifications.all().delete()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'{deleted_count} notifications cleared'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)

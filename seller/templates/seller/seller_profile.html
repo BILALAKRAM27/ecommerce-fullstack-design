@@ -1148,13 +1148,21 @@ input:checked + .toggle-slider:before {
       </div>
       
       <div class="profile-actions">
-        <a href="{% url 'sellers:seller_dashboard' %}" class="btn btn-secondary">
+        <a href="{% url 'stripe_onboard' %}" class="btn btn-secondary" style="width: 160px;" >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5z" />
+  <path d="M4 21v-1c0-2.8 2.2-5 5-5h6c2.8 0 5 2.2 5 5v1" />
+  <polyline points="16 3 21 3 21 8" />
+  <line x1="21" y1="3" x2="16" y2="8" />
+</svg>Onboarding</a>
+        <a href="{% url 'sellers:seller_dashboard' %}" class="btn btn-secondary"style="width: 160px;" >
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"></path>
           </svg>
           Dashboard
         </a>
-        <a href="{% url 'seller:products_list' %}" class="btn btn-secondary";">View Products</a>
+        <a href="{% url 'seller:products_list' %}" class="btn btn-secondary"style="width: 160px;" ;">View Products</a>
       </div>
     </div>
   </div>
@@ -1286,6 +1294,7 @@ input:checked + .toggle-slider:before {
           <a href="{% url 'sellers:product_create' %}" class="btn btn-primary" style="text-align: center;">
             Add Product
           </a>
+          
           <a href="{% url 'seller:orders_list' %}" class="btn btn-secondary" style="text-align: center;">
             View Orders
           </a>

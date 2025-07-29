@@ -48,9 +48,11 @@ urlpatterns = [
     path('order/<int:order_id>/details/', views.order_details, name='order_details'),
     path('order/update-status/', views.order_update_status, name='order_update_status'),
     path('promotion/create/', views.promotion_create, name='promotion_create'),
-    path('export-data/', views.export_data, name='export_data'),
+    path('export-data/', views.export_data, name='export_data_ajax'),
     path('check-new-orders/', views.check_new_orders, name='check_new_orders'),
     path('check-low-stock/', views.check_low_stock, name='check_low_stock'),
+    path('test-export/', views.test_export, name='test_export'),
+    path('simple-export-test/', views.simple_export_test, name='simple_export_test'),
     
     # Notification Management URLs
     path('notification/mark-read/', views.mark_notification_as_read, name='mark_notification_as_read'),

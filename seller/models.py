@@ -201,3 +201,71 @@ class Activity(models.Model):
     
     def __str__(self):
         return f"{self.seller.shop_name} - {self.title}"
+
+class Promotion(models.Model):
+    PROMOTION_TYPES = [
+        ('percentage', 'Percentage Discount'),
+        ('fixed', 'Fixed Amount Discount'),
+        ('buy_one_get_one', 'Buy One Get One'),
+        ('free_shipping', 'Free Shipping'),
+    ]
+    
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='promotions')
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    promotion_type = models.CharField(max_length=20, choices=PROMOTION_TYPES, default='percentage')
+    discount_value = models.FloatField(help_text="Percentage or fixed amount based on promotion type")
+    min_order_amount = models.FloatField(default=0, help_text="Minimum order amount to apply promotion")
+    max_discount_amount = models.FloatField(null=True, blank=True, help_text="Maximum discount amount (for percentage discounts)")
+    valid_from = models.DateTimeField(default=timezone.now)
+    valid_until = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+    usage_limit = models.PositiveIntegerField(null=True, blank=True, help_text="Maximum number of times this promotion can be used")
+    used_count = models.PositiveIntegerField(default=0)
+    products = models.ManyToManyField(Product, blank=True, related_name='promotions')
+    categories = models.ManyToManyField(Category, blank=True, related_name='promotions')
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.seller.shop_name} - {self.name}"
+    
+    @property
+    def is_valid(self):
+        """Check if promotion is currently valid"""
+        now = timezone.now()
+        return (
+            self.is_active and
+            self.valid_from <= now <= self.valid_until and
+            (self.usage_limit is None or self.used_count < self.usage_limit)
+        )
+    
+    def can_apply_to_product(self, product):
+        """Check if promotion can be applied to a specific product"""
+        # Check if product is in promotion's product list
+        if self.products.exists() and product not in self.products.all():
+            return False
+        
+        # Check if product's category is in promotion's category list
+        if self.categories.exists() and product.category not in self.categories.all():
+            return False
+        
+        return True
+    
+    def calculate_discount(self, order_amount):
+        """Calculate discount amount for given order amount"""
+        if order_amount < self.min_order_amount:
+            return 0
+        
+        if self.promotion_type == 'percentage':
+            discount = order_amount * (self.discount_value / 100)
+            if self.max_discount_amount:
+                discount = min(discount, self.max_discount_amount)
+            return discount
+        elif self.promotion_type == 'fixed':
+            return min(self.discount_value, order_amount)
+        else:
+            return 0

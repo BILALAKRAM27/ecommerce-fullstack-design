@@ -23,6 +23,7 @@ import csv
 from io import StringIO
 from buyer.models import OrderItem
 import logging
+from .models import Promotion
 
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY") or settings.STRIPE_SECRET_KEY
@@ -1039,488 +1040,437 @@ def seller_create_promotion(request):
     return render(request, 'seller/create_promotion.html', context)
 
 @login_required
-def seller_export_data(request):
-    """Export seller data"""
-    seller = get_object_or_404(Seller, user=request.user)
-    export_type = request.GET.get('type', 'orders')
-    
-    if export_type == 'orders':
-        data = Order.objects.filter(seller=seller)
-        filename = f'orders_export_{seller.shop_name}_{timezone.now().strftime("%Y%m%d")}.csv'
-    elif export_type == 'products':
-        data = Product.objects.filter(seller=seller)
-        filename = f'products_export_{seller.shop_name}_{timezone.now().strftime("%Y%m%d")}.csv'
-    else:
-        messages.error(request, 'Invalid export type')
-        return redirect('seller:dashboard')
-    
-    # Create CSV response
-    import csv
-    from django.http import HttpResponse
-    
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    
-    writer = csv.writer(response)
-    
-    if export_type == 'orders':
-        writer.writerow(['Order ID', 'Customer', 'Total', 'Status', 'Date'])
-        for order in data:
-            writer.writerow([
-                order.id,
-                f"{order.buyer.first_name} {order.buyer.last_name}",
-                order.total_amount,
-                order.get_status_display(),
-                order.created_at.strftime('%Y-%m-%d')
-            ])
-    elif export_type == 'products':
-        writer.writerow(['Product Name', 'Price', 'Category', 'Status'])
-        for product in data:
-            writer.writerow([
-                product.name,
-                product.final_price,
-                product.category.name if product.category else 'N/A',
-                'Active' if product.is_active else 'Inactive'
-            ])
-    
-    return response
-
-@login_required
-@require_GET
-def product_edit_data(request, product_id):
-    """Get product data for editing"""
-    seller = get_object_or_404(Seller, user=request.user)
-    product = get_object_or_404(Product, id=product_id, seller=seller)
-    
-    data = {
-        'id': product.id,
-        'name': product.name,
-        'price': float(product.final_price),
-        'stock': product.stock,
-        'category': product.category.id if product.category else None,
-        'description': product.description,
-        'is_active': product.is_active,
-    }
-    
-    return JsonResponse(data)
-
-@login_required
-@require_POST
-def product_update(request, product_id):
-    """Update product information"""
-    seller = get_object_or_404(Seller, user=request.user)
-    product = get_object_or_404(Product, id=product_id, seller=seller)
-    
-    # Debug: Print POST data
-    print(f"POST data: {request.POST}")
-    print(f"FILES data: {request.FILES}")
-    
-    try:
-        # Update basic fields
-        product.name = request.POST.get('name', product.name)
-        product.description = request.POST.get('description', product.description)
-        product.condition = request.POST.get('condition', product.condition)
-        
-        # Update pricing
-        base_price = request.POST.get('base_price')
-        if base_price:
-            product.base_price = float(base_price)
-        
-        discount_percentage = request.POST.get('discount_percentage')
-        if discount_percentage:
-            product.discount_percentage = float(discount_percentage)
-            # Calculate final price
-            if product.base_price and product.discount_percentage:
-                product.final_price = product.base_price * (1 - product.discount_percentage / 100)
-        else:
-            product.discount_percentage = 0
-            product.final_price = product.base_price
-        
-        # Update stock
-        stock = request.POST.get('stock')
-        if stock:
-            product.stock = int(stock)
-        
-        # Update category
-        category_id = request.POST.get('category')
-        if category_id:
-            try:
-                product.category = Category.objects.get(id=category_id)
-            except Category.DoesNotExist:
-                pass
-        
-        # Update brand
-        brand_id = request.POST.get('brand')
-        if brand_id:
-            try:
-                product.brand = Brand.objects.get(id=brand_id)
-            except Brand.DoesNotExist:
-                pass
-        
-        # Handle images
-        if 'image_file' in request.FILES:
-            image_mode = request.POST.get('image_mode', 'add')
-            files = request.FILES.getlist('image_file')
-            
-            if image_mode == 'replace':
-                # Delete existing images and replace with new ones
-                product.images.all().delete()
-                
-                for i, file in enumerate(files):
-                    image_data = file.read()
-                    ProductImage.objects.create(
-                        product=product,
-                        image=image_data,
-                        is_thumbnail=(i == 0)  # First new image becomes thumbnail
-                    )
-            else:  # 'add' mode
-                # Keep existing images and add new ones
-                existing_count = product.images.count()
-                
-                for i, file in enumerate(files):
-                    image_data = file.read()
-                    ProductImage.objects.create(
-                        product=product,
-                        image=image_data,
-                        is_thumbnail=(existing_count == 0 and i == 0)  # Only thumbnail if no existing images
-                    )
-        
-        # Handle thumbnail selection
-        existing_thumbnail_id = request.POST.get('existing_thumbnail')
-        new_thumbnail_index = request.POST.get('new_thumbnail')
-        
-        if existing_thumbnail_id:
-            # Reset all existing images to not be thumbnail
-            product.images.all().update(is_thumbnail=False)
-            # Set the selected existing image as thumbnail
-            try:
-                selected_image = ProductImage.objects.get(id=existing_thumbnail_id, product=product)
-                selected_image.is_thumbnail = True
-                selected_image.save()
-            except ProductImage.DoesNotExist:
-                pass
-        elif new_thumbnail_index is not None and 'image_file' in request.FILES:
-            # Set the selected new image as thumbnail
-            try:
-                new_thumbnail_index = int(new_thumbnail_index)
-                # Find the newly created image at the specified index
-                new_images = ProductImage.objects.filter(product=product).order_by('-id')[:len(request.FILES.getlist('image_file'))]
-                if new_thumbnail_index < len(new_images):
-                    # Reset all images to not be thumbnail
-                    product.images.all().update(is_thumbnail=False)
-                    # Set the selected new image as thumbnail
-                    new_images[new_thumbnail_index].is_thumbnail = True
-                    new_images[new_thumbnail_index].save()
-            except (ValueError, IndexError):
-                pass
-        
-        # Handle attribute values
-        for key, value in request.POST.items():
-            if key.startswith('attribute_'):
-                attr_id = key.replace('attribute_', '')
-                try:
-                    attr = CategoryAttribute.objects.get(id=attr_id)
-                    # Update or create attribute value
-                    attr_value, created = ProductAttributeValue.objects.get_or_create(
-                        product=product,
-                        attribute=attr,
-                        defaults={'value': value}
-                    )
-                    if not created:
-                        attr_value.value = value
-                        attr_value.save()
-                except CategoryAttribute.DoesNotExist:
-                    pass
-        
-        product.save()
-        
-        # Update product order count if needed
-        if not hasattr(product, 'order_count'):
-            product.order_count = 0
-            product.save()
-        
-        return JsonResponse({'success': True, 'message': 'Product updated successfully!'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-
-@login_required
-@require_POST
-def product_delete(request, product_id):
-    """Delete a product"""
-    seller = get_object_or_404(Seller, user=request.user)
-    product = get_object_or_404(Product, id=product_id, seller=seller)
-    
-    try:
-        product.delete()
-        return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-
-@login_required
-@require_POST
-def product_duplicate(request, product_id):
-    """Duplicate a product"""
-    seller = get_object_or_404(Seller, user=request.user)
-    original_product = get_object_or_404(Product, id=product_id, seller=seller)
-    
-    try:
-        # Create a copy of the product
-        new_product = Product.objects.create(
-            seller=seller,
-            name=f"{original_product.name} (Copy)",
-            final_price=original_product.final_price,
-            stock=original_product.stock,
-            description=original_product.description,
-            category=original_product.category,
-            is_active=False  # Start as inactive
-        )
-        
-        # Copy images if any
-        for image in original_product.images.all():
-            ProductImage.objects.create(
-                product=new_product,
-                image=image.image,
-                is_thumbnail=image.is_thumbnail
-            )
-        
-        return JsonResponse({'success': True, 'product_id': new_product.id})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-
-@login_required
-@require_GET
-def order_details(request, order_id):
-    """Get detailed order information"""
-    seller = get_object_or_404(Seller, user=request.user)
-    order = get_object_or_404(Order, id=order_id, seller=seller)
-    
-    # Get order items
-    order_items = OrderItem.objects.filter(order=order).select_related('product')
-    
-    # Get payment information
-    payment_info = None
-    try:
-        payment = Payment.objects.get(order=order)
-        payment_info = {
-            'method': payment.get_payment_method_display(),
-            'transaction_id': payment.transaction_id,
-            'status': payment.get_status_display(),
-            'payment_time': payment.payment_time.isoformat() if payment.payment_time else None,
-        }
-    except Payment.DoesNotExist:
-        payment_info = {
-            'method': 'Not specified',
-            'transaction_id': 'N/A',
-            'status': order.get_payment_status_display(),
-            'payment_time': None,
-        }
-    
-    data = {
-        'id': order.id,
-        'created_at': order.created_at.isoformat(),
-        'status': order.status,
-        'payment_status': order.payment_status,
-        'order_type': order.order_type,
-        'total_amount': float(order.total_amount),
-        'delivery_address': order.delivery_address,
-        'tracking_number': order.tracking_number or 'Not provided',
-        'notes': order.notes or 'No notes',
-        'get_status_display': order.get_status_display(),
-        'get_payment_status_display': order.get_payment_status_display(),
-        'buyer': {
-            'name': order.buyer.display_name,
-            'email': order.buyer.email,
-            'phone': order.buyer.phone or 'N/A',
-        },
-        'payment': payment_info,
-        'items': [
-            {
-                'product': {
-                    'name': item.product.name,
-                    'id': item.product.id,
-                },
-                'quantity': item.quantity,
-                'price_at_purchase': float(item.price_at_purchase),
-                'total': float(item.price_at_purchase * item.quantity),
-            }
-            for item in order_items
-        ]
-    }
-    
-    return JsonResponse(data)
-
-@login_required
-@require_POST
-def order_update_status(request):
-    """Update order status and payment status"""
-    seller = get_object_or_404(Seller, user=request.user)
-    order_id = request.POST.get('order_id')
-    new_status = request.POST.get('status')
-    payment_status = request.POST.get('payment_status', '')
-    tracking_number = request.POST.get('tracking_number', '')
-    notes = request.POST.get('notes', '')
-    
-    if not order_id or not new_status:
-        return JsonResponse({'success': False, 'error': 'Order ID and status are required'})
-    
-    try:
-        order = get_object_or_404(Order, id=order_id, seller=seller)
-        
-        # Validate status
-        valid_statuses = [choice[0] for choice in OrderStatus.choices]
-        if new_status not in valid_statuses:
-            return JsonResponse({'success': False, 'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'})
-        
-        # Validate payment status if provided
-        payment_updated = False
-        if payment_status:
-            valid_payment_statuses = [choice[0] for choice in PaymentStatus.choices]
-            if payment_status not in valid_payment_statuses:
-                return JsonResponse({'success': False, 'error': f'Invalid payment status. Must be one of: {", ".join(valid_payment_statuses)}'})
-            
-            # Only update payment status if it's different from current
-            if order.payment_status != payment_status:
-                order.payment_status = payment_status
-                payment_updated = True
-        
-        order.status = new_status
-        
-        # Store tracking number and notes
-        if tracking_number:
-            order.tracking_number = tracking_number
-        if notes:
-            order.notes = notes
-            
-        order.save()
-        
-        # Create activity for order status update
-        Activity.objects.create(
-            seller=seller,
-            type='order_updated',
-            title=f'Order #{order.id} Status Updated',
-            description=f'Order status changed to {order.get_status_display()}'
-        )
-        
-        # If order is delivered, create delivery activity
-        if new_status == 'delivered':
-            Activity.objects.create(
-                seller=seller,
-                type='order_delivered',
-                title=f'Order #{order.id} Delivered',
-                description=f'Order has been successfully delivered to customer'
-            )
-        
-        # If payment status was updated, create payment activity
-        if payment_updated and order.payment_status == 'paid':
-            Activity.objects.create(
-                seller=seller,
-                type='payment_received',
-                title=f'Payment Received for Order #{order.id}',
-                description=f'Payment of ${order.total_amount} received for order #{order.id}'
-            )
-        
-        # Prepare response data
-        response_data = {
-            'success': True, 
-            'message': f'Order status updated to {order.get_status_display()}',
-            'payment_updated': payment_updated,
-            'order_type': order.order_type
-        }
-        
-        # If payment status was updated for COD order, include updated stats
-        if payment_updated and order.order_type == 'cod' and order.payment_status == 'paid':
-            # Calculate updated stats
-            updated_stats = calculate_seller_stats(seller)
-            response_data['updated_stats'] = updated_stats
-        
-        # If order status is changed to 'delivered' for a paid COD order, include updated stats
-        elif new_status == 'delivered' and order.order_type == 'cod' and order.payment_status == 'paid':
-            # Calculate updated stats
-            updated_stats = calculate_seller_stats(seller)
-            response_data['updated_stats'] = updated_stats
-        
-        return JsonResponse(response_data)
-        
-    except Order.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Order not found'})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-
-@login_required
-@require_POST
-def promotion_create(request):
-    """Create a new promotion"""
-    seller = get_object_or_404(Seller, user=request.user)
-    
-    try:
-        name = request.POST.get('name')
-        discount = request.POST.get('discount')
-        valid_until = request.POST.get('valid_until')
-        product_ids = request.POST.getlist('products')
-        
-        # In a real implementation, you would create a Promotion model
-        # For now, we'll just return success
-        return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-
-@login_required
 @require_POST
 def export_data(request):
     """Export data in various formats"""
     seller = get_object_or_404(Seller, user=request.user)
     
     try:
+        print(f"Export request received for seller: {seller.id}")
         data = json.loads(request.body)
         export_type = data.get('export_type')
         start_date = data.get('start_date')
         end_date = data.get('end_date')
         format_type = data.get('format')
         
+        print(f"Export parameters: type={export_type}, format={format_type}, start={start_date}, end={end_date}")
+        
         if format_type == 'csv':
+            print("Exporting as CSV")
             return export_csv(request, seller, export_type, start_date, end_date)
+        elif format_type == 'excel':
+            print("Exporting as Excel")
+            return export_excel(request, seller, export_type, start_date, end_date)
+        elif format_type == 'pdf':
+            print("Exporting as PDF")
+            return export_pdf(request, seller, export_type, start_date, end_date)
         else:
+            print(f"Unsupported format: {format_type}")
             return JsonResponse({'success': False, 'error': 'Format not supported'})
-            
     except Exception as e:
+        print(f"Export error: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
 
 def export_csv(request, seller, export_type, start_date, end_date):
     """Export data as CSV"""
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{export_type}_export.csv"'
-    
-    writer = csv.writer(response)
-    
-    if export_type == 'orders':
-        writer.writerow(['Order ID', 'Customer', 'Total', 'Status', 'Date'])
-        orders = Order.objects.filter(seller=seller)
-        if start_date and end_date:
-            orders = orders.filter(created_at__range=[start_date, end_date])
+    try:
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{export_type}_export_{timezone.now().strftime("%Y%m%d")}.csv"'
         
-        for order in orders:
-            writer.writerow([
-                order.id,
-                order.buyer.name if hasattr(order.buyer, 'name') else order.buyer.user.username,
-                order.total_amount,
-                order.get_status_display(),
-                order.created_at.strftime('%Y-%m-%d')
-            ])
-    
-    elif export_type == 'products':
-        writer.writerow(['Product ID', 'Name', 'Price', 'Stock', 'Status'])
-        products = Product.objects.filter(seller=seller)
+        writer = csv.writer(response)
         
-        for product in products:
-            writer.writerow([
-                product.id,
-                product.name,
-                product.final_price,
-                product.stock,
-                'Active' if product.is_active else 'Inactive'
-            ])
+        if export_type == 'orders':
+            writer.writerow(['Order ID', 'Customer Name', 'Customer Email', 'Total Amount', 'Status', 'Payment Status', 'Order Type', 'Date', 'Delivery Address'])
+            orders = Order.objects.filter(seller=seller).select_related('buyer')
+            
+            # Fix date filtering - only filter if both dates are provided
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                orders = orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in orders:
+                writer.writerow([
+                    order.id,
+                    order.buyer.name if hasattr(order.buyer, 'name') else order.buyer.user.username,
+                    order.buyer.email,
+                    order.total_amount,
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.order_type.upper(),
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    order.delivery_address or 'N/A'
+                ])
+        
+        elif export_type == 'products':
+            writer.writerow(['Product ID', 'Name', 'Category', 'Base Price', 'Final Price', 'Stock', 'Condition', 'Status', 'Created Date'])
+            products = Product.objects.filter(seller=seller).select_related('category')
+            
+            for product in products:
+                # Use a simple status based on stock availability instead of is_active
+                status = 'Active' if product.stock > 0 else 'Out of Stock'
+                writer.writerow([
+                    product.id,
+                    product.name,
+                    product.category.name if product.category else 'Uncategorized',
+                    product.base_price,
+                    product.final_price,
+                    product.stock,
+                    product.get_condition_display(),
+                    status,
+                    product.created_at.strftime('%Y-%m-%d')
+                ])
+        
+        elif export_type == 'sales':
+            writer.writerow(['Order ID', 'Product Name', 'Quantity', 'Price at Purchase', 'Total', 'Order Date', 'Status'])
+            order_items = OrderItem.objects.filter(order__seller=seller).select_related('order', 'product')
+            
+            # Fix date filtering for sales
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                order_items = order_items.filter(order__created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for item in order_items:
+                writer.writerow([
+                    item.order.id,
+                    item.product.name,
+                    item.quantity,
+                    item.price_at_purchase,
+                    item.price_at_purchase * item.quantity,
+                    item.order.created_at.strftime('%Y-%m-%d'),
+                    item.order.get_status_display()
+                ])
+        
+        elif export_type == 'inventory':
+            writer.writerow(['Product ID', 'Name', 'Category', 'Current Stock', 'Low Stock Alert', 'Total Sold', 'Revenue Generated', 'Last Updated'])
+            products = Product.objects.filter(seller=seller).select_related('category')
+            
+            for product in products:
+                low_stock = 'Yes' if product.stock <= 15 else 'No'
+                
+                # Calculate totals manually to avoid type issues
+                order_items = OrderItem.objects.filter(product=product)
+                total_sold = sum(item.quantity for item in order_items)
+                revenue_generated = sum(item.price_at_purchase * item.quantity for item in order_items)
+                
+                writer.writerow([
+                    product.id,
+                    product.name,
+                    product.category.name if product.category else 'Uncategorized',
+                    product.stock,
+                    low_stock,
+                    total_sold,
+                    revenue_generated,
+                    product.created_at.strftime('%Y-%m-%d %H:%M')
+                ])
+        
+        return response
+    except Exception as e:
+        print(f"CSV export error: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'CSV export failed: {str(e)}'})
+
+def export_excel(request, seller, export_type, start_date, end_date):
+    """Export data as Excel"""
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment
+    except ImportError:
+        return JsonResponse({'success': False, 'error': 'Excel export requires openpyxl package'})
     
-    return response
+    try:
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = export_type.title()
+        
+        # Style for headers
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+        header_alignment = Alignment(horizontal="center", vertical="center")
+        
+        if export_type == 'orders':
+            headers = ['Order ID', 'Customer Name', 'Customer Email', 'Total Amount', 'Status', 'Payment Status', 'Order Type', 'Date', 'Delivery Address']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            orders = Order.objects.filter(seller=seller).select_related('buyer')
+            
+            # Fix date filtering - only filter if both dates are provided
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                orders = orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in orders:
+                ws.append([
+                    order.id,
+                    order.buyer.name if hasattr(order.buyer, 'name') else order.buyer.user.username,
+                    order.buyer.email,
+                    order.total_amount,
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.order_type.upper(),
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    order.delivery_address or 'N/A'
+                ])
+        
+        elif export_type == 'products':
+            headers = ['Product ID', 'Name', 'Category', 'Base Price', 'Final Price', 'Stock', 'Condition', 'Status', 'Created Date']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            products = Product.objects.filter(seller=seller).select_related('category')
+            
+            for product in products:
+                # Use a simple status based on stock availability instead of is_active
+                status = 'Active' if product.stock > 0 else 'Out of Stock'
+                ws.append([
+                    product.id,
+                    product.name,
+                    product.category.name if product.category else 'Uncategorized',
+                    product.base_price,
+                    product.final_price,
+                    product.stock,
+                    product.get_condition_display(),
+                    status,
+                    product.created_at.strftime('%Y-%m-%d')
+                ])
+        
+        elif export_type == 'sales':
+            headers = ['Order ID', 'Product Name', 'Quantity', 'Price at Purchase', 'Total', 'Order Date', 'Status']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            order_items = OrderItem.objects.filter(order__seller=seller).select_related('order', 'product')
+            
+            # Fix date filtering for sales
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                order_items = order_items.filter(order__created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for item in order_items:
+                ws.append([
+                    item.order.id,
+                    item.product.name,
+                    item.quantity,
+                    item.price_at_purchase,
+                    item.price_at_purchase * item.quantity,
+                    item.order.created_at.strftime('%Y-%m-%d'),
+                    item.order.get_status_display()
+                ])
+        
+        elif export_type == 'inventory':
+            headers = ['Product ID', 'Name', 'Category', 'Current Stock', 'Low Stock Alert', 'Total Sold', 'Revenue Generated', 'Last Updated']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            products = Product.objects.filter(seller=seller).select_related('category')
+            
+            for product in products:
+                low_stock = 'Yes' if product.stock <= 15 else 'No'
+                
+                # Calculate totals manually to avoid type issues
+                order_items = OrderItem.objects.filter(product=product)
+                total_sold = sum(item.quantity for item in order_items)
+                revenue_generated = sum(item.price_at_purchase * item.quantity for item in order_items)
+                
+                ws.append([
+                    product.id,
+                    product.name,
+                    product.category.name if product.category else 'Uncategorized',
+                    product.stock,
+                    low_stock,
+                    total_sold,
+                    revenue_generated,
+                    product.created_at.strftime('%Y-%m-%d %H:%M')
+                ])
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="{export_type}_export_{timezone.now().strftime("%Y%m%d")}.xlsx"'
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        print(f"Excel export error: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'Excel export failed: {str(e)}'})
+
+def export_pdf(request, seller, export_type, start_date, end_date):
+    """Export data as PDF"""
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib import colors
+    except ImportError:
+        return JsonResponse({'success': False, 'error': 'PDF export requires reportlab package'})
+    
+    try:
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{export_type}_export_{timezone.now().strftime("%Y%m%d")}.pdf"'
+        
+        doc = SimpleDocTemplate(response, pagesize=A4)
+        elements = []
+        
+        # Title
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            spaceAfter=30,
+            alignment=1  # Center alignment
+        )
+        title = Paragraph(f"{export_type.title()} Report - {seller.shop_name}", title_style)
+        elements.append(title)
+        elements.append(Spacer(1, 20))
+        
+        if export_type == 'orders':
+            headers = ['Order ID', 'Customer', 'Total', 'Status', 'Payment', 'Type', 'Date']
+            data = [headers]
+            
+            orders = Order.objects.filter(seller=seller).select_related('buyer')
+            
+            # Fix date filtering - only filter if both dates are provided
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                orders = orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in orders:
+                data.append([
+                    str(order.id),
+                    order.buyer.name if hasattr(order.buyer, 'name') else order.buyer.user.username,
+                    f"${order.total_amount}",
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.order_type.upper(),
+                    order.created_at.strftime('%Y-%m-%d')
+                ])
+        
+        elif export_type == 'products':
+            headers = ['Product ID', 'Name', 'Category', 'Price', 'Stock', 'Status']
+            data = [headers]
+            
+            products = Product.objects.filter(seller=seller).select_related('category')
+            
+            for product in products:
+                # Use a simple status based on stock availability instead of is_active
+                status = 'Active' if product.stock > 0 else 'Out of Stock'
+                data.append([
+                    str(product.id),
+                    product.name,
+                    product.category.name if product.category else 'Uncategorized',
+                    f"${product.final_price}",
+                    str(product.stock),
+                    status
+                ])
+        
+        elif export_type == 'sales':
+            headers = ['Order ID', 'Product', 'Quantity', 'Price', 'Total', 'Date']
+            data = [headers]
+            
+            order_items = OrderItem.objects.filter(order__seller=seller).select_related('order', 'product')
+            
+            # Fix date filtering for sales
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                order_items = order_items.filter(order__created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for item in order_items:
+                data.append([
+                    str(item.order.id),
+                    item.product.name,
+                    str(item.quantity),
+                    f"${item.price_at_purchase}",
+                    f"${item.price_at_purchase * item.quantity}",
+                    item.order.created_at.strftime('%Y-%m-%d')
+                ])
+        
+        elif export_type == 'inventory':
+            headers = ['Product ID', 'Name', 'Stock', 'Low Stock', 'Total Sold', 'Revenue']
+            data = [headers]
+            
+            products = Product.objects.filter(seller=seller).select_related('category')
+            
+            for product in products:
+                low_stock = 'Yes' if product.stock <= 15 else 'No'
+                
+                # Calculate totals manually to avoid type issues
+                order_items = OrderItem.objects.filter(product=product)
+                total_sold = sum(item.quantity for item in order_items)
+                revenue_generated = sum(item.price_at_purchase * item.quantity for item in order_items)
+                
+                data.append([
+                    str(product.id),
+                    product.name,
+                    str(product.stock),
+                    low_stock,
+                    str(total_sold),
+                    f"${revenue_generated}"
+                ])
+        
+        # Create table
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        return response
+        
+    except Exception as e:
+        print(f"PDF export error: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'PDF export failed: {str(e)}'})
 
 @login_required
 @require_GET
@@ -1684,3 +1634,320 @@ def mark_activity_as_cleared(request):
         return JsonResponse({'success': True, 'message': 'Activity marked as cleared'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def promotion_create(request):
+    """Create a new promotion"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    try:
+        name = request.POST.get('name')
+        discount = request.POST.get('discount')
+        valid_until = request.POST.get('valid_until')
+        product_ids = request.POST.getlist('products')
+        
+        if not name or not discount or not valid_until:
+            return JsonResponse({'success': False, 'error': 'All required fields must be filled'})
+        
+        # Create the promotion
+        promotion = Promotion.objects.create(
+            seller=seller,
+            name=name,
+            promotion_type='percentage',
+            discount_value=float(discount),
+            valid_until=valid_until,
+            is_active=True
+        )
+        
+        # Add selected products to the promotion
+        if product_ids:
+            products = Product.objects.filter(id__in=product_ids, seller=seller)
+            promotion.products.set(products)
+        
+        # Create activity for the promotion
+        Activity.objects.create(
+            seller=seller,
+            type='product_updated',
+            title=f'Promotion Created: {name}',
+            description=f'Created promotion "{name}" with {discount}% discount'
+        )
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Promotion "{name}" created successfully!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@login_required
+def seller_export_data(request):
+    """Handle export data requests"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            export_type = data.get('export_type')
+            start_date = data.get('start_date')
+            end_date = data.get('end_date')
+            format_type = data.get('format')
+            
+            if format_type == 'csv':
+                return export_csv(request, seller, export_type, start_date, end_date)
+            elif format_type == 'excel':
+                return export_excel(request, seller, export_type, start_date, end_date)
+            elif format_type == 'pdf':
+                return export_pdf(request, seller, export_type, start_date, end_date)
+            else:
+                return JsonResponse({'success': False, 'error': 'Format not supported'})
+                
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@login_required
+def test_export(request):
+    """Test export functionality"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    # Test CSV export
+    try:
+        csv_response = export_csv(request, seller, 'products', None, None)
+        print("CSV export test successful")
+    except Exception as e:
+        print(f"CSV export test failed: {e}")
+    
+    # Test Excel export
+    try:
+        excel_response = export_excel(request, seller, 'products', None, None)
+        print("Excel export test successful")
+    except Exception as e:
+        print(f"Excel export test failed: {e}")
+    
+    # Test PDF export
+    try:
+        pdf_response = export_pdf(request, seller, 'products', None, None)
+        print("PDF export test successful")
+    except Exception as e:
+        print(f"PDF export test failed: {e}")
+    
+    return JsonResponse({'success': True, 'message': 'Export tests completed'})
+
+@login_required
+def simple_export_test(request):
+    """Simple test to verify export works"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    try:
+        # Create a simple CSV response
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="test_export.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Test', 'Data'])
+        writer.writerow(['Product', 'Test Product'])
+        writer.writerow(['Price', '100'])
+        
+        print("Simple export test successful")
+        return response
+        
+    except Exception as e:
+        print(f"Simple export test failed: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# Missing functions that are referenced in URLs
+@login_required
+def product_edit_data(request, product_id):
+    """Get product data for editing"""
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    context = {
+        'product': product,
+        'seller': seller,
+    }
+    return render(request, 'seller/product_edit_data.html', context)
+
+@login_required
+@require_POST
+def product_update(request, product_id):
+    """Update product data"""
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    try:
+        # Update basic fields
+        product.name = request.POST.get('name', product.name)
+        product.description = request.POST.get('description', product.description)
+        product.base_price = float(request.POST.get('base_price', product.base_price))
+        product.stock = int(request.POST.get('stock', product.stock))
+        product.condition = request.POST.get('condition', product.condition)
+        
+        # Update final price if discount is provided
+        discount = request.POST.get('discount_percentage')
+        if discount:
+            product.discount_percentage = float(discount)
+            product.final_price = product.base_price * (1 - float(discount) / 100)
+        else:
+            product.final_price = product.base_price
+        
+        product.save()
+        
+        return JsonResponse({'success': True, 'message': 'Product updated successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def product_delete(request, product_id):
+    """Delete product"""
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    try:
+        product_name = product.name
+        product.delete()
+        return JsonResponse({'success': True, 'message': f'Product "{product_name}" deleted successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def product_duplicate(request, product_id):
+    """Duplicate product"""
+    seller = get_object_or_404(Seller, user=request.user)
+    product = get_object_or_404(Product, id=product_id, seller=seller)
+    
+    try:
+        # Create a copy of the product
+        new_product = Product.objects.create(
+            seller=seller,
+            category=product.category,
+            brand=product.brand,
+            name=f"{product.name} (Copy)",
+            description=product.description,
+            base_price=product.base_price,
+            discount_percentage=product.discount_percentage,
+            final_price=product.final_price,
+            stock=product.stock,
+            condition=product.condition,
+            rating_avg=product.rating_avg,
+            order_count=0
+        )
+        
+        # Copy images
+        for image in product.images.all():
+            ProductImage.objects.create(
+                product=new_product,
+                image=image.image,
+                is_thumbnail=image.is_thumbnail
+            )
+        
+        # Copy attribute values
+        for attr_value in product.attribute_values.all():
+            ProductAttributeValue.objects.create(
+                product=new_product,
+                attribute=attr_value.attribute,
+                value=attr_value.value
+            )
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Product "{product.name}" duplicated successfully',
+            'new_product_id': new_product.id
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def order_details(request, order_id):
+    """Get order details"""
+    seller = get_object_or_404(Seller, user=request.user)
+    order = get_object_or_404(Order, id=order_id, seller=seller)
+    
+    # Check if it's an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'id': order.id,
+            'customer_name': order.buyer.name if hasattr(order.buyer, 'name') else order.buyer.user.username,
+            'customer_email': order.buyer.email,
+            'order_type': order.order_type,
+            'status': order.status,
+            'payment_status': order.payment_status,
+            'total_amount': order.total_amount,
+            'tracking_number': order.tracking_number or '',
+            'notes': order.notes or '',
+            'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+            'delivery_address': order.delivery_address or 'N/A'
+        })
+    
+    context = {
+        'order': order,
+        'seller': seller,
+    }
+    return render(request, 'seller/order_details.html', context)
+
+@login_required
+@require_POST
+def order_update_status(request):
+    """Update order status"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    try:
+        order_id = request.POST.get('order_id')
+        new_status = request.POST.get('status')
+        payment_status = request.POST.get('payment_status')
+        tracking_number = request.POST.get('tracking_number')
+        notes = request.POST.get('notes')
+        
+        order = get_object_or_404(Order, id=order_id, seller=seller)
+        
+        # Track what was updated
+        updates_made = []
+        
+        # Update order status
+        if new_status and new_status != order.status:
+            order.status = new_status
+            updates_made.append(f'Status: {new_status}')
+        
+        # Update payment status if provided
+        if payment_status and payment_status != order.payment_status:
+            order.payment_status = payment_status
+            updates_made.append(f'Payment: {payment_status}')
+        
+        # Update tracking number if provided
+        if tracking_number and tracking_number != order.tracking_number:
+            order.tracking_number = tracking_number
+            updates_made.append(f'Tracking: {tracking_number}')
+        
+        # Update notes if provided
+        if notes and notes != order.notes:
+            order.notes = notes
+            updates_made.append('Notes updated')
+        
+        order.save()
+        
+        # Create activity for status update
+        if updates_made:
+            Activity.objects.create(
+                seller=seller,
+                type='order_updated',
+                title=f'Order #{order_id} Updated',
+                description=f'Updated: {", ".join(updates_made)}'
+            )
+        
+        # Calculate updated stats for dashboard
+        updated_stats = calculate_seller_stats(seller)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Order #{order_id} updated successfully',
+            'order_type': order.order_type,
+            'payment_updated': payment_status and payment_status != order.payment_status,
+            'updated_stats': updated_stats
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

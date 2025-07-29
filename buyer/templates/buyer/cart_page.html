@@ -784,13 +784,15 @@
                     <span>Subtotal:</span>
                     <span class="summary-value">${{ subtotal|floatformat:2 }}</span>
                 </div>
+                {% if discount > 0 %}
                 <div class="summary-row discount">
                     <span>Discount:</span>
-                    <span class="summary-value">- $60.00</span>
+                    <span class="summary-value">- ${{ discount|floatformat:2 }}</span>
                 </div>
+                {% endif %}
                 <div class="summary-row tax">
                     <span>Tax:</span>
-                    <span class="summary-value">+ $14.00</span>
+                    <span class="summary-value">+ ${{ tax|floatformat:2 }}</span>
                 </div>
                 <div class="summary-row total">
                     <span>Total:</span>

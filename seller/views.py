@@ -24,6 +24,11 @@ from io import StringIO
 from buyer.models import OrderItem
 import logging
 from .models import Promotion
+import csv
+from django.utils import timezone
+from django.http import HttpResponse
+from seller.models import Product
+from datetime import datetime
 
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY") or settings.STRIPE_SECRET_KEY
@@ -63,6 +68,15 @@ def index_view(request):
     electronics_products = Product.objects.filter(category__in=electronics_cats)
     clothing_products = Product.objects.filter(category__in=clothing_cats)
     furniture_products = Product.objects.filter(category__in=furniture_cats)
+    
+    # Get active promotions for homepage
+    active_promotions = get_active_promotions_for_homepage()
+    
+    # Get the soonest expiring promotion for the timer
+    soonest_expiring_promotion = None
+    if active_promotions:
+        soonest_expiring_promotion = active_promotions.first()
+    
     context = {
         'user': user,
         'seller': seller,
@@ -75,6 +89,8 @@ def index_view(request):
         'electronics_products': electronics_products,
         'clothing_products': clothing_products,
         'furniture_products': furniture_products,
+        'active_promotions': active_promotions,
+        'soonest_expiring_promotion': soonest_expiring_promotion,
     }
     return render(request, "index.html", context)
 
@@ -1021,6 +1037,74 @@ def seller_edit_profile(request):
     return render(request, 'seller/edit_profile.html', context)
 
 @login_required
+@require_POST
+def promotion_create(request):
+    """Create a new promotion"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    try:
+        name = request.POST.get('name')
+        discount = request.POST.get('discount')
+        valid_until_str = request.POST.get('valid_until')
+        product_ids = request.POST.getlist('products')
+        
+        if not name or not discount or not valid_until_str:
+            return JsonResponse({'success': False, 'error': 'All required fields must be filled'})
+        
+        # Parse the valid_until string into a datetime object
+        try:
+            # Handle different date formats
+            if 'T' in valid_until_str:
+                # ISO format: "2024-12-31T23:59:59"
+                valid_until = timezone.datetime.fromisoformat(valid_until_str.replace('Z', '+00:00'))
+            elif len(valid_until_str) == 10:
+                # Date-only format: "2024-12-31" (from HTML date input)
+                # Set time to end of day (23:59:59)
+                valid_until = timezone.datetime.strptime(valid_until_str + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
+            else:
+                # Django format: "2024-12-31 23:59:59"
+                valid_until = timezone.datetime.strptime(valid_until_str, '%Y-%m-%d %H:%M:%S')
+            
+            # Make it timezone-aware if it's not already
+            if timezone.is_naive(valid_until):
+                valid_until = timezone.make_aware(valid_until)
+                
+        except ValueError as e:
+            return JsonResponse({'success': False, 'error': f'Invalid date format: {valid_until_str}. Expected format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS'})
+        
+        # Create the promotion with proper valid_from field
+        promotion = Promotion.objects.create(
+            seller=seller,
+            name=name,
+            promotion_type='percentage',
+            discount_value=float(discount),
+            valid_from=timezone.now(),  # Set to current time
+            valid_until=valid_until,
+            is_active=True
+        )
+        
+        # Add selected products to the promotion
+        if product_ids:
+            products = Product.objects.filter(id__in=product_ids, seller=seller)
+            promotion.products.set(products)
+        
+        # Create activity for the promotion
+        Activity.objects.create(
+            seller=seller,
+            type='product_updated',
+            title=f'Promotion Created: {name}',
+            description=f'Created promotion "{name}" with {discount}% discount'
+        )
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Promotion "{name}" created successfully!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@login_required
 def seller_create_promotion(request):
     """Create promotion for products"""
     seller = get_object_or_404(Seller, user=request.user)
@@ -1635,51 +1719,185 @@ def mark_activity_as_cleared(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
-@login_required
-@require_POST
-def promotion_create(request):
-    """Create a new promotion"""
-    seller = get_object_or_404(Seller, user=request.user)
+# ========== HOT OFFERS FEATURE ==========
+
+def hot_offers_view(request):
+    """Display all active promotions across the platform"""
+    from django.db.models import Q
+    from django.utils import timezone
     
-    try:
-        name = request.POST.get('name')
-        discount = request.POST.get('discount')
-        valid_until = request.POST.get('valid_until')
-        product_ids = request.POST.getlist('products')
-        
-        if not name or not discount or not valid_until:
-            return JsonResponse({'success': False, 'error': 'All required fields must be filled'})
-        
-        # Create the promotion
-        promotion = Promotion.objects.create(
-            seller=seller,
-            name=name,
-            promotion_type='percentage',
-            discount_value=float(discount),
-            valid_until=valid_until,
-            is_active=True
-        )
-        
-        # Add selected products to the promotion
-        if product_ids:
-            products = Product.objects.filter(id__in=product_ids, seller=seller)
-            promotion.products.set(products)
-        
-        # Create activity for the promotion
-        Activity.objects.create(
-            seller=seller,
-            type='product_updated',
-            title=f'Promotion Created: {name}',
-            description=f'Created promotion "{name}" with {discount}% discount'
-        )
-        
-        return JsonResponse({
-            'success': True, 
-            'message': f'Promotion "{name}" created successfully!'
-        })
-        
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    # Get all active promotions
+    active_promotions = Promotion.objects.filter(
+        is_active=True,
+        valid_from__lte=timezone.now(),
+        valid_until__gte=timezone.now()
+    ).select_related('seller').prefetch_related('products', 'categories')
+    
+    # Debug: Print promotion dates
+    print("=== DEBUG: Active Promotions ===")
+    for promo in active_promotions:
+        print(f"Promotion: {promo.name}")
+        print(f"  valid_from: {promo.valid_from}")
+        print(f"  valid_until: {promo.valid_until}")
+        print(f"  is_active: {promo.is_active}")
+        print(f"  now: {timezone.now()}")
+        print(f"  valid_from <= now: {promo.valid_from <= timezone.now()}")
+        print(f"  valid_until >= now: {promo.valid_until >= timezone.now()}")
+        print("---")
+    
+    # Get all categories for filtering
+    categories = Category.objects.all()
+    
+    # Handle search and filtering
+    search_query = request.GET.get('search', '')
+    category_filter = request.GET.getlist('category')
+    
+    if search_query:
+        active_promotions = active_promotions.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(seller__shop_name__icontains=search_query) |
+            Q(products__name__icontains=search_query)
+        ).distinct()
+    
+    if category_filter:
+        active_promotions = active_promotions.filter(
+            Q(categories__id__in=category_filter) |
+            Q(products__category__id__in=category_filter)
+        ).distinct()
+    
+    # Get user info for context
+    user = request.user if request.user.is_authenticated else None
+    seller = None
+    buyer = None
+    user_type = None
+    
+    if user:
+        try:
+            seller = Seller.objects.get(user=user)
+            user_type = 'seller'
+        except Seller.DoesNotExist:
+            try:
+                buyer = Buyer.objects.get(email=user.email)
+                user_type = 'buyer'
+            except Buyer.DoesNotExist:
+                pass
+    
+    context = {
+        'promotions': active_promotions,
+        'categories': categories,
+        'search_query': search_query,
+        'category_filter': category_filter,
+        'user': user,
+        'seller': seller,
+        'buyer': buyer,
+        'user_type': user_type,
+    }
+    
+    return render(request, 'seller/hot_offers.html', context)
+
+def promotion_detail_view(request, promotion_id):
+    """Display detailed information about a specific promotion"""
+    promotion = get_object_or_404(Promotion, id=promotion_id)
+    
+    # Get user info for context
+    user = request.user if request.user.is_authenticated else None
+    seller = None
+    buyer = None
+    user_type = None
+    
+    if user:
+        try:
+            seller = Seller.objects.get(user=user)
+            user_type = 'seller'
+        except Seller.DoesNotExist:
+            try:
+                buyer = Buyer.objects.get(email=user.email)
+                user_type = 'buyer'
+            except Buyer.DoesNotExist:
+                pass
+    
+    # Get products in this promotion
+    promotion_products = promotion.products.all().prefetch_related('images', 'category')
+    
+    # Calculate time remaining
+    from django.utils import timezone
+    now = timezone.now()
+    time_remaining = promotion.valid_until - now
+    
+    context = {
+        'promotion': promotion,
+        'promotion_products': promotion_products,
+        'time_remaining': time_remaining,
+        'user': user,
+        'seller': seller,
+        'buyer': buyer,
+        'user_type': user_type,
+    }
+    
+    return render(request, 'seller/promotion_detail.html', context)
+
+def search_promotions_ajax(request):
+    """AJAX endpoint for searching promotions"""
+    from django.db.models import Q
+    from django.utils import timezone
+    
+    search_query = request.GET.get('q', '')
+    category_filter = request.GET.getlist('category')
+    
+    # Get active promotions
+    promotions = Promotion.objects.filter(
+        is_active=True,
+        valid_from__lte=timezone.now(),
+        valid_until__gte=timezone.now()
+    ).select_related('seller').prefetch_related('products', 'categories')
+    
+    # Apply search filter
+    if search_query:
+        promotions = promotions.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(seller__shop_name__icontains=search_query) |
+            Q(products__name__icontains=search_query)
+        ).distinct()
+    
+    # Apply category filter
+    if category_filter:
+        promotions = promotions.filter(
+            Q(categories__id__in=category_filter) |
+            Q(products__category__id__in=category_filter)
+        ).distinct()
+    
+    # Serialize promotions for JSON response
+    promotions_data = []
+    for promotion in promotions:
+        promotion_data = {
+            'id': promotion.id,
+            'name': promotion.name,
+            'description': promotion.description,
+            'promotion_type': promotion.promotion_type,
+            'discount_value': promotion.discount_value,
+            'seller_name': promotion.seller.shop_name,
+            'valid_until': promotion.valid_until.isoformat(),
+            'products_count': promotion.products.count(),
+            'url': f'/promotion/{promotion.id}/'
+        }
+        promotions_data.append(promotion_data)
+    
+    return JsonResponse({'promotions': promotions_data})
+
+def get_active_promotions_for_homepage():
+    """Get active promotions for homepage display - 5 trending promotions ordered by expiration"""
+    from django.utils import timezone
+    
+    # Get 5 active promotions ordered by expiration date (soonest first)
+    promotions = Promotion.objects.filter(
+        is_active=True,
+        valid_from__lte=timezone.now(),
+        valid_until__gte=timezone.now()
+    ).select_related('seller').prefetch_related('products').order_by('valid_until')[:5]
+    
+    return promotions
 
 @login_required
 def seller_export_data(request):
@@ -1951,3 +2169,31 @@ def order_update_status(request):
         })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def test_create_promotion(request):
+    """Test function to create a promotion with correct dates"""
+    from datetime import timedelta
+    
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    # Create a test promotion that expires in 30 days
+    now = timezone.now()
+    valid_until = now + timedelta(days=30)
+    
+    promotion = Promotion.objects.create(
+        seller=seller,
+        name="Test Countdown Promotion",
+        description="Testing countdown functionality",
+        promotion_type='percentage',
+        discount_value=20.0,
+        valid_from=now,
+        valid_until=valid_until,
+        is_active=True
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'message': f'Test promotion created with valid_until: {valid_until}',
+        'promotion_id': promotion.id
+    })

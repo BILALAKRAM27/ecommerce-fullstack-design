@@ -619,6 +619,12 @@
                                 <span>Subtotal ({{ order_summary.total_items }} item{{ order_summary.total_items|pluralize }})</span>
                                 <span>${{ order_summary.subtotal|floatformat:2 }}</span>
                             </div>
+                            {% if cart.discount_amount > 0 %}
+                            <div class="summary-row" style="color: #dc3545;">
+                                <span>Discount</span>
+                                <span>- ${{ cart.discount_amount|floatformat:2 }}</span>
+                            </div>
+                            {% endif %}
                             <div class="summary-row">
                                 <span>Shipping</span>
                                 <span>${{ order_summary.shipping|floatformat:2 }}</span>

@@ -569,29 +569,40 @@ def checkout_view(request):
             'image_url': image_url,
             'attributes': ', '.join([f"{av.attribute.name}: {av.value}" for av in item.product.attribute_values.all()]),
             'quantity': item.quantity,
-            'price': item.product.final_price,
+            'price': item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
         })
-        seller_map[seller.id]['subtotal'] += item.product.final_price * item.quantity
+        seller_map[seller.id]['subtotal'] += item.get_total_price()  # Use cart item's total price
     grouped_sellers = list(seller_map.values())
 
+    # Use cart's calculated values instead of manual calculation
     subtotal = cart.subtotal
     shipping = 15.99  # Example fixed shipping
-    tax = round((subtotal - cart.discount_amount) * 0.10, 2)
-    total = round(subtotal - cart.discount_amount + tax + shipping, 2)
-    total_items = sum(item.quantity for item in cart_items)
+    tax = cart.tax  # Use cart's calculated tax
+    total = cart.total + shipping  # Add shipping to cart's total
+    total_items = cart.total_quantity  # Use cart's total quantity
+    
     order_summary = {
-        'subtotal': subtotal, 'shipping': shipping, 'tax': tax, 'total': total, 'total_items': total_items,
+        'subtotal': subtotal, 
+        'shipping': shipping, 
+        'tax': tax, 
+        'total': total, 
+        'total_items': total_items,
     }
 
     address_obj = getattr(buyer, 'address', None)
     shipping_address = {
-        'street': address_obj.street if address_obj else '', 'city': address_obj.city if address_obj else '',
-        'zip_code': address_obj.zip_code if address_obj else '', 'country': address_obj.country if address_obj else 'US',
+        'street': address_obj.street if address_obj else '', 
+        'city': address_obj.city if address_obj else '',
+        'zip_code': address_obj.zip_code if address_obj else '', 
+        'country': address_obj.country if address_obj else 'US',
     }
 
     context = {
-        'grouped_sellers': grouped_sellers, 'order_summary': order_summary,
-        'shipping_address': shipping_address, 'buyer': buyer,
+        'grouped_sellers': grouped_sellers, 
+        'order_summary': order_summary,
+        'shipping_address': shipping_address, 
+        'buyer': buyer,
+        'cart': cart,  # Add cart to context for discount display
         'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
     }
     return render(request, 'buyer/checkout_page.html', context)
@@ -657,7 +668,7 @@ def place_order_view(request):
             OrderItem.objects.create(
                 order=order,
                 product=item.product,
-                price_at_purchase=item.product.final_price,
+                price_at_purchase=item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
                 quantity=item.quantity,
             )
             
@@ -777,7 +788,7 @@ def process_stripe_payment(request):
                 OrderItem.objects.create(
                     order=order,
                     product=item.product,
-                    price_at_purchase=item.product.final_price,
+                    price_at_purchase=item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
                     quantity=item.quantity,
                 )
                 
@@ -1014,3 +1025,83 @@ def clear_all_buyer_notifications(request):
         })
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+def promotion_checkout_view(request):
+    """Handle promotion checkout by adding promotion items to cart"""
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    
+    # Get promotion data from URL parameters
+    promotion_id = request.GET.get('promotion_id')
+    total = request.GET.get('total')
+    
+    print(f"Promotion checkout - ID: {promotion_id}, Total: {total}")
+    
+    if not promotion_id:
+        messages.error(request, 'No promotion specified')
+        return redirect('buyer:cart_page')
+    
+    try:
+        from seller.models import Promotion
+        promotion = Promotion.objects.get(id=promotion_id, is_active=True)
+        
+        print(f"Found promotion: {promotion.name}")
+        
+        # Check if promotion is still valid
+        from django.utils import timezone
+        now = timezone.now()
+        if now < promotion.valid_from or now > promotion.valid_until:
+            messages.error(request, 'This promotion has expired')
+            return redirect('buyer:cart_page')
+        
+        # Get or create cart
+        cart, _ = Cart.objects.get_or_create(buyer=buyer)
+        
+        print(f"Cart ID: {cart.id}")
+        
+        # Clear existing cart items (optional - you might want to keep existing items)
+        # cart.items.all().delete()
+        
+        # Add promotion products to cart
+        promotion_products = promotion.products.all()
+        items_added = 0
+        
+        print(f"Promotion has {promotion_products.count()} products")
+        
+        for product in promotion_products:
+            # Check if product is already in cart
+            existing_item = cart.items.filter(product=product).first()
+            
+            if existing_item:
+                # Update quantity if already exists
+                existing_item.quantity += 1
+                existing_item.save()
+                print(f"Updated quantity for product: {product.name}")
+            else:
+                # Add new item to cart
+                CartItem.objects.create(
+                    cart=cart,
+                    product=product,
+                    quantity=1
+                )
+                items_added += 1
+                print(f"Added product to cart: {product.name}")
+        
+        if items_added > 0:
+            messages.success(request, f'Added {items_added} promotion items to your cart')
+        else:
+            messages.info(request, 'Promotion items are already in your cart')
+        
+        print(f"Total items added: {items_added}")
+        
+        # Redirect to checkout
+        return redirect('buyer:checkout_page')
+        
+    except Promotion.DoesNotExist:
+        print(f"Promotion not found: {promotion_id}")
+        messages.error(request, 'Promotion not found')
+        return redirect('buyer:cart_page')
+    except Exception as e:
+        print(f"Error in promotion checkout: {str(e)}")
+        messages.error(request, f'Error processing promotion: {str(e)}')
+        return redirect('buyer:cart_page')

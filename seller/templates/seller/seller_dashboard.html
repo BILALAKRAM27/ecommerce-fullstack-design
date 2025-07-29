@@ -3606,7 +3606,7 @@ body.modal-open {
           <h1 class="text-3xl font-bold mb-2" id="shopName">{{ seller.shop_name|default:"My Shop" }}</h1>
           <p class="text-lg opacity-90" id="shopBio">{{ seller.shop_description|default:"Welcome to my store!" }}</p>
           <a href="{% url 'seller:seller_profile' %}">
-            <button class="btn btn-default " style="color: white;background-color: #3b82f6;border-color: white;" >
+            <button class="btn btn-default " style="color: white;background-color: #3b82f6;border-color: white;margin-top: 15px;" >
               View Profile
           </button>
           </a>
@@ -4353,12 +4353,15 @@ body.modal-open {
             <option value="{{ product.id }}">{{ product.name }}</option>
             {% endfor %}
           </select>
-          <div class="help-text">Hold Ctrl/Cmd to select multiple products</div>
+          <div class="help-text">Hold Ctrl/Cmd to select multiple products (optional)</div>
+          {% if not products %}
+          <div class="help-text" style="color: #f59e0b;">No products available. You can still create a promotion without products.</div>
+          {% endif %}
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeModal('promotionModal')">Cancel</button>
-        <button type="submit" class="btn btn-primary">Create Promotion</button>
+        <button type="submit" class="btn btn-primary" onclick="submitPromotionForm(event)">Create Promotion</button>
       </div>
     </form>
   </div>
@@ -4727,9 +4730,11 @@ class FormValidator {
 
 // Initialize form validators
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize form validation
+  // Initialize form validation (excluding promotion form)
   document.querySelectorAll('form').forEach(form => {
-    new FormValidator(form);
+    if (form.id !== 'promotionForm') {
+      new FormValidator(form);
+    }
   });
   
   // Initialize promotion form handling
@@ -4768,15 +4773,46 @@ async function handlePromotionSubmit(e) {
   try {
     const formData = new FormData(form);
     
-    const response = await fetch('{% url "sellers:promotion_create" %}', {
+    // Debug: Log form data
+    console.log('Form data being sent:');
+    for (let [key, value] of formData.entries()) {
+      console.log(key + ': ' + value);
+    }
+    
+    // Check if required fields are present
+    const name = formData.get('name');
+    const discount = formData.get('discount');
+    const validUntil = formData.get('valid_until');
+    const products = formData.getAll('products');
+    
+    if (!name || !discount || !validUntil) {
+      showNotification('Please fill in all required fields', 'error');
+      return;
+    }
+    
+    const url = '{% url "sellers:promotion_create" %}';
+    const csrfToken = getCSRFToken();
+    
+    if (!csrfToken) {
+      showNotification('Security token missing. Please refresh the page.', 'error');
+      return;
+    }
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'X-CSRFToken': getCSRFToken(),
+        'X-CSRFToken': csrfToken,
       },
       body: formData
     });
     
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      showNotification('Server error occurred', 'error');
+      return;
+    }
     
     if (data.success) {
       showNotification(data.message, 'success');
@@ -5519,11 +5555,19 @@ function initFormHandlers() {
     updateStatusForm.addEventListener('submit', handleOrderStatusUpdate);
   }
   
-  // Promotion form
-  const promotionForm = document.getElementById('promotionForm');
-  if (promotionForm) {
-    promotionForm.addEventListener('submit', handlePromotionCreate);
-  }
+      // Promotion form - using the correct handler
+    const promotionForm = document.getElementById('promotionForm');
+    
+    if (promotionForm) {
+      // Remove any existing listeners to avoid conflicts
+      promotionForm.removeEventListener('submit', handlePromotionSubmit);
+      promotionForm.removeEventListener('submit', handlePromotionCreate);
+      
+      // Add the correct handler with proper event handling
+      promotionForm.addEventListener('submit', function(e) {
+        handlePromotionSubmit(e);
+      });
+    }
 }
 
 // Handle product delete form submission
@@ -5888,30 +5932,21 @@ function updateDashboardStats(stats) {
   }
 }
 
-async function handlePromotionCreate(e) {
-  e.preventDefault();
-  const formData = new FormData(e.target);
+// Removed duplicate handlePromotionCreate function - using handlePromotionSubmit instead
+
+// Removed test function - implementing logic directly in form submission
+
+// Direct form submission function as backup
+function submitPromotionForm(event) {
+  event.preventDefault();
   
-  try {
-    const response = await fetch('/promotion/create/', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': getCSRFToken(),
-      },
-      body: formData
-    });
-    
-    if (response.ok) {
-      showNotification('Promotion created successfully', 'success');
-      closeModal('promotionModal');
-      e.target.reset();
-    } else {
-      showNotification('Failed to create promotion', 'error');
-    }
-  } catch (error) {
-    console.error('Error creating promotion:', error);
-    showNotification('Error creating promotion', 'error');
+  const form = document.getElementById('promotionForm');
+  if (!form) {
+    return;
   }
+  
+  // Call the same handler that the test button used
+  handlePromotionSubmit({ preventDefault: () => {}, target: form });
 }
 
 // Utility Functions

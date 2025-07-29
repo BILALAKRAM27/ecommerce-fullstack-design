@@ -1,0 +1,120 @@
+{% extends 'index.html' %}
+{% block title %}Buy Gift Box{% endblock %}
+{% block extra_css %}
+<style>
+:root {
+  --primary-blue: #3B82F6;
+  --primary-blue-dark: #2563EB;
+  --primary-blue-light: #DBEAFE;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --shadow-lg: 0 10px 15px -3px rgba(59,130,246,0.10), 0 4px 6px -2px rgba(59,130,246,0.05);
+  --radius-xl: 1rem;
+}
+body { background: linear-gradient(135deg, #dcdbff 0%, #ffffff   100%); }
+.container {
+  max-width: 480px;
+  margin: 2.5rem auto;
+  padding: 1.5rem;
+}
+.card {
+  background: rgba(255,255,255,0.95);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid #e5e7eb;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+  backdrop-filter: blur(8px);
+}
+.card-header {
+  padding: 2rem 2rem 1rem 2rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+}
+.card-body {
+  padding: 2rem;
+}
+.form-group { margin-bottom: 1.5rem; }
+.form-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: #1F2937;
+  font-size: 1rem;
+}
+.form-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus {
+  border-color: var(--primary-blue);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+}
+.btn-primary {
+  background: linear-gradient(135deg, #3B82F6 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  width: 100%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59,130,246,0.10);
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background: linear-gradient(135deg, #2563EB 0%, #764ba2 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(59,130,246,0.15);
+}
+@media (max-width: 600px) {
+  .container { padding: 0.5rem; }
+  .card-header, .card-body { padding: 1rem; }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const card = document.querySelector('.card');
+  if (card) {
+    card.style.opacity = 0;
+    card.style.transform = 'translateY(30px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.5s cubic-bezier(.4,0,.2,1)';
+      card.style.opacity = 1;
+      card.style.transform = 'translateY(0)';
+    }, 100);
+  }
+});
+</script>
+{% endblock %}
+{% block content %}
+<div class="container py-8 max-w-lg mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="text-xl font-bold">Buy Gift Box from {{ seller.shop_name }}</h1>
+        </div>
+        <div class="card-body">
+            <p><strong>Campaign:</strong> {{ campaign.name }}</p>
+            <p><strong>Price:</strong> ${{ campaign.price }}</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label" for="buyer_message">Message or Tag (optional)</label>
+                    <input class="form-input" type="text" name="buyer_message" id="buyer_message" maxlength="255" placeholder="e.g. Happy Birthday!">
+                </div>
+                <button class="btn btn-primary w-full" type="submit">Place Order</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -29,6 +29,10 @@ from django.utils import timezone
 from django.http import HttpResponse
 from seller.models import Product
 from datetime import datetime
+from .models import GiftBoxCampaign, SellerGiftBoxParticipation
+from django.urls import reverse
+from buyer.models import GiftBoxOrder
+from django.forms import ModelMultipleChoiceField
 
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY") or settings.STRIPE_SECRET_KEY
@@ -2196,4 +2200,54 @@ def test_create_promotion(request):
         'success': True,
         'message': f'Test promotion created with valid_until: {valid_until}',
         'promotion_id': promotion.id
+    })
+
+@login_required
+def giftbox_campaigns_view(request):
+    seller = get_object_or_404(Seller, user=request.user)
+    campaigns = GiftBoxCampaign.objects.filter(is_active=True)
+    participations = SellerGiftBoxParticipation.objects.filter(seller=seller)
+    joined_campaign_ids = participations.values_list('campaign_id', flat=True)
+    return render(request, 'seller/giftbox_campaigns.html', {
+        'campaigns': campaigns,
+        'joined_campaign_ids': joined_campaign_ids,
+    })
+
+@login_required
+def join_giftbox_campaign(request, campaign_id):
+    seller = get_object_or_404(Seller, user=request.user)
+    campaign = get_object_or_404(GiftBoxCampaign, id=campaign_id, is_active=True)
+    participation, created = SellerGiftBoxParticipation.objects.get_or_create(seller=seller, campaign=campaign)
+    if created:
+        messages.success(request, f'You have joined the campaign: {campaign.name}!')
+    else:
+        messages.info(request, f'You have already joined this campaign.')
+    return redirect(reverse('seller:giftbox_campaigns'))
+
+@login_required
+def giftbox_orders_seller_view(request):
+    seller = get_object_or_404(Seller, user=request.user)
+    orders = GiftBoxOrder.objects.filter(seller=seller).select_related('buyer', 'campaign').order_by('-created_at')
+    return render(request, 'seller/giftbox_orders.html', {'orders': orders})
+
+@login_required
+def fulfill_giftbox_order_view(request, order_id):
+    seller = get_object_or_404(Seller, user=request.user)
+    order = get_object_or_404(GiftBoxOrder, id=order_id, seller=seller)
+    products = Product.objects.filter(seller=seller)
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected_products')
+        order.selected_products.set(selected_ids)
+        new_status = request.POST.get('status')
+        if new_status in dict(GiftBoxOrder.STATUS_CHOICES):
+            order.status = new_status
+            if new_status == 'delivered':
+                order.reveal_contents = True
+        order.save()
+        messages.success(request, 'Gift box order updated!')
+        return redirect('seller:giftbox_orders')
+    return render(request, 'seller/fulfill_giftbox_order.html', {
+        'order': order,
+        'products': products,
+        'selected_ids': order.selected_products.values_list('id', flat=True),
     })

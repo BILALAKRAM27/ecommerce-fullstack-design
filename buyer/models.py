@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 import base64
 import logging
+from seller.models import GiftBoxCampaign, SellerGiftBoxParticipation, Product, Seller
 
 logger = logging.getLogger(__name__)
 
@@ -241,3 +242,24 @@ class BuyerNotification(models.Model):
     
     def __str__(self):
         return f"{self.buyer.name} - {self.title}"
+
+class GiftBoxOrder(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('packed', 'Packed'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+    buyer = models.ForeignKey('Buyer', on_delete=models.CASCADE, related_name='giftbox_orders')
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='giftbox_orders')
+    campaign = models.ForeignKey(GiftBoxCampaign, on_delete=models.CASCADE, related_name='orders')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    buyer_message = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    selected_products = models.ManyToManyField(Product, blank=True, related_name='giftbox_orders')
+    reveal_contents = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"GiftBoxOrder #{self.id} - {self.buyer} -> {self.seller}"

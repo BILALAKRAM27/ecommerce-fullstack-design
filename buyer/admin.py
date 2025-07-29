@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
-    Buyer, Wishlist, Cart, CartItem, Order, OrderItem, Payment
+    Buyer, Wishlist, Cart, CartItem, Order, OrderItem, Payment, GiftBoxOrder
 )
 
 # ========== BUYER ADMIN ==========
@@ -148,3 +148,5 @@ class PaymentAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('order__buyer')
+
+admin.site.register(GiftBoxOrder)

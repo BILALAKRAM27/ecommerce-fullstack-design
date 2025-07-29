@@ -17,6 +17,10 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from .models import Payment
+from seller.models import GiftBoxCampaign, SellerGiftBoxParticipation, Seller, Product
+from .models import GiftBoxOrder
+from django.urls import reverse
+from django.db import transaction
 
 
 # Create your views here.
@@ -546,65 +550,131 @@ def cart_page_view(request):
 @login_required
 def checkout_view(request):
     buyer = get_object_or_404(Buyer, email=request.user.email)
-    cart, _ = Cart.objects.get_or_create(buyer=buyer)
-    cart_items = cart.items.select_related('product__seller')
-
-    grouped_sellers = []
-    seller_map = {}
-    for item in cart_items:
-        seller = item.product.seller
-        if seller.id not in seller_map:
-            seller_map[seller.id] = {
-                'seller': {'shop_name': seller.shop_name},
-                'products': [],
-                'subtotal': 0,
-            }
-        img_obj = item.product.images.first()
-        if img_obj and img_obj.image:
-            image_url = f"data:image/jpeg;base64,{base64.b64encode(img_obj.image).decode()}"
-        else:
-            image_url = ""
-        seller_map[seller.id]['products'].append({
-            'name': item.product.name,
-            'image_url': image_url,
-            'attributes': ', '.join([f"{av.attribute.name}: {av.value}" for av in item.product.attribute_values.all()]),
-            'quantity': item.quantity,
-            'price': item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
-        })
-        seller_map[seller.id]['subtotal'] += item.get_total_price()  # Use cart item's total price
-    grouped_sellers = list(seller_map.values())
-
-    # Use cart's calculated values instead of manual calculation
-    subtotal = cart.subtotal
-    shipping = 15.99  # Example fixed shipping
-    tax = cart.tax  # Use cart's calculated tax
-    total = cart.total + shipping  # Add shipping to cart's total
-    total_items = cart.total_quantity  # Use cart's total quantity
     
-    order_summary = {
-        'subtotal': subtotal, 
-        'shipping': shipping, 
-        'tax': tax, 
-        'total': total, 
-        'total_items': total_items,
-    }
+    # Check if this is a gift box checkout
+    giftbox_data = request.session.get('giftbox_data')
+    is_giftbox_checkout = giftbox_data is not None
+    
+    if is_giftbox_checkout:
+        # Handle gift box checkout
+        seller_id = giftbox_data.get('seller_id')
+        campaign_id = giftbox_data.get('campaign_id')
+        buyer_message = giftbox_data.get('buyer_message', '')
+        giftbox_price = giftbox_data.get('price', 0)
+        
+        seller = get_object_or_404(Seller, id=seller_id)
+        campaign = get_object_or_404(GiftBoxCampaign, id=campaign_id) if campaign_id else None
+        
+        # Create gift box seller group
+        grouped_sellers = [{
+            'seller': {'shop_name': seller.shop_name},
+            'products': [{
+                'name': f'Gift Box - {campaign.name if campaign else "Surprise Box"}',
+                'image_url': '',  # No image for gift box
+                'attributes': f'Message: {buyer_message}' if buyer_message else 'Surprise contents',
+                'quantity': 1,
+                'price': giftbox_price,
+                'is_giftbox': True,
+            }],
+            'subtotal': giftbox_price,
+        }]
+        
+        # Calculate order summary for gift box
+        subtotal = giftbox_price
+        shipping = 15.99
+        tax = round(subtotal * 0.125, 2)  # 12.5% tax
+        total = subtotal + shipping + tax
+        total_items = 1
+        
+        order_summary = {
+            'subtotal': subtotal,
+            'shipping': shipping,
+            'tax': tax,
+            'total': total,
+            'total_items': total_items,
+        }
+        
+        address_obj = getattr(buyer, 'address', None)
+        shipping_address = {
+            'street': address_obj.street if address_obj else '',
+            'city': address_obj.city if address_obj else '',
+            'zip_code': address_obj.zip_code if address_obj else '',
+            'country': address_obj.country if address_obj else 'US',
+        }
+        
+        context = {
+            'grouped_sellers': grouped_sellers,
+            'order_summary': order_summary,
+            'shipping_address': shipping_address,
+            'buyer': buyer,
+            'cart': None,  # No cart for gift box
+            'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
+            'is_giftbox_checkout': True,
+            'giftbox_data': giftbox_data,
+        }
+    else:
+        # Handle regular cart checkout
+        cart, _ = Cart.objects.get_or_create(buyer=buyer)
+        cart_items = cart.items.select_related('product__seller')
 
-    address_obj = getattr(buyer, 'address', None)
-    shipping_address = {
-        'street': address_obj.street if address_obj else '', 
-        'city': address_obj.city if address_obj else '',
-        'zip_code': address_obj.zip_code if address_obj else '', 
-        'country': address_obj.country if address_obj else 'US',
-    }
+        grouped_sellers = []
+        seller_map = {}
+        for item in cart_items:
+            seller = item.product.seller
+            if seller.id not in seller_map:
+                seller_map[seller.id] = {
+                    'seller': {'shop_name': seller.shop_name},
+                    'products': [],
+                    'subtotal': 0,
+                }
+            img_obj = item.product.images.first()
+            if img_obj and img_obj.image:
+                image_url = f"data:image/jpeg;base64,{base64.b64encode(img_obj.image).decode()}"
+            else:
+                image_url = ""
+            seller_map[seller.id]['products'].append({
+                'name': item.product.name,
+                'image_url': image_url,
+                'attributes': ', '.join([f"{av.attribute.name}: {av.value}" for av in item.product.attribute_values.all()]),
+                'quantity': item.quantity,
+                'price': item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
+            })
+            seller_map[seller.id]['subtotal'] += item.get_total_price()  # Use cart item's total price
+        grouped_sellers = list(seller_map.values())
 
-    context = {
-        'grouped_sellers': grouped_sellers, 
-        'order_summary': order_summary,
-        'shipping_address': shipping_address, 
-        'buyer': buyer,
-        'cart': cart,  # Add cart to context for discount display
-        'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
-    }
+        # Use cart's calculated values instead of manual calculation
+        subtotal = cart.subtotal
+        shipping = 15.99  # Example fixed shipping
+        tax = cart.tax  # Use cart's calculated tax
+        total = cart.total + shipping  # Add shipping to cart's total
+        total_items = cart.total_quantity  # Use cart's total quantity
+        
+        order_summary = {
+            'subtotal': subtotal, 
+            'shipping': shipping, 
+            'tax': tax, 
+            'total': total, 
+            'total_items': total_items,
+        }
+
+        address_obj = getattr(buyer, 'address', None)
+        shipping_address = {
+            'street': address_obj.street if address_obj else '', 
+            'city': address_obj.city if address_obj else '',
+            'zip_code': address_obj.zip_code if address_obj else '', 
+            'country': address_obj.country if address_obj else 'US',
+        }
+
+        context = {
+            'grouped_sellers': grouped_sellers, 
+            'order_summary': order_summary,
+            'shipping_address': shipping_address, 
+            'buyer': buyer,
+            'cart': cart,  # Add cart to context for discount display
+            'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
+            'is_giftbox_checkout': False,
+        }
+    
     return render(request, 'buyer/checkout_page.html', context)
 
 @login_required
@@ -635,57 +705,98 @@ def place_order_view(request):
     """Handle COD order placement"""
     try:
         buyer = get_object_or_404(Buyer, email=request.user.email)
-        cart, _ = Cart.objects.get_or_create(buyer=buyer)
-        cart_items = cart.items.select_related('product__seller')
         
-        if not cart_items.exists():
-            return JsonResponse({'success': False, 'error': 'Cart is empty'})
+        # Check if this is a gift box order
+        giftbox_data = request.session.get('giftbox_data')
+        is_giftbox_order = giftbox_data is not None
         
-        # Get shipping address from request
-        import json
-        data = json.loads(request.body)
-        shipping_address = data.get('shipping_address', {})
-        shipping_address_str = f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('zip_code', '')}, {shipping_address.get('country', '')}"
-        
-        # Create orders for each seller
-        orders_created = []
-        
-        for item in cart_items:
-            seller = item.product.seller
+        if is_giftbox_order:
+            # Handle gift box order
+            seller_id = giftbox_data.get('seller_id')
+            campaign_id = giftbox_data.get('campaign_id')
+            buyer_message = giftbox_data.get('buyer_message', '')
             
-            # Create order
-            order = Order.objects.create(
+            seller = get_object_or_404(Seller, id=seller_id)
+            campaign = get_object_or_404(GiftBoxCampaign, id=campaign_id) if campaign_id else None
+            
+            # Get shipping address from request
+            import json
+            data = json.loads(request.body)
+            shipping_address = data.get('shipping_address', {})
+            shipping_address_str = f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('zip_code', '')}, {shipping_address.get('country', '')}"
+            
+            # Create gift box order
+            giftbox_order = GiftBoxOrder.objects.create(
                 buyer=buyer,
                 seller=seller,
+                campaign=campaign,
                 status='pending',
-                total_amount=item.get_total_price(),
-                payment_status='pending',
-                order_type='cod',
-                delivery_address=shipping_address_str,
+                buyer_message=buyer_message,
             )
             
-            # Create order item
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                price_at_purchase=item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
-                quantity=item.quantity,
-            )
+            # Clear gift box data from session
+            if 'giftbox_data' in request.session:
+                del request.session['giftbox_data']
             
-            # Increment product order count and decrement stock
-            item.product.order_count += 1
-            item.product.stock -= item.quantity
-            item.product.save()
+            return JsonResponse({
+                'success': True,
+                'orders': [giftbox_order.id],
+                'is_giftbox': True
+            })
+        else:
+            # Handle regular cart order
+            cart, _ = Cart.objects.get_or_create(buyer=buyer)
+            cart_items = cart.items.select_related('product__seller')
             
-            orders_created.append(order)
-        
-        # Clear cart after creating orders
-        cart.clear()
-        
-        return JsonResponse({
-            'success': True,
-            'orders': [order.id for order in orders_created]
-        })
+            if not cart_items.exists():
+                return JsonResponse({'success': False, 'error': 'Cart is empty'})
+            
+            # Get shipping address from request
+            import json
+            data = json.loads(request.body)
+            shipping_address = data.get('shipping_address', {})
+            shipping_address_str = f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('zip_code', '')}, {shipping_address.get('country', '')}"
+            
+            # Create orders for each seller
+            orders_created = []
+            
+            for item in cart_items:
+                seller = item.product.seller
+                
+                # Create order
+                order = Order.objects.create(
+                    buyer=buyer,
+                    seller=seller,
+                    status='pending',
+                    total_amount=item.get_total_price(),
+                    payment_status='pending',
+                    order_type='cod',
+                    delivery_address=shipping_address_str,
+                )
+                
+                # Create order item
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    price_at_purchase=item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
+                    quantity=item.quantity,
+                )
+                
+                # Increment product order count and decrement stock
+                item.product.order_count += 1
+                item.product.stock -= item.quantity
+                item.product.save()
+                
+                orders_created.append(order)
+            
+            # Clear cart after creating orders
+            cart.clear()
+            
+            return JsonResponse({
+                'success': True,
+                'orders': [order.id for order in orders_created],
+                'is_giftbox': False
+            })
         
     except Exception as e:
         return JsonResponse({
@@ -720,100 +831,175 @@ def process_stripe_payment(request):
     """Handle Stripe payment processing during checkout"""
     try:
         buyer = get_object_or_404(Buyer, email=request.user.email)
-        cart, _ = Cart.objects.get_or_create(buyer=buyer)
-        cart_items = cart.items.select_related('product__seller')
         
-        if not cart_items.exists():
-            return JsonResponse({'success': False, 'error': 'Cart is empty'})
+        # Check if this is a gift box order
+        giftbox_data = request.session.get('giftbox_data')
+        is_giftbox_order = giftbox_data is not None
         
-        # Get shipping address from form
-        shipping_address = request.POST.get('shipping_address', '')
-        
-        # Group items by seller and check Stripe setup
-        seller_groups = {}
-        stripe_ready_sellers = []
-        non_stripe_sellers = []
-        
-        for item in cart_items:
-            seller = item.product.seller
-            if seller.id not in seller_groups:
-                seller_groups[seller.id] = {
-                    'seller': seller,
-                    'items': [],
-                    'total': 0
-                }
+        if is_giftbox_order:
+            # Handle gift box Stripe payment
+            seller_id = giftbox_data.get('seller_id')
+            campaign_id = giftbox_data.get('campaign_id')
+            buyer_message = giftbox_data.get('buyer_message', '')
+            giftbox_price = giftbox_data.get('price', 0)
             
-            seller_groups[seller.id]['items'].append(item)
-            seller_groups[seller.id]['total'] += item.get_total_price()
+            seller = get_object_or_404(Seller, id=seller_id)
+            campaign = get_object_or_404(GiftBoxCampaign, id=campaign_id) if campaign_id else None
             
             # Check if seller has Stripe account
-            if seller.stripe_account_id:
-                stripe_ready_sellers.append(seller.id)
-            else:
-                non_stripe_sellers.append(seller.shop_name)
-        
-        # If any seller doesn't have Stripe, provide options
-        if non_stripe_sellers:
-            return JsonResponse({
-                'success': False,
-                'error': 'Some sellers are not set up for online payments',
-                'non_stripe_sellers': non_stripe_sellers,
-                'stripe_ready_sellers': stripe_ready_sellers,
-                'suggestion': 'Please contact these sellers to set up payments or choose Cash on Delivery'
-            })
-        
-        # All sellers have Stripe - proceed with payment
-        payment_intents = []
-        orders_created = []
-        
-        for seller_id, group in seller_groups.items():
-            seller = group['seller']
+            if not seller.stripe_account_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Seller {seller.shop_name} is not set up for online payments. Please contact the seller or choose Cash on Delivery.'
+                })
             
-            # Calculate shipping per seller
-            shipping_per_seller = 15.99 / len(seller_groups)
-
-            # Create order
-            order = Order.objects.create(
+            # Get shipping address from form
+            shipping_address = request.POST.get('shipping_address', '')
+            
+            # Calculate total with shipping and tax
+            subtotal = giftbox_price
+            shipping = 15.99
+            tax = round(subtotal * 0.125, 2)  # 12.5% tax
+            total_amount = subtotal + shipping + tax
+            
+            # Create gift box order
+            giftbox_order = GiftBoxOrder.objects.create(
                 buyer=buyer,
                 seller=seller,
+                campaign=campaign,
                 status='pending',
-                total_amount=group['total'] + shipping_per_seller,  # Add shipping here
-                payment_status='pending',
-                order_type='stripe',
-                delivery_address=shipping_address,
+                buyer_message=buyer_message,
             )
             
-            # Create order items
-            for item in group['items']:
-                OrderItem.objects.create(
-                    order=order,
-                    product=item.product,
-                    price_at_purchase=item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
-                    quantity=item.quantity,
+            # Create Stripe PaymentIntent for gift box
+            amount = int(total_amount * 100)  # in cents
+            commission = int(total_amount * 0.10 * 100)  # 10% commission, in cents
+            
+            payment_intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency="usd",
+                payment_method_types=["card"],
+                application_fee_amount=commission,
+                transfer_data={
+                    "destination": seller.stripe_account_id,
+                },
+                metadata={
+                    "order_id": giftbox_order.id,
+                    "order_type": "giftbox",
+                }
+            )
+            
+            # Clear gift box data from session
+            if 'giftbox_data' in request.session:
+                del request.session['giftbox_data']
+            
+            return JsonResponse({
+                'success': True,
+                'payment_intents': [{
+                    'order_id': giftbox_order.id,
+                    'client_secret': payment_intent.client_secret,
+                    'amount': total_amount
+                }],
+                'orders': [giftbox_order.id],
+                'is_giftbox': True
+            })
+        else:
+            # Handle regular cart Stripe payment
+            cart, _ = Cart.objects.get_or_create(buyer=buyer)
+            cart_items = cart.items.select_related('product__seller')
+            
+            if not cart_items.exists():
+                return JsonResponse({'success': False, 'error': 'Cart is empty'})
+            
+            # Get shipping address from form
+            shipping_address = request.POST.get('shipping_address', '')
+            
+            # Group items by seller and check Stripe setup
+            seller_groups = {}
+            stripe_ready_sellers = []
+            non_stripe_sellers = []
+            
+            for item in cart_items:
+                seller = item.product.seller
+                if seller.id not in seller_groups:
+                    seller_groups[seller.id] = {
+                        'seller': seller,
+                        'items': [],
+                        'total': 0
+                    }
+                
+                seller_groups[seller.id]['items'].append(item)
+                seller_groups[seller.id]['total'] += item.get_total_price()
+                
+                # Check if seller has Stripe account
+                if seller.stripe_account_id:
+                    stripe_ready_sellers.append(seller.id)
+                else:
+                    non_stripe_sellers.append(seller.shop_name)
+            
+            # If any seller doesn't have Stripe, provide options
+            if non_stripe_sellers:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Some sellers are not set up for online payments',
+                    'non_stripe_sellers': non_stripe_sellers,
+                    'stripe_ready_sellers': stripe_ready_sellers,
+                    'suggestion': 'Please contact these sellers to set up payments or choose Cash on Delivery'
+                })
+            
+            # All sellers have Stripe - proceed with payment
+            payment_intents = []
+            orders_created = []
+            
+            for seller_id, group in seller_groups.items():
+                seller = group['seller']
+                
+                # Calculate shipping per seller
+                shipping_per_seller = 15.99 / len(seller_groups)
+
+                # Create order
+                order = Order.objects.create(
+                    buyer=buyer,
+                    seller=seller,
+                    status='pending',
+                    total_amount=group['total'] + shipping_per_seller,  # Add shipping here
+                    payment_status='pending',
+                    order_type='stripe',
+                    delivery_address=shipping_address,
                 )
                 
-                # Increment product order count and decrement stock
-                item.product.order_count += 1
-                item.product.stock -= item.quantity
-                item.product.save()
+                # Create order items
+                for item in group['items']:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=item.product,
+                        price_at_purchase=item.get_total_price() / item.quantity,  # Use the actual price per unit after discounts
+                        quantity=item.quantity,
+                    )
+                    
+                    # Increment product order count and decrement stock
+                    item.product.order_count += 1
+                    item.product.stock -= item.quantity
+                    item.product.save()
+                
+                # Create Stripe PaymentIntent
+                client_secret = create_stripe_payment_intent(order, seller)
+                payment_intents.append({
+                    'order_id': order.id,
+                    'client_secret': client_secret,
+                    'amount': order.total_amount
+                })
+                orders_created.append(order)
             
-            # Create Stripe PaymentIntent
-            client_secret = create_stripe_payment_intent(order, seller)
-            payment_intents.append({
-                'order_id': order.id,
-                'client_secret': client_secret,
-                'amount': order.total_amount
+            # Clear cart after creating orders
+            cart.clear()
+            
+            return JsonResponse({
+                'success': True,
+                'payment_intents': payment_intents,
+                'orders': [order.id for order in orders_created],
+                'is_giftbox': False
             })
-            orders_created.append(order)
-        
-        # Clear cart after creating orders
-        cart.clear()
-        
-        return JsonResponse({
-            'success': True,
-            'payment_intents': payment_intents,
-            'orders': [order.id for order in orders_created]
-        })
         
     except Exception as e:
         return JsonResponse({
@@ -1105,3 +1291,47 @@ def promotion_checkout_view(request):
         print(f"Error in promotion checkout: {str(e)}")
         messages.error(request, f'Error processing promotion: {str(e)}')
         return redirect('buyer:cart_page')
+
+@login_required
+def giftbox_marketplace_view(request):
+    # Show active campaign and participating sellers
+    campaign = GiftBoxCampaign.objects.filter(is_active=True).order_by('-start_date').first()
+    sellers = []
+    if campaign:
+        seller_ids = SellerGiftBoxParticipation.objects.filter(campaign=campaign).values_list('seller_id', flat=True)
+        sellers = Seller.objects.filter(id__in=seller_ids)
+    return render(request, 'buyer/giftbox_marketplace.html', {
+        'campaign': campaign,
+        'sellers': sellers,
+    })
+
+@login_required
+def buy_giftbox_view(request, seller_id):
+    campaign = GiftBoxCampaign.objects.filter(is_active=True).order_by('-start_date').first()
+    seller = get_object_or_404(Seller, id=seller_id)
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    
+    if request.method == 'POST':
+        message = request.POST.get('buyer_message', '').strip()
+        
+        # Store gift box data in session for checkout
+        request.session['giftbox_data'] = {
+            'seller_id': seller_id,
+            'campaign_id': campaign.id if campaign else None,
+            'buyer_message': message,
+            'price': float(campaign.price) if campaign else 0,
+        }
+        
+        # Redirect to checkout page
+        return redirect('buyer:checkout_page')
+    
+    return render(request, 'buyer/buy_giftbox.html', {
+        'campaign': campaign,
+        'seller': seller,
+    })
+
+@login_required
+def giftbox_orders_view(request):
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    orders = GiftBoxOrder.objects.filter(buyer=buyer).select_related('seller', 'campaign').order_by('-created_at')
+    return render(request, 'buyer/giftbox_orders.html', {'orders': orders})

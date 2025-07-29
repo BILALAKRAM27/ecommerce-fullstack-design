@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import order_summary_view
+from .views import order_summary_view, giftbox_marketplace_view, buy_giftbox_view, giftbox_orders_view
 
 app_name = 'buyer'
 
@@ -31,4 +31,10 @@ urlpatterns += [
     path('notification/mark-read/', views.mark_buyer_notification_as_read, name='mark_buyer_notification_as_read'),
     path('notification/mark-all-read/', views.mark_all_buyer_notifications_as_read, name='mark_all_buyer_notifications_as_read'),
     path('notification/clear-all/', views.clear_all_buyer_notifications, name='clear_all_buyer_notifications'),
+]
+
+urlpatterns += [
+    path('gift-boxes/', giftbox_marketplace_view, name='giftbox_marketplace'),
+    path('gift-boxes/buy/<int:seller_id>/', buy_giftbox_view, name='buy_giftbox'),
+    path('gift-boxes/orders/', giftbox_orders_view, name='giftbox_orders'),
 ]

@@ -1,0 +1,109 @@
+{% extends 'index.html' %}
+{% block title %}Gift Box Orders{% endblock %}
+{% block extra_css %}
+<style>
+:root {
+  --primary-blue: #3B82F6;
+  --primary-blue-dark: #2563EB;
+  --primary-blue-light: #DBEAFE;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --shadow-lg: 0 10px 15px -3px rgba(59,130,246,0.10), 0 4px 6px -2px rgba(59,130,246,0.05);
+  --radius-xl: 1rem;
+}
+body { background: linear-gradient(135deg, #dcdbff 0%, #ffffff   100%); }
+.container {
+  padding: 2.5rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.card {
+  background: rgba(255,255,255,0.97);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  backdrop-filter: blur(8px);
+}
+.card-header {
+  padding: 2rem 2rem 1rem 2rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+}
+.card-body {
+  padding: 2rem;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #3B82F6 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59,130,246,0.10);
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background: linear-gradient(135deg, #2563EB 0%, #764ba2 100%);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(59,130,246,0.15);
+}
+.text-muted { color: #9CA3AF; }
+.grid { display: grid; gap: 2rem; }
+.grid-cols-1 { grid-template-columns: 1fr; }
+@media (min-width: 768px) {
+  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .container { padding: 0.5rem; }
+  .card-header, .card-body { padding-left: 1rem; padding-right: 1rem; }
+}
+.col-span-full { grid-column: 1 / -1; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.card').forEach((card, i) => {
+    card.style.opacity = 0;
+    card.style.transform = 'translateY(30px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.5s cubic-bezier(.4,0,.2,1)';
+      card.style.opacity = 1;
+      card.style.transform = 'translateY(0)';
+    }, 100 + i * 80);
+  });
+});
+</script>
+{% endblock %}
+{% block content %}
+<div class="container py-8">
+    <h1 class="text-2xl font-bold mb-6">Gift Box Orders</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for order in orders %}
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-lg font-semibold">{{ order.campaign.name }}</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Buyer:</strong> {{ order.buyer.name }}</p>
+                <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+                <p><strong>Placed:</strong> {{ order.created_at|date:'Y-m-d H:i' }}</p>
+                <p><strong>Message:</strong> {{ order.buyer_message|default:'-' }}</p>
+                <a href="{% url 'seller:fulfill_giftbox_order' order.id %}" class="btn btn-primary mt-4">Fulfill / Update</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center text-muted">No gift box orders yet.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

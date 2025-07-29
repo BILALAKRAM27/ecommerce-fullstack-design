@@ -269,3 +269,24 @@ class Promotion(models.Model):
             return min(self.discount_value, order_amount)
         else:
             return 0
+
+class GiftBoxCampaign(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name} (${self.price})"
+
+class SellerGiftBoxParticipation(models.Model):
+    seller = models.ForeignKey('Seller', on_delete=models.CASCADE, related_name='giftbox_participations')
+    campaign = models.ForeignKey(GiftBoxCampaign, on_delete=models.CASCADE, related_name='participants')
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('seller', 'campaign')
+
+    def __str__(self):
+        return f"{self.seller} in {self.campaign}"

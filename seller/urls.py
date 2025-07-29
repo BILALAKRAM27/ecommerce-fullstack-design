@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import giftbox_campaigns_view, join_giftbox_campaign, giftbox_orders_seller_view, fulfill_giftbox_order_view
 
 app_name = 'sellers'
 
@@ -66,4 +67,11 @@ urlpatterns = [
     path('notification/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
     path('activity/mark-cleared/', views.mark_activity_as_cleared, name='mark_activity_as_cleared'),
     path('activity/clear-all/', views.clear_all_activity, name='clear_all_activity'),
+]
+
+urlpatterns += [
+    path('giftbox-campaigns/', giftbox_campaigns_view, name='giftbox_campaigns'),
+    path('giftbox-campaigns/join/<int:campaign_id>/', join_giftbox_campaign, name='join_giftbox_campaign'),
+    path('giftbox-orders/', giftbox_orders_seller_view, name='giftbox_orders'),
+    path('giftbox-orders/fulfill/<int:order_id>/', fulfill_giftbox_order_view, name='fulfill_giftbox_order'),
 ]

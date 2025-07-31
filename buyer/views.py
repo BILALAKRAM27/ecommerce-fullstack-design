@@ -387,13 +387,17 @@ def add_to_wishlist(request):
         buyer = get_object_or_404(Buyer, email=request.user.email)
         print(f"Found buyer: {buyer.name}")
         
-        # Check if already in cart
-        cart = Cart.objects.filter(buyer=buyer).first()
-        if cart and cart.items.filter(product=product).exists():
-            return JsonResponse({
-                'success': False,
-                'error': 'This item is already in your cart.'
-            })
+        # Check if this is a request from cart page (allow moving from cart to wishlist)
+        is_from_cart = request.POST.get('from_cart', 'false').lower() == 'true'
+        
+        # Only check if item is in cart if not coming from cart page
+        if not is_from_cart:
+            cart = Cart.objects.filter(buyer=buyer).first()
+            if cart and cart.items.filter(product=product).exists():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'This item is already in your cart.'
+                })
         
         # Check if already in wishlist
         wishlist_item, created = Wishlist.objects.get_or_create(
@@ -404,7 +408,8 @@ def add_to_wishlist(request):
         
         return JsonResponse({
             'success': True,
-            'message': 'Added to wishlist'
+            'message': 'Added to wishlist',
+            'in_wishlist': True
         })
         
     except Exception as e:

@@ -886,7 +886,7 @@
                     <div class="products-count">
                         {{ total_products }} Items found
                         <span class="view-indicator" id="view-indicator">(Grid View)</span>
-                    </div>
+                        </div>
                     <div class="products-controls">
                         
                         <select class="sort-select" name="sort">
@@ -916,7 +916,7 @@
                 <div class="products-grid grid-view" id="products-grid">
                     {% if page_obj %}
                         {% for product in page_obj %}
-                        <div class="product-card">
+                    <div class="product-card">
                             <button class="wishlist-btn" onclick="toggleWishlist(this, {{ product.id }})" data-product-id="{{ product.id }}">♡</button>
                             
                             {% if product.images.all %}
@@ -931,21 +931,21 @@
                                 <img src="https://via.placeholder.com/120x120?text=No+Image" alt="No image" class="product-image">
                             {% endif %}
                             
-                            <div class="product-info">
+                        <div class="product-info">
                                 <div class="seller-info">
                                     {{ product.seller.shop_name }}
                                     {% if product.seller.is_verified %}
                                         <span class="verified-badge">✓ Verified</span>
                                     {% endif %}
-                                </div>
+                            </div>
                                 <h3 class="product-title">{{ product.name }}</h3>
-                                <div class="product-price">
+                            <div class="product-price">
                                     ${{ product.final_price|floatformat:2 }}
                                     {% if product.discount_percentage %}
                                         <span class="product-original-price">${{ product.base_price|floatformat:2 }}</span>
                                     {% endif %}
-                                </div>
-                                <div class="product-rating">
+                            </div>
+                            <div class="product-rating">
                                     <span class="stars">
                                         {% for i in "12345" %}
                                             {% if product.rating_avg and product.rating_avg|floatformat:0 >= i|add:'0' %}★{% else %}☆{% endif %}
@@ -954,18 +954,18 @@
                                     <span class="rating-text">
                                         {% if product.rating_avg %}{{ product.rating_avg|floatformat:1 }}{% else %}N/A{% endif %} • {{ product.order_count }} orders
                                     </span>
-                                </div>
+                            </div>
                                 <p class="product-description">{{ product.description|truncatechars:100 }}</p>
                                 <a href="{% url 'sellers:product_page' product.id %}" class="view-details">View details</a>
-                            </div>
                         </div>
+                    </div>
                         {% endfor %}
                     {% else %}
                         <div class="no-products">
                             <h3>No products found</h3>
                             <p>Try adjusting your filters or search terms</p>
                             <button class="clear-filters-btn" onclick="clearFilters()">Clear All Filters</button>
-                        </div>
+                            </div>
                     {% endif %}
                 </div>
 
@@ -981,7 +981,7 @@
                     {% if page_obj.has_previous %}
                         <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="pagination-btn">←</a>
                     {% else %}
-                        <button class="pagination-btn" disabled>←</button>
+                    <button class="pagination-btn" disabled>←</button>
                     {% endif %}
                     
                     {% for num in page_obj.paginator.page_range %}
@@ -1030,12 +1030,12 @@
         // Toggle sidebar sections
         function initializeEventListeners() {
             // Sidebar collapse functionality
-            document.querySelectorAll('.sidebar-section h3').forEach(header => {
-                header.addEventListener('click', function() {
-                    const section = this.parentNode;
-                    section.classList.toggle('collapsed');
-                });
+        document.querySelectorAll('.sidebar-section h3').forEach(header => {
+            header.addEventListener('click', function() {
+                const section = this.parentNode;
+                section.classList.toggle('collapsed');
             });
+        });
 
             // Auto-submit form when filters change
             document.querySelectorAll('input[type="checkbox"], input[type="radio"], select').forEach(input => {
@@ -1424,32 +1424,32 @@
 
         // Price range slider functionality
         function initializePriceSlider() {
-            const priceSlider = document.querySelector('.price-slider');
-            const priceSliderFill = document.querySelector('.price-slider-fill');
-            let isDragging = false;
+        const priceSlider = document.querySelector('.price-slider');
+        const priceSliderFill = document.querySelector('.price-slider-fill');
+        let isDragging = false;
 
             if (!priceSlider) return;
 
-            priceSlider.addEventListener('mousedown', function(e) {
-                isDragging = true;
+        priceSlider.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            updateSlider(e);
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
                 updateSlider(e);
-            });
-
-            document.addEventListener('mousemove', function(e) {
-                if (isDragging) {
-                    updateSlider(e);
-                }
-            });
-
-            document.addEventListener('mouseup', function() {
-                isDragging = false;
-            });
-
-            function updateSlider(e) {
-                const rect = priceSlider.getBoundingClientRect();
-                const percentage = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-                priceSliderFill.style.width = percentage + '%';
             }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        function updateSlider(e) {
+            const rect = priceSlider.getBoundingClientRect();
+            const percentage = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+            priceSliderFill.style.width = percentage + '%';
+        }
         }
 
         // Clear all filters
@@ -1480,20 +1480,20 @@
                     
                     const sidebar = document.querySelector('.sidebar');
                     if (sidebar) {
-                        sidebar.parentNode.insertBefore(toggleBtn, sidebar);
-                        
-                        // Initially hide sidebar on mobile
-                        sidebar.style.display = 'none';
-                        
-                        toggleBtn.addEventListener('click', function() {
-                            if (sidebar.style.display === 'none') {
-                                sidebar.style.display = 'block';
-                                this.innerHTML = 'Hide Filters ✕';
-                            } else {
-                                sidebar.style.display = 'none';
-                                this.innerHTML = 'Filters ☰';
-                            }
-                        });
+                    sidebar.parentNode.insertBefore(toggleBtn, sidebar);
+                    
+                    // Initially hide sidebar on mobile
+                    sidebar.style.display = 'none';
+                    
+                    toggleBtn.addEventListener('click', function() {
+                        if (sidebar.style.display === 'none') {
+                            sidebar.style.display = 'block';
+                            this.innerHTML = 'Hide Filters ✕';
+                        } else {
+                            sidebar.style.display = 'none';
+                            this.innerHTML = 'Filters ☰';
+                        }
+                    });
                     }
                 }
             } else {
@@ -1510,27 +1510,27 @@
 
         // Product card animations
         function initializeProductAnimations() {
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
 
-            const observer = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // Apply animation to product cards
-            document.querySelectorAll('.product-card').forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
-                observer.observe(card);
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
             });
+        }, observerOptions);
+
+        // Apply animation to product cards
+            document.querySelectorAll('.product-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            observer.observe(card);
+        });
         }
 
         // Handle window resize
@@ -1573,7 +1573,7 @@
             .then(data => {
                 if (data.in_wishlist) {
                     updateWishlistButton(btn, true);
-                } else {
+                    } else {
                     updateWishlistButton(btn, false);
                 }
             })

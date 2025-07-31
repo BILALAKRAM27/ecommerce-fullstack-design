@@ -1275,7 +1275,7 @@
             });
         });
 
-            // Update the save-btn click handler in your JavaScript
+            // Update the save-btn click handler to use the same logic as marketplace
             document.querySelectorAll('.save-btn').forEach(button => {
                 button.addEventListener('click', function(event) {
                     event.preventDefault();
@@ -1286,19 +1286,19 @@
                     // Show loading state
                     cartItem.style.opacity = '0.5';
 
-                    // First add to wishlist
+                    // First, add to wishlist (this will work even if already in cart due to from_cart=true)
                     fetch('/wishlist/add/', {
                         method: 'POST',
                         headers: {
                             'X-CSRFToken': csrfToken,
                             'Content-Type': 'application/x-www-form-urlencoded'
                         },
-                        body: `product_id=${productId}`
+                        body: `product_id=${productId}&from_cart=true`
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Then remove from cart
+                            // Successfully added to wishlist, now remove from cart
                             return fetch('/cart/update/', {
                                 method: 'POST',
                                 headers: {
@@ -1319,7 +1319,7 @@
                             window.location.reload();
                         } else {
                             cartItem.style.opacity = '1';
-                            showNotification(data.error || 'Failed to update cart', true);
+                            showNotification(data.error || 'Failed to remove from cart', true);
                         }
                     })
                     .catch(error => {

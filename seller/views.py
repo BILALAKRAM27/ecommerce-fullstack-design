@@ -2554,7 +2554,7 @@ def order_details(request, order_id):
                 'payment_time': order.created_at.isoformat() if order.payment_status == 'paid' else None
             }
             
-        return JsonResponse({
+            return JsonResponse({
             'id': order.id,
             'customer_name': buyer_info['name'],
             'customer_email': buyer_info['email'],

@@ -102,10 +102,61 @@
 
         .thumbnail.active {
             border-color: #007bff;
+            background: #f8f9fa;
         }
 
         .thumbnail:hover {
             border-color: #007bff;
+        }
+
+        /* Image navigation buttons */
+        .image-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+            z-index: 10;
+        }
+
+        .image-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .image-nav-btn.prev-btn {
+            left: 10px;
+        }
+
+        .image-nav-btn.next-btn {
+            right: 10px;
+        }
+
+        /* Make main image container relative for absolute positioning of nav buttons */
+        .main-image {
+            position: relative;
+        }
+
+        /* Image counter */
+        .image-counter {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .thumbnail img {
@@ -806,6 +857,21 @@
             .mobile-similar-products {
                 padding: 15px;
             }
+
+            .image-nav-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }
+
+            .thumbnail-images {
+                gap: 8px;
+            }
+
+            .thumbnail {
+                width: 50px;
+                height: 50px;
+            }
         }
 
         /* Modal Styles (from product_detail.html) + Enhanced for modern, responsive, professional look */
@@ -1135,15 +1201,21 @@
             <div class="product-images">
                 {% if product.images.all %}
                 <div class="main-image" id="mainImage">
-                        {% if product.images.first %}
-                            <img src="data:image/jpeg;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}">
-                        {% else %}
-                            <img src="https://via.placeholder.com/400x400?text=No+Image" alt="No image">
+                        {% with thumbnail_image=product.images.filter.is_thumbnail.first %}
+                            {% if thumbnail_image %}
+                                <img src="data:image/jpeg;base64,{{ thumbnail_image.image|b64encode }}" alt="{{ product.name }}" class="active-image">
+                            {% else %}
+                                <img src="data:image/jpeg;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}" class="active-image">
+                            {% endif %}
+                        {% endwith %}
+                        {% if product.images.all|length > 1 %}
+                            <button class="image-nav-btn prev-btn" onclick="scrollImages('prev')" title="Previous Image">‹</button>
+                            <button class="image-nav-btn next-btn" onclick="scrollImages('next')" title="Next Image">›</button>
                         {% endif %}
                 </div>
                 <div class="thumbnail-images">
                         {% for img in product.images.all %}
-                            <div class="thumbnail" onclick="changeImage(this, 'data:image/jpeg;base64,{{ img.image|b64encode }}')">
+                            <div class="thumbnail {% if img.is_thumbnail %}active{% endif %}" onclick="changeImage(this, 'data:image/jpeg;base64,{{ img.image|b64encode }}')">
                                 <img src="data:image/jpeg;base64,{{ img.image|b64encode }}" alt="Thumbnail">
                     </div>
                         {% endfor %}
@@ -1387,12 +1459,10 @@
             })
             .then(response => response.text())
             .then(html => {
-                console.log('DEBUG: Form HTML loaded');
                 updateFormContent.innerHTML = html;
                 setMultipleFileInput();
                 initializeUpdateForm(); // Attach dynamic JS after form loads
                 attachPreviewImagesListener(); // Ensure preview works for new images in modal
-                console.log('DEBUG: Form initialization complete');
             })
             .catch(error => {
                 updateFormContent.innerHTML = '<div style="color: #e74c3c;">Error loading form</div>';
@@ -1426,11 +1496,7 @@
             
 
             
-            // Debug: Log form data before sending
-            console.log('DEBUG: Form data being sent:');
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}: ${value}`);
-            }
+
             
             fetch(`{% url 'sellers:product_update' 0 %}`.replace('0', currentProductId), {
                 method: 'POST',
@@ -1476,6 +1542,110 @@
             }
         });
 
+        // Image gallery functionality
+        function changeImage(thumbnailElement, imageSrc) {
+            // Update main image
+            const mainImage = document.querySelector('#mainImage img');
+            if (mainImage) {
+                mainImage.src = imageSrc;
+            }
+            
+            // Update active thumbnail
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumb => thumb.classList.remove('active'));
+            thumbnailElement.classList.add('active');
+            
+            // Update image counter
+            const currentIndex = Array.from(thumbnails).indexOf(thumbnailElement);
+            updateImageCounter(currentIndex + 1, thumbnails.length);
+        }
+
+        // Image scrolling functionality
+        function scrollImages(direction) {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const activeThumbnail = document.querySelector('.thumbnail.active');
+            
+            if (!activeThumbnail || thumbnails.length <= 1) return;
+            
+            let currentIndex = Array.from(thumbnails).indexOf(activeThumbnail);
+            
+            if (direction === 'next') {
+                currentIndex = (currentIndex + 1) % thumbnails.length;
+            } else {
+                currentIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
+            }
+            
+            const nextThumbnail = thumbnails[currentIndex];
+            const imageSrc = nextThumbnail.querySelector('img').src;
+            changeImage(nextThumbnail, imageSrc);
+            
+            // Update image counter if it exists
+            updateImageCounter(currentIndex + 1, thumbnails.length);
+        }
+
+        function updateImageCounter(current, total) {
+            let counter = document.querySelector('.image-counter');
+            if (!counter && total > 1) {
+                counter = document.createElement('div');
+                counter.className = 'image-counter';
+                document.querySelector('#mainImage').appendChild(counter);
+            }
+            if (counter) {
+                counter.textContent = `${current} / ${total}`;
+            }
+        }
+
+        // Keyboard navigation for images
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowLeft') {
+                scrollImages('prev');
+            } else if (event.key === 'ArrowRight') {
+                scrollImages('next');
+            }
+        });
+
+        // Initialize image gallery
+        document.addEventListener('DOMContentLoaded', function() {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const activeThumbnail = document.querySelector('.thumbnail.active');
+            
+            if (thumbnails.length > 1 && activeThumbnail) {
+                const currentIndex = Array.from(thumbnails).indexOf(activeThumbnail);
+                updateImageCounter(currentIndex + 1, thumbnails.length);
+            }
+        });
+
+        // Touch/swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        const mainImage = document.querySelector('#mainImage');
+        if (mainImage) {
+            mainImage.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+
+            mainImage.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+        }
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe left - next image
+                    scrollImages('next');
+                } else {
+                    // Swipe right - previous image
+                    scrollImages('prev');
+                }
+            }
+        }
+
         // After loading the update form HTML, ensure the file input has the 'multiple' attribute
         function setMultipleFileInput() {
             const fileInputs = updateFormContent.querySelectorAll('input[type="file"]');
@@ -1484,34 +1654,26 @@
 
         // Attach preview images listener to the file input after DOM is loaded
         function attachPreviewImagesListener() {
-            console.log('DEBUG: attachPreviewImagesListener called');
             const fileInput = document.getElementById('id_image_file');
-            console.log('DEBUG: File input found:', fileInput);
             if (fileInput) {
                 fileInput.removeEventListener('change', previewImages); // Prevent duplicate
                 fileInput.addEventListener('change', previewImages);
-                console.log('DEBUG: Preview listener attached to file input');
             }
             
             // Add event listeners for image mode changes
             const imageModeRadios = document.querySelectorAll('input[name="image_mode"]');
-            console.log('DEBUG: Image mode radios found:', imageModeRadios.length);
             imageModeRadios.forEach(radio => {
                 radio.removeEventListener('change', handleImageModeChange); // Prevent duplicate
                 radio.addEventListener('change', handleImageModeChange);
             });
-            console.log('DEBUG: Image mode listeners attached');
         }
 
         // Image preview function
         function previewImages(event) {
-            console.log('DEBUG: previewImages called');
             const files = event.target.files;
-            console.log('DEBUG: Files selected:', files.length);
             const previewContainer = document.getElementById('imagePreviews');
             const thumbnailSelector = document.getElementById('thumbnailSelector');
             const imageMode = document.querySelector('input[name="image_mode"]:checked').value;
-            console.log('DEBUG: Image mode:', imageMode);
             
             // Handle existing thumbnail radios based on image mode
             const existingThumbRadios = document.querySelectorAll('input[name="existing_thumbnail"]');

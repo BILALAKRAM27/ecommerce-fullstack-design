@@ -357,16 +357,11 @@ def update_product_view(request, product_id):
             # --- Image upload logic (exact working code from repo) ---
             image_files = request.FILES.getlist('image_file')
             image_mode = request.POST.get('image_mode', 'add')
-            print(f"DEBUG: Image files count: {len(image_files)}")
-            print(f"DEBUG: Image mode: {image_mode}")
-            print(f"DEBUG: Thumbnail index: {request.POST.get('thumbnail', 0)}")
-            print(f"DEBUG: Existing thumbnail: {request.POST.get('existing_thumbnail')}")
             
             if image_files:
                 if image_mode == 'replace':
                     # Delete all existing images for this product
                     product.images.all().delete()
-                    print(f"DEBUG: Replaced existing images")
                 # Handle new images
                 thumbnail_index = int(request.POST.get('thumbnail', 0))
                 for idx, image_file in enumerate(image_files):
@@ -376,14 +371,12 @@ def update_product_view(request, product_id):
                         image=image_data,
                         is_thumbnail=(idx == thumbnail_index)
                     )
-                    print(f"DEBUG: Created image {idx}, thumbnail: {idx == thumbnail_index}")
             # Handle existing images (if editing)
             existing_thumbnail_id = request.POST.get('existing_thumbnail')
             if existing_thumbnail_id:
                 for img in product.images.all():
                     img.is_thumbnail = (str(img.id) == existing_thumbnail_id)
                     img.save()
-                    print(f"DEBUG: Updated existing image {img.id}, thumbnail: {img.is_thumbnail}")
             if existing_thumbnail_id:
                 for img in product.images.all():
                     img.is_thumbnail = (str(img.id) == existing_thumbnail_id)
@@ -2382,9 +2375,6 @@ def product_edit_data(request, product_id):
 @require_POST
 def product_update(request, product_id):
     """Update product data"""
-    print(f"DEBUG: product_update view called for product {product_id}")
-    print(f"DEBUG: POST data: {dict(request.POST)}")
-    print(f"DEBUG: FILES data: {dict(request.FILES)}")
     seller = get_object_or_404(Seller, user=request.user)
     product = get_object_or_404(Product, id=product_id, seller=seller)
     

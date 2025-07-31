@@ -25,6 +25,7 @@ urlpatterns = [
     path('ajax/get-category-children/', views.get_category_children, name='get_category_children'),
     path('ajax/get-category-attributes/', views.get_category_attributes, name='get_category_attributes'),
     path('ajax/save-attribute-value/', views.save_attribute_value, name='save_attribute_value'),
+    path('ajax/get-filtered-products/', views.get_filtered_products, name='get_filtered_products'),
 
     path('dashboard/', views.seller_dashboard_overview, name='seller_dashboard'),
     path('orders/', views.seller_orders, name='seller_orders'),

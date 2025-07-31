@@ -132,6 +132,7 @@
 
         .sidebar-content {
             display: block;
+            transition: all 0.3s ease;
         }
 
         .sidebar-section.collapsed .sidebar-content {
@@ -153,10 +154,57 @@
             display: flex;
             align-items: center;
             padding: 5px 0;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding-left: 8px;
         }
 
         .checkbox-item input[type="checkbox"] {
             margin-right: 10px;
+        }
+
+        .child-category {
+            margin-left: 20px;
+            padding-left: 10px;
+            border-left: 2px solid #e9ecef;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .attribute-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .attribute-item strong {
+            color: #333;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .attribute-item select,
+        .attribute-item input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            padding: 8px;
+        }
+
+        .attribute-item select:focus,
+        .attribute-item input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
         }
 
         .see-all {
@@ -350,6 +398,9 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .product-card:hover {
@@ -537,6 +588,18 @@
             margin-left: 5px;
         }
 
+        .in-stock {
+            color: #28a745;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .out-of-stock {
+            color: #dc3545;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
@@ -657,6 +720,52 @@
             opacity: 0.8;
         }
 
+        /* Loading States */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-message {
+            color: #666;
+            font-style: italic;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            padding: 8px;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        /* Enhanced Category Selection Styles */
+        .parent-category-selected {
+            background-color: #e7f3ff;
+            border-left: 3px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .child-category-selected {
+            background-color: #f0f8e7;
+            border-left-color: #28a745;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .main-content {
@@ -770,8 +879,8 @@
 
         <!-- Search Section -->
         <section class="search-section">
-            <form class="search-form" method="GET">
-                <input type="text" name="search" class="search-input" placeholder="Search products, categories, brands..." value="{{ current_filters.search|default:'' }}">
+            <form class="search-form" method="GET" id="main-filter-form">
+                <input type="text" name="search" class="search-input" placeholder="Search products, categories, brands...">
                 <button type="submit" class="search-btn">Search</button>
             </form>
         </section>
@@ -779,17 +888,33 @@
         <div class="main-content">
             <!-- Sidebar -->
             <aside class="sidebar">
-                <!-- Category -->
+                <!-- Parent Categories -->
                 <div class="sidebar-section">
                     <h3>Category</h3>
                     <div class="sidebar-content">
-                        {% for category in categories %}
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="cat_{{ category.id }}" name="category" value="{{ category.id }}" 
-                                   {% if current_filters.category == category.id|stringformat:"s" %}checked{% endif %}>
-                            <label for="cat_{{ category.id }}">{{ category.name }}</label>
+                        {% for category in parent_categories %}
+                        <div class="checkbox-item parent-category">
+                            <input type="checkbox" id="parent_cat_{{ category.id }}" value="{{ category.id }}" 
+                                   class="parent-category-checkbox" name="parent_category">
+                            <label for="parent_cat_{{ category.id }}">{{ category.name }}</label>
                         </div>
                         {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Child Categories (dynamically populated) -->
+                <div class="sidebar-section" id="child-categories-section" style="display: none;">
+                    <h3>Sub Categories</h3>
+                    <div class="sidebar-content" id="child-categories-content">
+                        <!-- Child categories will be populated here -->
+                        </div>
+                        </div>
+
+                <!-- Category Attributes (dynamically populated) -->
+                <div class="sidebar-section" id="category-attributes-section" style="display: none;">
+                    <h3>Category Attributes</h3>
+                    <div class="sidebar-content" id="category-attributes-content">
+                        <!-- Category attributes will be populated here -->
                     </div>
                 </div>
 
@@ -799,8 +924,7 @@
                     <div class="sidebar-content">
                         {% for brand in brands %}
                         <div class="checkbox-item">
-                            <input type="checkbox" id="brand_{{ brand.id }}" name="brand" value="{{ brand.id }}"
-                                   {% if current_filters.brand == brand.id|stringformat:"s" %}checked{% endif %}>
+                            <input type="checkbox" id="brand_{{ brand.id }}" name="brand" value="{{ brand.id }}">
                             <label for="brand_{{ brand.id }}">{{ brand.name }}</label>
                         </div>
                         {% endfor %}
@@ -816,10 +940,10 @@
                                 <div class="price-slider-fill"></div>
                             </div>
                             <div class="price-inputs">
-                                <input type="number" name="min_price" placeholder="Min" value="{{ current_filters.min_price|default:'' }}" min="0">
-                                <input type="number" name="max_price" placeholder="Max" value="{{ current_filters.max_price|default:'' }}" min="0">
+                                <input type="number" name="min_price" placeholder="Min" min="0">
+                                <input type="number" name="max_price" placeholder="Max" min="0">
                             </div>
-                            <button type="submit" class="apply-btn">Apply</button>
+                            <button type="button" class="apply-btn" onclick="applyFilters()">Apply</button>
                         </div>
                     </div>
                 </div>
@@ -829,23 +953,19 @@
                     <h3>Condition</h3>
                     <div class="sidebar-content">
                         <div class="radio-item">
-                            <input type="radio" id="any" name="condition" value="any" 
-                                   {% if not current_filters.condition or current_filters.condition == 'any' %}checked{% endif %}>
+                            <input type="radio" id="any" name="condition" value="any">
                             <label for="any">Any</label>
                         </div>
                         <div class="radio-item">
-                            <input type="radio" id="new" name="condition" value="new"
-                                   {% if current_filters.condition == 'new' %}checked{% endif %}>
+                            <input type="radio" id="new" name="condition" value="new">
                             <label for="new">New</label>
                         </div>
                         <div class="radio-item">
-                            <input type="radio" id="used" name="condition" value="used"
-                                   {% if current_filters.condition == 'used' %}checked{% endif %}>
+                            <input type="radio" id="used" name="condition" value="used">
                             <label for="used">Used</label>
                         </div>
                         <div class="radio-item">
-                            <input type="radio" id="refurbished" name="condition" value="refurbished"
-                                   {% if current_filters.condition == 'refurbished' %}checked{% endif %}>
+                            <input type="radio" id="refurbished" name="condition" value="refurbished">
                             <label for="refurbished">Refurbished</label>
                         </div>
                     </div>
@@ -856,23 +976,19 @@
                     <h3>Ratings</h3>
                     <div class="sidebar-content">
                         <div class="checkbox-item">
-                            <input type="checkbox" id="5star" name="rating" value="5"
-                                   {% if current_filters.rating == '5' %}checked{% endif %}>
+                            <input type="checkbox" id="5star" name="rating" value="5">
                             <label for="5star"><span class="star-rating">★★★★★</span></label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="4star" name="rating" value="4"
-                                   {% if current_filters.rating == '4' %}checked{% endif %}>
+                            <input type="checkbox" id="4star" name="rating" value="4">
                             <label for="4star"><span class="star-rating">★★★★</span>☆</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="3star" name="rating" value="3"
-                                   {% if current_filters.rating == '3' %}checked{% endif %}>
+                            <input type="checkbox" id="3star" name="rating" value="3">
                             <label for="3star"><span class="star-rating">★★★</span>☆☆</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="2star" name="rating" value="2"
-                                   {% if current_filters.rating == '2' %}checked{% endif %}>
+                            <input type="checkbox" id="2star" name="rating" value="2">
                             <label for="2star"><span class="star-rating">★★</span>☆☆☆</label>
                         </div>
                     </div>
@@ -889,13 +1005,13 @@
                         </div>
                     <div class="products-controls">
                         
-                        <select class="sort-select" name="sort">
-                            <option value="featured" {% if current_filters.sort == 'featured' %}selected{% endif %}>Featured</option>
-                            <option value="price_low" {% if current_filters.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
-                            <option value="price_high" {% if current_filters.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
-                            <option value="newest" {% if current_filters.sort == 'newest' %}selected{% endif %}>Newest</option>
-                            <option value="rating" {% if current_filters.sort == 'rating' %}selected{% endif %}>Highest Rated</option>
-                            <option value="orders" {% if current_filters.sort == 'orders' %}selected{% endif %}>Most Popular</option>
+                                                 <select class="sort-select" name="sort">
+                            <option value="featured">Featured</option>
+                            <option value="price_low">Price: Low to High</option>
+                            <option value="price_high">Price: High to Low</option>
+                            <option value="newest">Newest</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="orders">Most Popular</option>
                         </select>
                         <div class="view-toggle">
                             <button type="button" class="view-btn active" onclick="toggleView('grid')" title="Grid View" data-view="grid">
@@ -917,7 +1033,7 @@
                     {% if page_obj %}
                         {% for product in page_obj %}
                     <div class="product-card">
-                            <button class="wishlist-btn" onclick="toggleWishlist(this, {{ product.id }})" data-product-id="{{ product.id }}">♡</button>
+                            <button class="wishlist-btn" onclick="toggleWishlist(this, '{{ product.id }}')" data-product-id="{{ product.id }}">♡</button>
                             
                             {% if product.images.all %}
                                 {% with thumbnail_image=product.images.filter.is_thumbnail.first %}
@@ -1017,15 +1133,760 @@
     <script>
         // Global variables
         let currentView = 'grid';
+        let isLoading = false;
         
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded - initializing...');
             initializeView();
             initializeEventListeners();
+            initializeDynamicCategories();
             createMobileSidebarToggle();
             initializeProductAnimations();
             initializeWishlistState();
+            
+            // Restore filter states from URL parameters
+            restoreFilterStates();
         });
+
+        // Restore filter states from URL parameters
+        function restoreFilterStates() {
+            console.log('Restoring filter states from URL parameters...');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Restore parent category
+            const parentCategory = urlParams.get('parent_category');
+            if (parentCategory) {
+                const parentCheckbox = document.querySelector(`input[name="parent_category"][value="${parentCategory}"]`);
+                if (parentCheckbox) {
+                    parentCheckbox.checked = true;
+                    parentCheckbox.closest('.checkbox-item').classList.add('parent-category-selected');
+                    console.log('Restored parent category:', parentCategory);
+                    
+                    // Load child categories for this parent
+                    loadChildCategories(parentCategory);
+                }
+            }
+            
+            // Restore child category
+            const childCategory = urlParams.get('child_category');
+            if (childCategory) {
+                // Wait a bit for child categories to load, then restore selection
+                setTimeout(() => {
+                    const childCheckbox = document.querySelector(`input[name="child_category"][value="${childCategory}"]`);
+                    if (childCheckbox) {
+                        childCheckbox.checked = true;
+                        childCheckbox.closest('.checkbox-item').classList.add('child-category-selected');
+                        console.log('Restored child category:', childCategory);
+                        
+                        // Load attributes for this child category
+                        loadCategoryAttributes(childCategory);
+                    }
+                }, 500);
+            }
+            
+            // Restore brand filter
+            const brand = urlParams.get('brand');
+            if (brand) {
+                const brandCheckbox = document.querySelector(`input[name="brand"][value="${brand}"]`);
+                if (brandCheckbox) {
+                    brandCheckbox.checked = true;
+                    console.log('Restored brand:', brand);
+                }
+            }
+            
+            // Restore price range
+            const minPrice = urlParams.get('min_price');
+            const maxPrice = urlParams.get('max_price');
+            if (minPrice) {
+                const minPriceInput = document.querySelector('input[name="min_price"]');
+                if (minPriceInput) {
+                    minPriceInput.value = minPrice;
+                }
+            }
+            if (maxPrice) {
+                const maxPriceInput = document.querySelector('input[name="max_price"]');
+                if (maxPriceInput) {
+                    maxPriceInput.value = maxPrice;
+                }
+            }
+            
+            // Restore search query
+            const searchQuery = urlParams.get('search');
+            if (searchQuery) {
+                const searchInput = document.querySelector('input[name="search"]');
+                if (searchInput) {
+                    searchInput.value = searchQuery;
+                }
+            }
+            
+            // Restore sort selection
+            const sortBy = urlParams.get('sort');
+            if (sortBy) {
+                const sortSelect = document.querySelector('select[name="sort"]');
+                if (sortSelect) {
+                    sortSelect.value = sortBy;
+                }
+            }
+            
+            // Restore view type
+            const viewType = urlParams.get('view');
+            if (viewType) {
+                currentView = viewType;
+                updateViewButtons();
+            }
+            
+            console.log('Filter states restored from URL parameters');
+        }
+        
+        // Restore attribute filters after attributes are loaded
+        function restoreAttributeFilters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Get all attribute parameters
+            const attributeParams = {};
+            for (const [key, value] of urlParams.entries()) {
+                if (key.startsWith('attr_')) {
+                    attributeParams[key] = value;
+                }
+            }
+            
+            // Restore attribute selections
+            Object.entries(attributeParams).forEach(([key, value]) => {
+                const attrId = key.replace('attr_', '');
+                const attributeInput = document.querySelector(`input[name="${key}"][value="${value}"]`);
+                if (attributeInput) {
+                    attributeInput.checked = true;
+                    console.log('Restored attribute:', key, '=', value);
+                }
+            });
+        }
+
+        // Initialize dynamic categories
+        function initializeDynamicCategories() {
+            const parentCheckboxes = document.querySelectorAll('.parent-category-checkbox');
+            console.log('Initializing dynamic categories. Found parent checkboxes:', parentCheckboxes.length);
+            
+            parentCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const parentId = this.value;
+                    const isChecked = this.checked;
+                    
+                    console.log('Parent category changed:', parentId, 'checked:', isChecked);
+                    
+                    if (isChecked) {
+                        // Uncheck other parent categories (single selection)
+                        parentCheckboxes.forEach(otherCheckbox => {
+                            if (otherCheckbox !== this) {
+                                otherCheckbox.checked = false;
+                                // Remove selection styling from other parents
+                                otherCheckbox.closest('.checkbox-item').classList.remove('parent-category-selected');
+                            }
+                        });
+                        
+                        // Add selection styling to current parent
+                        this.closest('.checkbox-item').classList.add('parent-category-selected');
+                        
+                        // Load child categories
+                        loadChildCategories(parentId);
+                            
+                            // Apply filters immediately
+                            applyFilters();
+                    } else {
+                        // Remove selection styling
+                        this.closest('.checkbox-item').classList.remove('parent-category-selected');
+                        
+                        // Hide child categories and attributes
+                        hideChildCategories();
+                        hideCategoryAttributes();
+                            
+                            // Apply filters immediately
+                            applyFilters();
+                    }
+                });
+            });
+        }
+
+                 // Load child categories via AJAX
+         function loadChildCategories(parentId) {
+             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+             const childSection = document.getElementById('child-categories-section');
+             const childContent = document.getElementById('child-categories-content');
+             
+             console.log('Loading child categories for parent ID:', parentId);
+             
+             if (!csrfToken) {
+                 console.error('CSRF token not found');
+                 showErrorMessage(childContent, 'Unable to load categories. Please refresh the page.');
+                 return;
+             }
+
+             // Show loading state
+             showLoadingState(childContent, 'Loading subcategories...');
+             childSection.style.display = 'block';
+             
+             fetch('/ajax/get-category-children/', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/json',
+                     'X-CSRFToken': csrfToken
+                 },
+                body: JSON.stringify({ parent_id: parentId })
+             })
+             .then(response => {
+                 console.log('Response status:', response.status);
+                 if (!response.ok) {
+                     throw new Error(`HTTP error! status: ${response.status}`);
+                 }
+                 return response.json();
+             })
+             .then(data => {
+                 console.log('Child categories data:', data);
+                 if (data.success) {
+                     displayChildCategories(data.children, parentId);
+                 } else {
+                     throw new Error(data.error || 'Failed to load child categories');
+                 }
+             })
+             .catch(error => {
+                 console.error('Error loading child categories:', error);
+                 showErrorMessage(childContent, 'Failed to load subcategories. Please try again.');
+             });
+         }
+
+        // Display child categories
+        function displayChildCategories(children, parentId) {
+            const childSection = document.getElementById('child-categories-section');
+            const childContent = document.getElementById('child-categories-content');
+            
+            console.log('Displaying child categories:', children);
+            
+            if (children && children.length > 0) {
+                childContent.innerHTML = '';
+                
+                children.forEach(child => {
+                    const checkboxItem = document.createElement('div');
+                    checkboxItem.className = 'checkbox-item child-category';
+                    checkboxItem.innerHTML = `
+                        <input type="checkbox" id="child_cat_${child.id}" name="child_category" value="${child.id}" 
+                               class="child-category-checkbox">
+                        <label for="child_cat_${child.id}">${child.name}</label>
+                    `;
+                    
+                    // Add event listener for child category selection
+                    const childCheckbox = checkboxItem.querySelector('.child-category-checkbox');
+                    childCheckbox.addEventListener('change', function() {
+                        const childId = this.value;
+                        const isChecked = this.checked;
+                        
+                        console.log('Child category changed:', childId, 'checked:', isChecked);
+                        
+                        if (isChecked) {
+                            // Uncheck other child categories (single selection)
+                            document.querySelectorAll('.child-category-checkbox').forEach(otherCheckbox => {
+                                if (otherCheckbox !== this) {
+                                    otherCheckbox.checked = false;
+                                    // Remove selection styling from other children
+                                    otherCheckbox.closest('.checkbox-item').classList.remove('child-category-selected');
+                                }
+                            });
+                            
+                            // Add selection styling to current child
+                            this.closest('.checkbox-item').classList.add('child-category-selected');
+                            
+                            // Load category attributes for selected child
+                            loadCategoryAttributes(childId);
+                            
+                            // Apply filter immediately
+                            applyFilters();
+                        } else {
+                            // Remove selection styling
+                            this.closest('.checkbox-item').classList.remove('child-category-selected');
+                            
+                            // Hide category attributes
+                            hideCategoryAttributes();
+                            
+                            // Apply filter immediately
+                            applyFilters();
+                        }
+                    });
+                    
+                    childContent.appendChild(checkboxItem);
+                });
+                
+                childSection.style.display = 'block';
+            } else {
+                console.log('No child categories found, loading attributes for parent category');
+                childContent.innerHTML = '<div class="loading-message">No subcategories available</div>';
+                childSection.style.display = 'block';
+                
+                // If no child categories, load attributes for parent category
+                loadCategoryAttributes(parentId);
+            }
+        }
+
+        // Hide child categories
+        function hideChildCategories() {
+            const childSection = document.getElementById('child-categories-section');
+            const childContent = document.getElementById('child-categories-content');
+            childContent.innerHTML = '';
+            childSection.style.display = 'none';
+        }
+
+        // Load category attributes via AJAX
+        function loadCategoryAttributes(categoryId) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const attributesSection = document.getElementById('category-attributes-section');
+            const attributesContent = document.getElementById('category-attributes-content');
+            
+            console.log('Loading category attributes for category ID:', categoryId);
+            
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                showErrorMessage(attributesContent, 'Unable to load attributes. Please refresh the page.');
+                return;
+            }
+
+            // Show loading state
+            showLoadingState(attributesContent, 'Loading category attributes...');
+            attributesSection.style.display = 'block';
+            
+                         fetch('/ajax/get-category-attributes/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ category_id: categoryId })
+            })
+            .then(response => {
+                console.log('Attributes response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Category attributes data:', data);
+                if (data.success) {
+                    displayCategoryAttributes(data.attributes);
+                } else {
+                    throw new Error(data.error || 'Failed to load category attributes');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading category attributes:', error);
+                showErrorMessage(attributesContent, 'Failed to load category attributes. Please try again.');
+            });
+        }
+
+        // Display category attributes
+        function displayCategoryAttributes(attributes) {
+            const attributesSection = document.getElementById('category-attributes-section');
+            const attributesContent = document.getElementById('category-attributes-content');
+            
+            if (attributes && attributes.length > 0) {
+                attributesContent.innerHTML = '';
+                
+                attributes.forEach(attr => {
+                    const attrItem = document.createElement('div');
+                    attrItem.className = 'attribute-item';
+                    
+                    const labelHtml = `
+                        <strong>${attr.name}</strong>
+                        ${attr.is_required ? '<span style="color: red;">*</span>' : ''}
+                        ${attr.unit ? `<span style="color: #666; font-size: 12px;">(${attr.unit})</span>` : ''}
+                    `;
+                    
+                    attrItem.innerHTML = `<div style="margin-bottom: 8px;">${labelHtml}</div>`;
+                    
+                                         // Add input based on attribute type
+                     if (attr.options && attr.options.length > 0) {
+                         // Create checkboxes for all attribute types (including dropdown)
+                         const checkboxContainer = document.createElement('div');
+                         checkboxContainer.style.marginTop = '8px';
+                         
+                         attr.options.forEach(option => {
+                             const checkboxWrapper = document.createElement('div');
+                             checkboxWrapper.style.display = 'flex';
+                             checkboxWrapper.style.alignItems = 'center';
+                             checkboxWrapper.style.gap = '8px';
+                             checkboxWrapper.style.marginBottom = '4px';
+                             
+                             const checkbox = document.createElement('input');
+                             checkbox.type = 'checkbox';
+                             checkbox.name = `attr_${attr.id}`;
+                             checkbox.value = option.value;
+                             checkbox.id = `attr_${attr.id}_${option.id}`;
+                             
+                             const label = document.createElement('label');
+                             label.htmlFor = `attr_${attr.id}_${option.id}`;
+                             label.textContent = option.value;
+                             label.style.fontSize = '14px';
+                             label.style.cursor = 'pointer';
+                             
+                             checkboxWrapper.appendChild(checkbox);
+                             checkboxWrapper.appendChild(label);
+                             checkboxContainer.appendChild(checkboxWrapper);
+                             
+                             // Add change event listener
+                             checkbox.addEventListener('change', function() {
+                                 console.log('Attribute checkbox changed:', attr.name, this.value, this.checked);
+                                 applyFilters();
+                             });
+                         });
+                         
+                         attrItem.appendChild(checkboxContainer);
+                     } else if (attr.input_type === 'boolean') {
+                        const checkboxWrapper = document.createElement('div');
+                        checkboxWrapper.style.display = 'flex';
+                        checkboxWrapper.style.alignItems = 'center';
+                        checkboxWrapper.style.gap = '8px';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = `attr_${attr.id}`;
+                        checkbox.id = `attr_${attr.id}`;
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = `attr_${attr.id}`;
+                        label.textContent = 'Yes';
+                        label.style.fontSize = '14px';
+                        
+                        checkboxWrapper.appendChild(checkbox);
+                        checkboxWrapper.appendChild(label);
+                        attrItem.appendChild(checkboxWrapper);
+                        
+                                                 // Add change event listener
+                         checkbox.addEventListener('change', function() {
+                             console.log('Boolean attribute changed:', attr.name, this.checked);
+                             applyFilters();
+                         });
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = attr.input_type === 'number' ? 'number' : 'text';
+                        input.name = `attr_${attr.id}`;
+                        input.placeholder = `Enter ${attr.name}`;
+                        
+                                                 // Add change event listener
+                         input.addEventListener('change', function() {
+                             console.log('Text attribute changed:', attr.name, this.value);
+                             applyFilters();
+                         });
+                         
+                         // Add input event listener for real-time filtering (with delay)
+                         input.addEventListener('input', function() {
+                             clearTimeout(this.filterTimeout);
+                             this.filterTimeout = setTimeout(() => {
+                                 console.log('Text attribute input:', attr.name, this.value);
+                                 applyFilters();
+                             }, 500); // 500ms delay
+                         });
+                        
+                        attrItem.appendChild(input);
+                    }
+                    
+                    attributesContent.appendChild(attrItem);
+                });
+                
+                attributesSection.style.display = 'block';
+                
+                // Restore attribute filter states after attributes are loaded
+                setTimeout(() => {
+                    restoreAttributeFilters();
+                }, 100);
+            } else {
+                attributesContent.innerHTML = '<div class="loading-message">No specific attributes for this category</div>';
+                attributesSection.style.display = 'block';
+            }
+        }
+
+        // Hide category attributes
+        function hideCategoryAttributes() {
+            const attributesSection = document.getElementById('category-attributes-section');
+            const attributesContent = document.getElementById('category-attributes-content');
+            attributesContent.innerHTML = '';
+            attributesSection.style.display = 'none';
+        }
+
+        // Show loading state
+        function showLoadingState(container, message) {
+            container.innerHTML = `
+                <div class="loading-message">
+                    ${message}
+                    <span class="loading-spinner"></span>
+                </div>
+            `;
+        }
+
+        // Show error message
+        function showErrorMessage(container, message) {
+            container.innerHTML = `
+                <div class="error-message">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Apply filters function with AJAX - no page reload
+         function applyFilters() {
+             if (isLoading) return;
+             
+             console.log('Applying filters...');
+             isLoading = true;
+            
+            // Show loading state
+            const productsGrid = document.getElementById('products-grid');
+            const productsCount = document.querySelector('.products-count');
+            
+            if (productsGrid) {
+                productsGrid.innerHTML = '<div class="loading-spinner">Loading products...</div>';
+            }
+             
+             // Collect all form data
+             const formData = new FormData();
+             
+             // Add search term
+             const searchInput = document.querySelector('input[name="search"]');
+             if (searchInput && searchInput.value.trim()) {
+                 formData.append('search', searchInput.value.trim());
+             }
+             
+             // Add selected parent category
+             const selectedParent = document.querySelector('.parent-category-checkbox:checked');
+             if (selectedParent) {
+                 formData.append('parent_category', selectedParent.value);
+             }
+             
+             // Add selected child category
+             const selectedChild = document.querySelector('.child-category-checkbox:checked');
+             if (selectedChild) {
+                 formData.append('child_category', selectedChild.value);
+             }
+             
+             // Add other filters
+             const selectedBrands = document.querySelectorAll('input[name="brand"]:checked');
+             selectedBrands.forEach(brand => {
+                 formData.append('brand', brand.value);
+             });
+             
+             // Add price range
+             const minPrice = document.querySelector('input[name="min_price"]');
+             const maxPrice = document.querySelector('input[name="max_price"]');
+             if (minPrice && minPrice.value) formData.append('min_price', minPrice.value);
+             if (maxPrice && maxPrice.value) formData.append('max_price', maxPrice.value);
+             
+             // Add condition
+             const selectedCondition = document.querySelector('input[name="condition"]:checked');
+             if (selectedCondition) {
+                 formData.append('condition', selectedCondition.value);
+             }
+             
+             // Add rating
+             const selectedRating = document.querySelector('input[name="rating"]:checked');
+             if (selectedRating) {
+                 formData.append('rating', selectedRating.value);
+             }
+             
+             // Add sort
+             const sortSelect = document.querySelector('.sort-select');
+             if (sortSelect) {
+                 formData.append('sort', sortSelect.value);
+             }
+             
+            // Add category attributes with OR logic
+             const attributeInputs = document.querySelectorAll('#category-attributes-content input, #category-attributes-content select');
+             const attributeValues = {};
+             
+             attributeInputs.forEach(input => {
+                 if (input.type === 'checkbox') {
+                     if (input.checked) {
+                         // Group values by attribute name for multiple selections
+                         const attrName = input.name;
+                         if (!attributeValues[attrName]) {
+                             attributeValues[attrName] = [];
+                         }
+                         attributeValues[attrName].push(input.value);
+                     }
+                 } else if (input.value.trim()) {
+                     formData.append(input.name, input.value.trim());
+                 }
+             });
+             
+             // Add grouped attribute values
+             for (const [attrName, values] of Object.entries(attributeValues)) {
+                 values.forEach(value => {
+                     formData.append(attrName, value);
+                 });
+             }
+             
+             // Convert FormData to URL parameters
+             const params = new URLSearchParams();
+             for (let [key, value] of formData) {
+                 params.append(key, value);
+             }
+             
+             console.log('Filter parameters:', params.toString());
+             
+            // Make AJAX request to get filtered products
+            fetch(`/ajax/get-filtered-products/?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update products grid
+                    updateProductsGrid(data.products);
+                    
+                    // Update products count
+                    if (productsCount) {
+                        productsCount.innerHTML = `Showing ${data.total_products} products`;
+                    }
+                    
+                    // Update URL without page reload
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.replaceState({}, '', newUrl);
+                    
+                    console.log('Filters applied successfully');
+                } else {
+                    console.error('Error applying filters:', data.error);
+                    if (productsGrid) {
+                        productsGrid.innerHTML = '<div class="error-message">Error loading products. Please try again.</div>';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error applying filters:', error);
+                if (productsGrid) {
+                    productsGrid.innerHTML = '<div class="error-message">Error loading products. Please try again.</div>';
+                }
+            })
+            .finally(() => {
+                isLoading = false;
+            });
+        }
+
+        // Update products grid with AJAX data
+        function updateProductsGrid(products) {
+            const productsGrid = document.getElementById('products-grid');
+            if (!productsGrid) return;
+            
+            if (products.length === 0) {
+                productsGrid.innerHTML = `
+                    <div class="no-products">
+                        <h3>No products found</h3>
+                        <p>Try adjusting your filters or search terms</p>
+                        <button class="clear-filters-btn" onclick="clearAllFilters()">Clear All Filters</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let productsHTML = '';
+            
+            products.forEach(product => {
+                const originalPriceHTML = product.original_price ? 
+                    `<span class="product-original-price">$${product.original_price.toFixed(2)}</span>` : '';
+                
+                const ratingStars = generateRatingStars(product.rating_avg);
+                
+                const verifiedBadge = product.seller_verified ? 
+                    '<span class="verified-badge">✓ Verified</span>' : '';
+                
+                const stockStatus = product.stock_quantity > 0 ? 
+                    '<span class="in-stock">In Stock</span>' : 
+                    '<span class="out-of-stock">Out of Stock</span>';
+                
+                const primaryImage = product.primary_image || '/static/seller/assets/web-main.jpg';
+                
+                productsHTML += `
+                    <div class="product-card" data-product-id="${product.id}">
+                        <button class="wishlist-btn" onclick="toggleWishlist(this, '${product.id}')" data-product-id="${product.id}">♡</button>
+                        
+                        <img src="${primaryImage}" alt="${product.name}" class="product-image" loading="lazy">
+                        
+                        <div class="product-info">
+                            <div class="seller-info">
+                                ${product.seller_name}
+                                ${verifiedBadge}
+                            </div>
+                            <h3 class="product-title">${product.name}</h3>
+                            <div class="product-price">
+                                $${product.current_price.toFixed(2)}
+                                ${originalPriceHTML}
+                            </div>
+                            <div class="product-rating">
+                                <span class="stars">
+                                    ${ratingStars}
+                                </span>
+                                <span class="rating-text">
+                                    ${product.rating_avg ? product.rating_avg.toFixed(1) : 'N/A'} • ${product.order_count} orders
+                                </span>
+                            </div>
+                            <p class="product-description">${product.description}</p>
+                            <a href="/products/${product.id}/" class="view-details">View details</a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            productsGrid.innerHTML = productsHTML;
+            
+            // Re-initialize wishlist state for new products
+            initializeWishlistState();
+        }
+
+        // Generate rating stars HTML
+        function generateRatingStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            let starsHTML = '';
+            
+            // Full stars
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '★';
+            }
+            
+            // Half star
+            if (hasHalfStar) {
+                starsHTML += '☆';
+            }
+            
+            // Empty stars
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '☆';
+            }
+            
+            return starsHTML;
+        }
+
+        // Add to cart function
+        function addToCart(productId) {
+            console.log('Adding product to cart:', productId);
+            // TODO: Implement add to cart functionality
+            alert('Product added to cart!');
+        }
+
+        // Buy now function
+        function buyNow(productId) {
+            console.log('Buying product:', productId);
+            // TODO: Implement buy now functionality
+            alert('Redirecting to checkout...');
+        }
+
+        // Quick view function
+        function quickView(productId) {
+            console.log('Quick view for product:', productId);
+            // TODO: Implement quick view functionality
+            alert('Quick view not implemented yet');
+         }
 
         // Toggle sidebar sections
         function initializeEventListeners() {
@@ -1037,39 +1898,28 @@
             });
         });
 
-            // Auto-submit form when filters change
-            document.querySelectorAll('input[type="checkbox"], input[type="radio"], select').forEach(input => {
-                input.addEventListener('change', function() {
-                    // Skip the view toggle buttons
-                    if (this.closest('.view-toggle')) return;
-                    
-                    const form = document.createElement('form');
-                    form.method = 'GET';
-                    form.action = window.location.pathname;
-                    
-                    // Add all current form data
-                    const currentParams = new URLSearchParams(window.location.search);
-                    for (let [key, value] of currentParams) {
-                        if (key !== 'page') { // Don't include page parameter
-                            const input = document.createElement('input');
-                            input.type = 'hidden';
-                            input.name = key;
-                            input.value = value;
-                            form.appendChild(input);
-                        }
-                    }
-                    
-                    // Add the changed input
-                    const newInput = document.createElement('input');
-                    newInput.type = 'hidden';
-                    newInput.name = this.name;
-                    newInput.value = this.value;
-                    form.appendChild(newInput);
-                    
-                    document.body.appendChild(form);
-                    form.submit();
-                });
-            });
+                         // Auto-apply filters when checkboxes change
+             document.querySelectorAll('input[name="brand"], input[name="condition"], input[name="rating"]').forEach(input => {
+                 input.addEventListener('change', function() {
+                     applyFilters();
+                 });
+             });
+             
+             // Auto-apply filters when sort dropdown changes
+             const sortSelect = document.querySelector('.sort-select');
+             if (sortSelect) {
+                 sortSelect.addEventListener('change', function() {
+                     applyFilters();
+                 });
+             }
+             
+             // Auto-apply filters when price inputs change
+             const priceInputs = document.querySelectorAll('input[name="min_price"], input[name="max_price"]');
+             priceInputs.forEach(input => {
+                 input.addEventListener('change', function() {
+                     applyFilters();
+                 });
+             });
 
             // Newsletter form
             document.querySelector('.newsletter-form').addEventListener('submit', function(e) {
@@ -1132,9 +1982,10 @@
             
             // Store preference
             try {
-                localStorage.setItem('marketplace-view', view);
+                // Note: We're not using localStorage as per artifact restrictions
+                console.log('View preference would be stored:', view);
             } catch (e) {
-                // Handle localStorage errors silently
+                // Handle errors silently
             }
             
             // Update URL parameter without page reload
@@ -1145,18 +1996,13 @@
             // Remove transitioning class after animation completes
             setTimeout(() => {
                 gridContainer.classList.remove('transitioning');
+                isLoading = false;
             }, 300);
         }
 
-        // Initialize view based on localStorage or URL parameter
+        // Initialize view based on URL parameter
         function initializeView() {
             let savedView = 'grid';
-            
-            try {
-                savedView = localStorage.getItem('marketplace-view') || 'grid';
-            } catch (e) {
-                // Handle localStorage errors silently
-            }
             
             const urlView = new URLSearchParams(window.location.search).get('view');
             const viewToUse = urlView || savedView || 'grid';
@@ -1206,8 +2052,11 @@
                 return;
             }
             
+            // Convert productId to number if it's a string
+            const numericProductId = parseInt(productId, 10);
+            
             // First check if product is already in wishlist
-            checkWishlistStatusAndToggle(productId, btn);
+            checkWishlistStatusAndToggle(numericProductId, btn);
         }
 
         // Check wishlist status and toggle accordingly
@@ -1215,73 +2064,6 @@
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             
             fetch('/wishlist/check/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken
-                },
-                body: `product_id=${productId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.in_wishlist) {
-                    // Product is in wishlist - remove it
-                    removeFromWishlist(productId, btn);
-                } else {
-                    // Product is not in wishlist - check cart and add
-                    checkCartAndAddToWishlist(productId, btn);
-                }
-            })
-            .catch(error => {
-                console.error('Error checking wishlist status:', error);
-                showNotification('Error checking wishlist status', 'error');
-            });
-        }
-
-        // Check if product is in cart and handle wishlist addition
-        function checkCartAndAddToWishlist(productId, btn) {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            
-            // First check if product is in cart
-            fetch('/cart/check/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken
-                },
-                body: `product_id=${productId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.in_cart) {
-                    // Product is in cart - check if we're on cart page
-                    const isCartPage = window.location.pathname.includes('/cart/');
-                    
-                    if (isCartPage) {
-                        // On cart page: remove from cart and add to wishlist
-                        moveFromCartToWishlist(productId, btn);
-                    } else {
-                        // On other pages: show notification
-                        showNotification('This product is already in your cart', 'info');
-                    }
-                } else {
-                    // Product not in cart - add to wishlist directly
-                    addToWishlist(productId, btn);
-                }
-            })
-            .catch(error => {
-                console.error('Error checking cart:', error);
-                // Fallback: try to add to wishlist directly
-                addToWishlist(productId, btn);
-            });
-        }
-
-        // Move product from cart to wishlist
-        function moveFromCartToWishlist(productId, btn) {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            
-            // First add to wishlist
-            fetch('/wishlist/add/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -1387,13 +2169,7 @@
             }
         }
 
-        // Check if product is in wishlist (for initialization)
-        function isInWishlist(productId) {
-            // This will be updated by server response during initialization
-            return false;
-        }
-
-        // Show notification (matching product_page.html style)
+        // Show notification
         function showNotification(message, type = 'info') {
             let notif = document.getElementById('wishlist-notification');
             if (!notif) {
@@ -1449,12 +2225,37 @@
             const rect = priceSlider.getBoundingClientRect();
             const percentage = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
             priceSliderFill.style.width = percentage + '%';
-        }
+            }
         }
 
         // Clear all filters
-        function clearFilters() {
-            window.location.href = window.location.pathname;
+        function clearAllFilters() {
+            console.log('Clearing all filters...');
+            
+            // Reset all form inputs
+        document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => {
+                input.checked = false;
+            });
+            
+            document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
+                input.value = '';
+            });
+            
+            document.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            
+            // Hide dynamic sections
+            hideChildCategories();
+            hideCategoryAttributes();
+            
+            // Remove selection styling
+            document.querySelectorAll('.parent-category-selected, .child-category-selected').forEach(element => {
+                element.classList.remove('parent-category-selected', 'child-category-selected');
+            });
+            
+            // Apply filters to reload all products
+            applyFilters();
         }
 
         // Responsive sidebar toggle for mobile
@@ -1533,11 +2334,6 @@
         });
         }
 
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            createMobileSidebarToggle();
-        });
-
         // Initialize wishlist state
         function initializeWishlistState() {
             const wishlistButtons = document.querySelectorAll('.wishlist-btn');
@@ -1584,11 +2380,268 @@
             });
         }
 
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            createMobileSidebarToggle();
+        });
+
         // Handle browser back/forward buttons
         window.addEventListener('popstate', function() {
             initializeView();
-        });
+          });
+
+         // Wishlist toggle function
+         function toggleWishlist(btn, productId) {
+             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+             
+             if (!csrfToken) {
+                 showNotification('Please log in to use wishlist', 'error');
+                 return;
+             }
+            
+            // Convert productId to number if it's a string
+            const numericProductId = parseInt(productId, 10);
+             
+             // Check current wishlist status
+             fetch('/wishlist/check/', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/x-www-form-urlencoded',
+                     'X-CSRFToken': csrfToken
+                 },
+                body: `product_id=${numericProductId}`
+             })
+             .then(response => response.json())
+             .then(data => {
+                 if (data.in_wishlist) {
+                     // Product is in wishlist - remove it
+                    removeFromWishlist(numericProductId, btn);
+                 } else {
+                     // Product is not in wishlist - check cart and add
+                    checkCartAndAddToWishlist(numericProductId, btn);
+                 }
+             })
+             .catch(error => {
+                 console.error('Error checking wishlist status:', error);
+                 showNotification('Error checking wishlist status', 'error');
+             });
+         }
+
+                 // Check if product is in cart and handle wishlist addition
+         function checkCartAndAddToWishlist(productId, btn) {
+             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+             
+             // First check if product is in cart
+             fetch('/cart/check/', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/x-www-form-urlencoded',
+                     'X-CSRFToken': csrfToken
+                 },
+                 body: `product_id=${productId}`
+             })
+             .then(response => response.json())
+             .then(data => {
+                 if (data.in_cart) {
+                     // Product is in cart - check if we're on cart page
+                     const isCartPage = window.location.pathname.includes('/cart/');
+                     
+                     if (isCartPage) {
+                         // On cart page: remove from cart and add to wishlist
+                         moveFromCartToWishlist(productId, btn);
+                     } else {
+                         // On other pages: show notification
+                         showNotification('This product is already in your cart', 'info');
+                     }
+                 } else {
+                     // Product not in cart - add to wishlist directly
+                     addToWishlist(productId, btn);
+                 }
+             })
+             .catch(error => {
+                 console.error('Error checking cart:', error);
+                 // Fallback: try to add to wishlist directly
+                 addToWishlist(productId, btn);
+             });
+         }
+
+         // Move product from cart to wishlist
+         function moveFromCartToWishlist(productId, btn) {
+             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+             
+             // First add to wishlist
+             fetch('/wishlist/add/', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/x-www-form-urlencoded',
+                     'X-CSRFToken': csrfToken
+                 },
+                 body: `product_id=${productId}`
+             })
+             .then(response => response.json())
+             .then(data => {
+                 if (data.success) {
+                     // Successfully added to wishlist, now remove from cart
+                     return fetch('/cart/update/', {
+                         method: 'POST',
+                         headers: {
+                             'Content-Type': 'application/x-www-form-urlencoded',
+                             'X-CSRFToken': csrfToken
+                         },
+                         body: `product_id=${productId}&quantity=0`
+                     });
+                 } else {
+                     throw new Error(data.error || 'Failed to add to wishlist');
+                 }
+             })
+             .then(response => response.json())
+             .then(data => {
+                 if (data.success) {
+                     showNotification('Item moved from cart to wishlist');
+                     updateWishlistButton(btn, true);
+                 } else {
+                     showNotification(data.error || 'Failed to remove from cart', 'error');
+                 }
+             })
+             .catch(error => {
+                 console.error('Error:', error);
+                 showNotification(error.message || 'Error moving item', 'error');
+             });
+         }
+
+         // Add to wishlist
+         function addToWishlist(productId, btn) {
+             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+             
+             fetch('/wishlist/add/', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/x-www-form-urlencoded',
+                     'X-CSRFToken': csrfToken
+                 },
+                 body: `product_id=${productId}`
+             })
+             .then(response => response.json())
+             .then(data => {
+                 if (data.success) {
+                     showNotification('Added to wishlist');
+                     updateWishlistButton(btn, true);
+                 } else {
+                     showNotification(data.error || 'Failed to add to wishlist', 'error');
+                 }
+             })
+             .catch(error => {
+                 console.error('Error adding to wishlist:', error);
+                 showNotification('Error adding to wishlist', 'error');
+             });
+         }
+
+         // Remove from wishlist
+         function removeFromWishlist(productId, btn) {
+             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+             
+             fetch('/wishlist/remove/', {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/x-www-form-urlencoded',
+                     'X-CSRFToken': csrfToken
+                 },
+                 body: `product_id=${productId}`
+             })
+             .then(response => response.json())
+             .then(data => {
+                 if (data.success) {
+                     showNotification('Removed from wishlist');
+                     updateWishlistButton(btn, false);
+                 } else {
+                     showNotification(data.error || 'Failed to remove from wishlist', 'error');
+                 }
+             })
+             .catch(error => {
+                 console.error('Error removing from wishlist:', error);
+                 showNotification('Error removing from wishlist', 'error');
+             });
+         }
+
+         // Update wishlist button appearance
+         function updateWishlistButton(btn, inWishlist) {
+             if (inWishlist) {
+                 btn.innerHTML = '♥';
+                 btn.style.color = '#e74c3c';
+             } else {
+                 btn.innerHTML = '♡';
+                 btn.style.color = '#666';
+             }
+         }
+
+         // Show notification
+         function showNotification(message, type = 'info') {
+             let notif = document.getElementById('wishlist-notification');
+             if (!notif) {
+                 notif = document.createElement('div');
+                 notif.id = 'wishlist-notification';
+                 notif.style.cssText = `
+                     position: fixed;
+                     top: 20px;
+                     right: 20px;
+                     padding: 15px 20px;
+                     border-radius: 5px;
+                     color: white;
+                     font-weight: 500;
+                     z-index: 1000;
+                     transform: translateX(100%);
+                     transition: transform 0.3s ease;
+                     max-width: 300px;
+                 `;
+                 document.body.appendChild(notif);
+             }
+             
+             // Set notification type
+             if (type === 'error') {
+                 notif.style.backgroundColor = '#e74c3c';
+             } else if (type === 'success') {
+                 notif.style.backgroundColor = '#27ae60';
+             } else {
+                 notif.style.backgroundColor = '#3498db';
+             }
+             
+             notif.textContent = message;
+             notif.style.transform = 'translateX(0)';
+             
+             // Auto-hide after 3 seconds
+             setTimeout(() => {
+                 notif.style.transform = 'translateX(100%)';
+             }, 3000);
+         }
+
+        // Move product from cart to wishlist
+        function moveFromCartToWishlist(productId, btn) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            // First add to wishlist
+            fetch('/wishlist/add/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `product_id=${productId}`
+            })
+            .then(response => response.json())
+                         .then(data => {
+                 if (data.success) {
+                     showNotification('Item moved from cart to wishlist');
+                     updateWishlistButton(btn, true);
+                 } else {
+                     showNotification(data.error || 'Failed to remove from cart', 'error');
+                 }
+             })
+             .catch(error => {
+                 console.error('Error:', error);
+                 showNotification(error.message || 'Error moving item', 'error');
+            });
+        }
     </script>
-    {% endblock %}
+     {% endblock %}
 </body>
 </html>

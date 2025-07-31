@@ -261,11 +261,15 @@ def create_product_view(request):
     seller = get_object_or_404(Seller, user=request.user)
     
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
+        form = DynamicProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save(commit=False)
             product.seller = seller
             product.save()
+            
+            # Handle dynamic attributes (this will be called by the form's save method)
+            form.save_dynamic_attributes(product)
+            
             # Handle new images
             thumbnail_index = int(request.POST.get('thumbnail', 0))
             image_files = request.FILES.getlist('image_file')
@@ -284,7 +288,7 @@ def create_product_view(request):
             messages.success(request, 'Product created successfully!')
             return redirect('seller:products_list')
     else:
-        form = ProductForm()
+        form = DynamicProductForm()
     
     # Get parent categories (categories with no parent)
     parent_categories = Category.objects.filter(parent__isnull=True)
@@ -516,47 +520,61 @@ def delete_product_view(request, product_id):
 def get_category_children(request):
     """Get child categories for a selected parent category"""
     if request.method == 'POST':
-        data = json.loads(request.body)
-        parent_id = data.get('parent_id')
-        
-        if parent_id:
-            children = Category.objects.filter(parent_id=parent_id)
-            children_data = [{'id': child.id, 'name': child.name} for child in children]
-            return JsonResponse({'children': children_data})
-        
-    return JsonResponse({'children': []})
+        try:
+            data = json.loads(request.body)
+            parent_id = data.get('parent_id')
+            
+            if parent_id:
+                children = Category.objects.filter(parent_id=parent_id)
+                children_data = [{'id': child.id, 'name': child.name} for child in children]
+                return JsonResponse({'success': True, 'children': children_data})
+            else:
+                return JsonResponse({'success': False, 'error': 'Parent ID is required'})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 @csrf_exempt
 def get_category_attributes(request):
     """Get attributes for a selected category with existing options"""
     if request.method == 'POST':
-        data = json.loads(request.body)
-        category_id = data.get('category_id')
-        
-        if category_id:
-            attributes = CategoryAttribute.objects.filter(category_id=category_id)
-            attributes_data = []
+        try:
+            data = json.loads(request.body)
+            category_id = data.get('category_id')
             
-            for attr in attributes:
-                attr_data = {
-                    'id': attr.id,
-                    'name': attr.name,
-                    'input_type': attr.input_type,
-                    'is_required': attr.is_required,
-                    'unit': attr.unit,
-                    'options': []
-                }
+            if category_id:
+                attributes = CategoryAttribute.objects.filter(category_id=category_id)
+                attributes_data = []
                 
-                # Get existing options for all attribute types (not just dropdown)
-                options = AttributeOption.objects.filter(attribute=attr)
-                attr_data['options'] = [{'id': opt.id, 'value': opt.value} for opt in options]
+                for attr in attributes:
+                    attr_data = {
+                        'id': attr.id,
+                        'name': attr.name,
+                        'input_type': attr.input_type,
+                        'is_required': attr.is_required,
+                        'unit': attr.unit,
+                        'options': []
+                    }
+                    
+                    # Get existing options for all attribute types (not just dropdown)
+                    options = AttributeOption.objects.filter(attribute=attr)
+                    attr_data['options'] = [{'id': opt.id, 'value': opt.value} for opt in options]
+                    
+                    attributes_data.append(attr_data)
                 
-                attributes_data.append(attr_data)
-            
-            return JsonResponse({'attributes': attributes_data})
+                return JsonResponse({'success': True, 'attributes': attributes_data})
+            else:
+                return JsonResponse({'success': False, 'error': 'Category ID is required'})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
     
-    return JsonResponse({'attributes': []})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 @csrf_exempt
@@ -2878,7 +2896,8 @@ def product_listing_view(request):
     products = Product.objects.select_related('seller', 'category', 'brand').prefetch_related('images').all()
     
     # Get filter parameters
-    category_id = request.GET.get('category')
+    parent_category_id = request.GET.get('parent_category')
+    child_category_id = request.GET.get('child_category')
     brand_id = request.GET.get('brand')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
@@ -2890,8 +2909,21 @@ def product_listing_view(request):
     verified_only = request.GET.get('verified') == 'on'
     
     # Apply filters
-    if category_id:
-        products = products.filter(category_id=category_id)
+    if parent_category_id:
+        # Get the parent category and all its children
+        try:
+            parent_category = Category.objects.get(id=parent_category_id)
+            child_categories = Category.objects.filter(parent=parent_category)
+            # Filter by parent category or any of its children
+            category_ids = [parent_category.id] + list(child_categories.values_list('id', flat=True))
+            products = products.filter(category_id__in=category_ids)
+        except Category.DoesNotExist:
+            pass
+    
+    if child_category_id:
+        # Override parent category filter with specific child category
+        products = products.filter(category_id=child_category_id)
+    
     if brand_id:
         products = products.filter(brand_id=brand_id)
     if min_price:
@@ -2912,6 +2944,31 @@ def product_listing_view(request):
     if verified_only:
         products = products.filter(seller__is_verified=True)
     
+            # Apply attribute filters with OR logic
+        attribute_filters = Q()
+        has_attribute_filters = False
+        
+        # Group attribute filters by attribute ID to handle multiple values per attribute
+        attribute_groups = {}
+        for key, value in request.GET.items():
+            if key.startswith('attr_') and value:
+                has_attribute_filters = True
+                attr_id = key.replace('attr_', '')
+                if attr_id not in attribute_groups:
+                    attribute_groups[attr_id] = []
+                attribute_groups[attr_id].append(value)
+        
+        if has_attribute_filters:
+            # For each attribute, create OR condition for its values
+            for attr_id, values in attribute_groups.items():
+                attr_filter = Q()
+                for value in values:
+                    attr_filter |= Q(attribute_values__attribute_id=attr_id, attribute_values__value=value)
+                # Combine all attributes with OR logic (product must match at least one of the selected attributes)
+                attribute_filters |= attr_filter
+            
+            products = products.filter(attribute_filters).distinct()
+    
     # Apply sorting
     if sort_by == 'price_low':
         products = products.order_by('base_price')
@@ -2931,8 +2988,8 @@ def product_listing_view(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get filter options
-    categories = Category.objects.all()
+    # Get filter options - only parent categories initially
+    parent_categories = Category.objects.filter(parent__isnull=True)
     brands = Brand.objects.all()
     
     # Calculate price range for slider
@@ -2945,12 +3002,13 @@ def product_listing_view(request):
     
     context = {
         'page_obj': page_obj,
-        'categories': categories,
+        'parent_categories': parent_categories,
         'brands': brands,
         'min_price_range': min_price_range,
         'max_price_range': max_price_range,
         'current_filters': {
-            'category': category_id,
+            'parent_category': parent_category_id,
+            'child_category': child_category_id,
             'brand': brand_id,
             'min_price': min_price,
             'max_price': max_price,
@@ -2966,3 +3024,176 @@ def product_listing_view(request):
     }
     
     return render(request, 'seller/ecom_product_listing.html', context)
+
+@csrf_exempt
+def get_filtered_products(request):
+    """AJAX endpoint to get filtered products without page reload"""
+    try:
+        # Get all products with related data
+        products = Product.objects.select_related('seller', 'category', 'brand').prefetch_related('images').all()
+        
+        # Get filter parameters
+        parent_category_id = request.GET.get('parent_category')
+        child_category_id = request.GET.get('child_category')
+        brand_id = request.GET.get('brand')
+        min_price = request.GET.get('min_price')
+        max_price = request.GET.get('max_price')
+        condition = request.GET.get('condition')
+        rating = request.GET.get('rating')
+        search_query = request.GET.get('search')
+        sort_by = request.GET.get('sort', 'featured')
+        verified_only = request.GET.get('verified') == 'on'
+        
+        # Apply filters
+        if parent_category_id:
+            # Get the parent category and all its children
+            try:
+                parent_category = Category.objects.get(id=parent_category_id)
+                child_categories = Category.objects.filter(parent=parent_category)
+                # Filter by parent category or any of its children
+                category_ids = [parent_category.id] + list(child_categories.values_list('id', flat=True))
+                products = products.filter(category_id__in=category_ids)
+            except Category.DoesNotExist:
+                pass
+        
+        if child_category_id:
+            # Override parent category filter with specific child category
+            products = products.filter(category_id=child_category_id)
+        
+        if brand_id:
+            products = products.filter(brand_id=brand_id)
+        if min_price:
+            products = products.filter(base_price__gte=float(min_price))
+        if max_price:
+            products = products.filter(base_price__lte=float(max_price))
+        if condition and condition != 'any':
+            products = products.filter(condition=condition)
+        if rating:
+            products = products.filter(rating_avg__gte=float(rating))
+        if search_query:
+            products = products.filter(
+                Q(name__icontains=search_query) | 
+                Q(description__icontains=search_query) |
+                Q(category__name__icontains=search_query) |
+                Q(brand__name__icontains=search_query)
+            )
+        if verified_only:
+            products = products.filter(seller__is_verified=True)
+        
+        # Apply attribute filters with OR logic
+        attribute_filters = Q()
+        has_attribute_filters = False
+        
+        # Group attribute filters by attribute ID to handle multiple values per attribute
+        attribute_groups = {}
+        for key, value in request.GET.items():
+            if key.startswith('attr_') and value:
+                has_attribute_filters = True
+                attr_id = key.replace('attr_', '')
+                if attr_id not in attribute_groups:
+                    attribute_groups[attr_id] = []
+                attribute_groups[attr_id].append(value)
+        
+        if has_attribute_filters:
+            # For each attribute, create OR condition for its values
+            for attr_id, values in attribute_groups.items():
+                attr_filter = Q()
+                for value in values:
+                    attr_filter |= Q(attribute_values__attribute_id=attr_id, attribute_values__value=value)
+                # Combine all attributes with OR logic (product must match at least one of the selected attributes)
+                attribute_filters |= attr_filter
+            
+            products = products.filter(attribute_filters).distinct()
+        
+        # Apply sorting
+        if sort_by == 'price_low':
+            products = products.order_by('base_price')
+        elif sort_by == 'price_high':
+            products = products.order_by('-base_price')
+        elif sort_by == 'newest':
+            products = products.order_by('-created_at')
+        elif sort_by == 'rating':
+            products = products.order_by('-rating_avg')
+        elif sort_by == 'orders':
+            products = products.order_by('-order_count')
+        else:  # featured
+            products = products.order_by('-order_count', '-rating_avg')
+        
+        # Pagination
+        paginator = Paginator(products, 12)  # 12 products per page
+        page_number = request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+        
+        # Prepare products data for JSON response
+        products_data = []
+        for product in page_obj:
+            # Get primary image
+            primary_image = product.images.filter(is_thumbnail=True).first()
+            if not primary_image:
+                primary_image = product.images.first()
+            
+            # Convert image to base64
+            image_url = ''
+            if primary_image and primary_image.image:
+                import base64
+                image_url = f"data:image/jpeg;base64,{base64.b64encode(primary_image.image).decode('utf-8')}"
+            
+            # Get all images for the product
+            all_images = product.images.all()
+            images_data = []
+            for img in all_images:
+                if img.image:
+                    img_base64 = base64.b64encode(img.image).decode('utf-8')
+                    images_data.append({
+                        'url': f"data:image/jpeg;base64,{img_base64}",
+                        'is_thumbnail': img.is_thumbnail
+                    })
+            
+            # Calculate current price (base_price - discount)
+            current_price = product.base_price
+            if product.discount_percentage:
+                current_price = product.base_price * (1 - product.discount_percentage / 100)
+            elif product.final_price:
+                current_price = product.final_price
+            
+            product_data = {
+                'id': product.id,
+                'name': product.name,
+                'description': product.description,
+                'base_price': float(product.base_price),
+                'current_price': float(current_price),
+                'original_price': float(product.base_price) if product.discount_percentage or product.final_price else None,
+                'rating_avg': float(product.rating_avg) if product.rating_avg else 0,
+                'rating_count': product.reviews.count(),
+                'order_count': product.order_count,
+                'condition': product.condition,
+                'stock_quantity': product.stock,
+                'category_name': product.category.name,
+                'brand_name': product.brand.name if product.brand else '',
+                'seller_name': product.seller.user.username if product.seller.user else product.seller.name,
+                'seller_verified': getattr(product.seller, 'is_verified', False),
+                'primary_image': image_url,
+                'images': images_data,
+                'created_at': product.created_at.isoformat(),
+            }
+            products_data.append(product_data)
+        
+        response_data = {
+            'success': True,
+            'products': products_data,
+            'total_products': products.count(),
+            'has_previous': page_obj.has_previous(),
+            'has_next': page_obj.has_next(),
+            'current_page': page_obj.number,
+            'total_pages': page_obj.paginator.num_pages,
+            'previous_page_number': page_obj.previous_page_number() if page_obj.has_previous() else None,
+            'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

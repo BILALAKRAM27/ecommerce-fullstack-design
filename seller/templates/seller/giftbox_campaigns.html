@@ -1,139 +1,561 @@
 {% extends 'index.html' %}
-{% block title %}Gift Box Campaigns{% endblock %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Box Campaigns - Seller Dashboard</title>
 {% block extra_css %}
 <style>
-:root {
-  --primary-blue: #3B82F6;
-  --primary-blue-dark: #2563EB;
-  --primary-blue-light: #DBEAFE;
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
-  --shadow-lg: 0 10px 15px -3px rgba(59,130,246,0.10), 0 4px 6px -2px rgba(59,130,246,0.05);
-  --radius-xl: 1rem;
-}
-body { background: linear-gradient(135deg, #dcdbff 0%, #ffffff   100%); }
-.container {
-  padding: 2.5rem 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.card {
-  background: rgba(255,255,255,0.97);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  border: 1.5px solid #e5e7eb;
-  overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
-  backdrop-filter: blur(8px);
-}
-.card-header {
-  padding: 2rem 2rem 1rem 2rem;
-  border-bottom: 1px solid #f3f4f6;
-  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
-}
-.card-body {
-  padding: 2rem;
-}
-.card-footer {
-  padding: 1.25rem 2rem;
-  background: var(--bg-secondary);
-  border-top: 1px solid #f3f4f6;
-  text-align: right;
-}
-.card:hover {
-  box-shadow: 0 16px 32px rgba(59,130,246,0.18);
-  transform: translateY(-6px) scale(1.01);
-}
-.btn-primary, .btn-secondary {
-  border-radius: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.10);
-  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-}
-.btn-primary {
-  background: linear-gradient(135deg, #3B82F6 0%, #764ba2 100%);
-  color: #fff;
-  border: none;
-}
-.btn-primary:hover, .btn-primary:focus {
-  background: linear-gradient(135deg, #2563EB 0%, #764ba2 100%);
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 24px rgba(59,130,246,0.15);
-}
-.btn-secondary {
-  background: #f3f4f6;
-  color: #3B82F6;
-  border: 1.5px solid #3B82F6;
-}
-.btn-secondary:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-.text-success { color: #10B981; }
-.text-warning { color: #F59E0B; }
-.text-muted { color: #9CA3AF; }
-.grid { display: grid; gap: 2rem; }
-.grid-cols-1 { grid-template-columns: 1fr; }
-@media (min-width: 768px) {
-  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-}
-@media (min-width: 1024px) {
-  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 600px) {
-  .container { padding: 0.5rem; }
-  .card-header, .card-body, .card-footer { padding-left: 1rem; padding-right: 1rem; }
-}
-.col-span-full { grid-column: 1 / -1; }
-</style>
-{% endblock %}
+        /* Design System Variables */
+        :root {
+            --primary-blue: #4285F4;
+            --primary-blue-dark: #3367D6;
+            --primary-blue-light: #E3F2FD;
+            --neutral-50: #FAFAFA;
+            --neutral-100: #F5F5F5;
+            --neutral-200: #EEEEEE;
+            --neutral-300: #E0E0E0;
+            --neutral-400: #BDBDBD;
+            --neutral-500: #9E9E9E;
+            --neutral-600: #757575;
+            --neutral-700: #616161;
+            --neutral-800: #424242;
+            --neutral-900: #212121;
+            --success: #2ECC71;
+            --warning: #F39C12;
+            --error: #E74C3C;
+            --info: #3498DB;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-muted: #9E9E9E;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #FAFAFA;
+            --bg-tertiary: #F5F5F5;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 0.25rem;
+            --radius-md: 0.375rem;
+            --radius-lg: 0.5rem;
+            --radius-xl: 0.75rem;
+        }
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.card').forEach((card, i) => {
-    card.style.opacity = 0;
-    card.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-      card.style.transition = 'all 0.5s cubic-bezier(.4,0,.2,1)';
-      card.style.opacity = 1;
-      card.style.transform = 'translateY(0)';
-    }, 100 + i * 80);
-  });
-});
-</script>
-{% endblock %}
-{% block content %}
-<div class="container py-8">
-    <h1 class="text-2xl font-bold mb-6">Gift Box Sale Campaigns</h1>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for campaign in campaigns %}
-        <div class="card hover-lift">
-            <div class="card-header">
-                <h2 class="text-xl font-semibold">{{ campaign.name }}</h2>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Layout Components */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #667eea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Grid System */
+        .campaigns-grid {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .campaigns-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .campaigns-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Campaign Card Components */
+        .campaign-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--neutral-200);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .campaign-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-blue-light);
+        }
+
+        .campaign-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue) 0%, #667eea 100%);
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--neutral-50) 100%);
+        }
+        .page-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .animation-container {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-content {
+            flex: 1;
+            text-align: left;
+            max-width: 500px;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #667eea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .campaign-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .campaign-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+        }
+
+        .campaign-details {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .detail-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .detail-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 60px;
+        }
+
+        .detail-value {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .price-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* Status Components */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-joined {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .status-available {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(243, 156, 18, 0.2);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Button Components */
+        .card-actions {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #667eea 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--neutral-100);
+            color: var(--text-secondary);
+            border: 1px solid var(--neutral-300);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            border: 2px dashed var(--neutral-300);
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem auto;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Animation */
+        .campaign-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.6s ease-out forwards;
+        }
+
+        .campaign-card-1 { animation-delay: 0s; }
+        .campaign-card-2 { animation-delay: 0.1s; }
+        .campaign-card-3 { animation-delay: 0.2s; }
+        .campaign-card-4 { animation-delay: 0.3s; }
+        .campaign-card-5 { animation-delay: 0.4s; }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem 0.75rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .page-subtitle {
+                font-size: 1rem;
+            }
+
+            .campaigns-grid {
+                gap: 1.5rem;
+            }
+
+            .card-header,
+            .card-body,
+            .card-actions {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .campaign-details {
+                gap: 0.75rem;
+            }
+
+            .detail-item {
+                padding: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .page-header {
+                margin-bottom: 2rem;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+    {% endblock %}
+    {% block content %}
+</head>
+<body>
+    <div class="container" style="margin-bottom: 20px;">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="header-content">
+                <div class="animation-container">
+                    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js" type="module"></script>
+                    <dotlottie-wc src="https://lottie.host/776df939-16da-4e3e-a106-02fc2f6606ce/VZqvgjKeBJ.lottie" style="width: 200px;height: 200px" speed="1" autoplay loop></dotlottie-wc>
+                </div>
+                
+                <div class="text-content">
+                    <h1 class="page-title">Live Gift Box Campaigns</h1>
+                    <p class="page-subtitle">Manage your active campaigns and join new opportunities to boost your sales</p>
+                </div>
             </div>
-            <div class="card-body">
-                <p class="mb-2"><strong>Price:</strong> ${{ campaign.price }}</p>
-                <p class="mb-2"><strong>Dates:</strong> {{ campaign.start_date }} to {{ campaign.end_date }}</p>
-                <p class="mb-2"><strong>Status:</strong> {% if campaign.id in joined_campaign_ids %}<span class="text-success">Joined</span>{% else %}<span class="text-warning">Not Joined</span>{% endif %}</p>
-            </div>
-            <div class="card-footer">
-                {% if campaign.id in joined_campaign_ids %}
-                    <button class="btn btn-secondary" disabled>Already Joined</button>
+            <a href="{% url 'seller:giftbox_orders' %}" class="btn btn-primary" style="margin-left: 20px; text-decoration: none; color: white;">View Orders</a>
+
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <div class="campaigns-grid">
+                {% if campaigns %}
+                    {% for campaign in campaigns %}
+                    <article class="campaign-card campaign-card-{{ forloop.counter }}">
+                        <div class="card-header">
+                            <h2 class="campaign-title">{{ campaign.name }}</h2>
+                            <div class="campaign-subtitle">
+                                {% if campaign.id in joined_campaign_ids %}
+                                <span class="status-badge status-joined">
+                                    <span class="status-dot"></span>
+                                    Joined
+                                </span>
+                                {% else %}
+                                <span class="status-badge status-available">
+                                    <span class="status-dot"></span>
+                                    Available
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="campaign-details">
+                                <div class="detail-item">
+                                    <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                    <span class="detail-label">Price:</span>
+                                    <span class="detail-value price-value">${{ campaign.price }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a4 4 0 118 0v4m-4 9v2m-6 1h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span class="detail-label">Duration:</span>
+                                    <span class="detail-value">{{ campaign.start_date }} - {{ campaign.end_date }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    <span class="detail-label">Participants:</span>
+                                    <span class="detail-value">{{ campaign.participants.count }} sellers</span>
+                                </div>
+                                <div class="detail-item">
+                                    <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    <span class="detail-label">Orders:</span>
+                                    <span class="detail-value">{{ campaign.orders.count }} sales</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            {% if campaign.id in joined_campaign_ids %}
+                            <button class="btn btn-secondary" disabled>
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Already Joined
+                            </button>
+                            {% else %}
+                            <form method="post" action="{% url 'seller:join_giftbox_campaign' campaign.id %}">
+                                {% csrf_token %}
+                                <button class="btn btn-primary" type="submit">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Join Campaign
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% endfor %}
                 {% else %}
-                    <form method="post" action="{% url 'seller:join_giftbox_campaign' campaign.id %}">
-                        {% csrf_token %}
-                        <button class="btn btn-primary" type="submit">Join Campaign</button>
-                    </form>
+                <div class="empty-state">
+                    <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 3l3 3 3-3"></path>
+                    </svg>
+                    <h3 class="empty-title">No Active Campaigns</h3>
+                    <p class="empty-subtitle">There are no live gift box campaigns at the moment. Check back soon for new opportunities to showcase your products!</p>
+                </div>
                 {% endif %}
             </div>
-        </div>
-        {% empty %}
-        <div class="col-span-full text-center text-muted">No active campaigns at the moment.</div>
-        {% endfor %}
+        </main>
     </div>
-</div>
-{% endblock %} 
+{% endblock %}
+{% block extra_js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form submission handling
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const button = this.querySelector('.btn-primary');
+                    if (button) {
+                        button.innerHTML = `
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="animate-spin">
+                                <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Joining...
+                        `;
+                        button.disabled = true;
+                    }
+                });
+            });
+        });
+
+        // Add spin animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            .animate-spin { animation: spin 1s linear infinite; }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+{% endblock %}
+</html>

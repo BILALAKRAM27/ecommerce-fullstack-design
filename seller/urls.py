@@ -75,6 +75,7 @@ urlpatterns += [
     path('giftbox-campaigns/join/<int:campaign_id>/', join_giftbox_campaign, name='join_giftbox_campaign'),
     path('giftbox-orders/', giftbox_orders_seller_view, name='giftbox_orders'),
     path('giftbox-orders/fulfill/<int:order_id>/', fulfill_giftbox_order_view, name='fulfill_giftbox_order'),
+    path('buyer-info/<int:buyer_id>/', views.get_buyer_info, name='get_buyer_info'),
     path('promotions/', views.promotions_list_view, name='promotions_list'),
     path('promotions/<int:promotion_id>/delete/', views.delete_promotion, name='delete_promotion'),
     path('promotions/<int:promotion_id>/update/form/', views.promotion_update_form_view, name='promotion_update_form'),

@@ -1,82 +1,536 @@
 {% extends 'index.html' %}
-{% block title %}Buy Gift Box{% endblock %}
+{% block title %}Buy Gift Box - {{ seller.shop_name }}{% endblock %}
 {% block extra_css %}
 <style>
 :root {
-  --primary-blue: #3B82F6;
-  --primary-blue-dark: #2563EB;
-  --primary-blue-light: #DBEAFE;
+  /* Primary Brand Colors */
+  --primary-blue: #4285F4;
+  --primary-blue-dark: #3367D6;
+  --primary-blue-light: #E3F2FD;
+  
+  /* Neutral Foundation */
+  --neutral-50: #FAFAFA;
+  --neutral-100: #F5F5F5;
+  --neutral-200: #EEEEEE;
+  --neutral-300: #E0E0E0;
+  --neutral-400: #BDBDBD;
+  --neutral-500: #9E9E9E;
+  --neutral-600: #757575;
+  --neutral-700: #616161;
+  --neutral-800: #424242;
+  --neutral-900: #212121;
+  
+  /* Semantic Colors */
+  --success: #2ECC71;
+  --warning: #F39C12;
+  --error: #E74C3C;
+  --info: #3498DB;
+  
+  /* Text Colors */
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --text-muted: #9E9E9E;
+  --text-inverse: #FFFFFF;
+  
+  /* Background Colors */
   --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
-  --shadow-lg: 0 10px 15px -3px rgba(59,130,246,0.10), 0 4px 6px -2px rgba(59,130,246,0.05);
-  --radius-xl: 1rem;
+  --bg-secondary: #FAFAFA;
+  --bg-tertiary: #F5F5F5;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* Typography */
+  --font-primary: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
-body { background: linear-gradient(135deg, #dcdbff 0%, #ffffff   100%); }
+
+body {
+  font-family: var(--font-primary);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .container {
-  max-width: 480px;
-  margin: 2.5rem auto;
-  padding: 1.5rem;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
 }
-.card {
-  background: rgba(255,255,255,0.95);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  border: 1.5px solid #e5e7eb;
+
+/* Header Section */
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1rem;
+  flex-direction: row-reverse;
+}
+
+.animation-container {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-content {
+  flex: 1;
+  text-align: right;
+  max-width: 400px;
+}
+
+.breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+  color: var(--primary-blue);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+  color: var(--primary-blue-dark);
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted);
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+/* Main Purchase Card */
+.purchase-card {
+  background: var(--bg-primary);
+  border-radius: 1rem;
+  border: 1px solid var(--neutral-200);
   overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
-  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
-.card-header {
-  padding: 2rem 2rem 1rem 2rem;
-  border-bottom: 1px solid #f3f4f6;
-  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+
+.purchase-card:hover {
+  box-shadow: 0 8px 35px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
-.card-body {
+
+/* Seller Info Section */
+.seller-info {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  color: var(--text-inverse);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.seller-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 150px;
+  height: 150px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(50px, -50px);
+}
+
+.seller-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.seller-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.seller-description {
+  opacity: 0.9;
+  position: relative;
+  z-index: 1;
+}
+
+/* Campaign Details Section */
+.campaign-details {
+  padding: 2rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.campaign-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.campaign-info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.campaign-dates {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.price-display {
+  text-align: right;
+}
+
+.price-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.price-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+}
+
+.campaign-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-primary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--neutral-200);
+}
+
+.feature-icon {
+  width: 2rem;
+  height: 2rem;
+  background: var(--primary-blue-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-blue);
+  font-size: 0.875rem;
+}
+
+.feature-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Purchase Form Section */
+.purchase-form {
   padding: 2rem;
 }
-.form-group { margin-bottom: 1.5rem; }
-.form-label {
+
+.form-section-title {
+  font-size: 1.125rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  display: block;
-  color: #1F2937;
-  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
 .form-input {
   width: 100%;
-  padding: 1rem 1.25rem;
-  border: 2px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--neutral-300);
   border-radius: 0.5rem;
   font-size: 1rem;
-  background: #fff;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
+  background-color: var(--bg-primary);
 }
+
 .form-input:focus {
-  border-color: var(--primary-blue);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
 }
-.btn-primary {
-  background: linear-gradient(135deg, #3B82F6 0%, #764ba2 100%);
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 1rem 1.5rem;
-  font-weight: 700;
-  font-size: 1.1rem;
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.input-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+/* Order Summary */
+.order-summary {
+  background: var(--bg-tertiary);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--neutral-200);
+}
+
+.summary-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+  padding-top: 1rem;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.summary-label {
+  color: var(--text-secondary);
+}
+
+.summary-value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Purchase Button */
+.btn-purchase {
   width: 100%;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: 0.75rem;
+  padding: 1rem 2rem;
+  font-weight: 600;
+  font-size: 1.125rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.10);
-  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+  position: relative;
+  overflow: hidden;
 }
-.btn-primary:hover, .btn-primary:focus {
-  background: linear-gradient(135deg, #2563EB 0%, #764ba2 100%);
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(59,130,246,0.15);
+
+.btn-purchase::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
 }
-@media (max-width: 600px) {
-  .container { padding: 0.5rem; }
-  .card-header, .card-body { padding: 1rem; }
+
+.btn-purchase:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(66, 133, 244, 0.35);
+}
+
+.btn-purchase:hover::before {
+  left: 100%;
+}
+
+.btn-purchase:active {
+  transform: translateY(-1px);
+}
+
+/* Security Badge */
+.security-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.security-icon {
+  color: var(--success);
+}
+
+/* Trust Indicators */
+.trust-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--neutral-200);
+}
+
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.trust-icon {
+  color: var(--success);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem 0.75rem;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .animation-container {
+    order: 1;
+  }
+  
+  .text-content {
+    text-align: center;
+    max-width: none;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+  }
+  
+  .seller-info,
+  .campaign-details,
+  .purchase-form {
+    padding: 1.5rem;
+  }
+  
+  .campaign-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .price-display {
+    text-align: left;
+  }
+  
+  .campaign-features {
+    grid-template-columns: 1fr;
+  }
+  
+  .trust-indicators {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    gap: 0.75rem;
+  }
+  
+  .animation-container dotlottie-wc {
+    width: 150px !important;
+    height: 150px !important;
+  }
+  
+  .seller-info,
+  .campaign-details,
+  .purchase-form {
+    padding: 1rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .price-amount {
+    font-size: 1.75rem;
+  }
+}
+
+/* Animation Classes */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.6s ease-out;
+}
+
+.staggered-animation {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.staggered-animation.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
 {% endblock %}
@@ -84,37 +538,175 @@ body { background: linear-gradient(135deg, #dcdbff 0%, #ffffff   100%); }
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const card = document.querySelector('.card');
-  if (card) {
-    card.style.opacity = 0;
-    card.style.transform = 'translateY(30px)';
+  // Staggered animations
+  const animateElements = document.querySelectorAll('.staggered-animation');
+  animateElements.forEach((element, index) => {
     setTimeout(() => {
-      card.style.transition = 'all 0.5s cubic-bezier(.4,0,.2,1)';
-      card.style.opacity = 1;
-      card.style.transform = 'translateY(0)';
-    }, 100);
+      element.classList.add('visible');
+    }, 150 + index * 100);
+  });
+  
+  // Form validation enhancement
+  const messageInput = document.getElementById('buyer_message');
+  const charCount = document.getElementById('char-count');
+  const maxLength = 255;
+  
+  if (messageInput && charCount) {
+    messageInput.addEventListener('input', function() {
+      const remaining = maxLength - this.value.length;
+      charCount.textContent = `${remaining} characters remaining`;
+      
+      if (remaining < 50) {
+        charCount.style.color = 'var(--warning)';
+      } else {
+        charCount.style.color = 'var(--text-muted)';
+      }
+    });
   }
+  
+ 
 });
 </script>
 {% endblock %}
+
 {% block content %}
-<div class="container py-8 max-w-lg mx-auto">
-    <div class="card">
-        <div class="card-header">
-            <h1 class="text-xl font-bold">Buy Gift Box from {{ seller.shop_name }}</h1>
-        </div>
-        <div class="card-body">
-            <p><strong>Campaign:</strong> {{ campaign.name }}</p>
-            <p><strong>Price:</strong> ${{ campaign.price }}</p>
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label class="form-label" for="buyer_message">Message or Tag (optional)</label>
-                    <input class="form-input" type="text" name="buyer_message" id="buyer_message" maxlength="255" placeholder="e.g. Happy Birthday!">
-                </div>
-                <button class="btn btn-primary w-full" type="submit">Place Order</button>
-            </form>
-        </div>
+<div class="container">
+  <!-- Page Header -->
+  <div class="page-header staggered-animation">
+    
+    
+    <div class="header-content">
+      <div class="animation-container">
+        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js" type="module"></script>
+        <dotlottie-wc src="https://lottie.host/46148cf2-3a99-4e01-ab43-af1d4e1db356/2vp0gYNax1.lottie" style="width: 200px;height: 200px" speed="1" autoplay loop></dotlottie-wc>
+      </div>
+      
+      <div class="text-content">
+        <h1 class="page-title">Complete Your Purchase</h1>
+        <p class="page-subtitle">You're one step away from getting your gift box</p>
+      </div>
     </div>
+  </div>
+
+  <!-- Main Purchase Card -->
+  <div class="purchase-card staggered-animation">
+    
+    <!-- Seller Information -->
+    <div class="seller-info">
+      <div class="seller-badge">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
+        </svg>
+        Verified Seller
+      </div>
+      <h2 class="seller-name">{{ seller.shop_name }}</h2>
+      <p class="seller-description">{{ seller.shop_description|default:"Premium gift boxes crafted with care and attention to detail." }}</p>
+    </div>
+
+    <!-- Campaign Details -->
+    <div class="campaign-details">
+      <div class="campaign-header">
+        <div class="campaign-info">
+          <h3>{{ campaign.name }}</h3>
+          <div class="campaign-dates">{{ campaign.start_date }} - {{ campaign.end_date }}</div>
+        </div>
+        <div class="price-display">
+          <div class="price-label">Total Price</div>
+          <div class="price-amount">${{ campaign.price }}</div>
+        </div>
+      </div>
+
+      <div class="campaign-features">
+        <div class="feature-item">
+          <div class="feature-icon">🎁</div>
+          <div class="feature-text">Curated Items</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📦</div>
+          <div class="feature-text">Premium Packaging</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🚚</div>
+          <div class="feature-text">Fast Delivery</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Purchase Form -->
+    <div class="purchase-form">
+      <h3 class="form-section-title">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z"/>
+          <path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z"/>
+        </svg>
+        Personalize Your Order
+      </h3>
+      
+      <!-- Order Summary -->
+      <div class="order-summary">
+        <div class="summary-title">Order Summary</div>
+        <div class="summary-row">
+          <span class="summary-label">Gift Box from {{ seller.shop_name }}</span>
+          <span class="summary-value">${{ campaign.price }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Campaign</span>
+          <span class="summary-value">{{ campaign.name }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Total</span>
+          <span class="summary-value">${{ campaign.price }}</span>
+        </div>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="buyer_message">
+            Personal Message or Gift Tag
+            <span style="color: var(--text-muted); font-weight: normal;">(Optional)</span>
+          </label>
+          <input 
+            class="form-input" 
+            type="text" 
+            name="buyer_message" 
+            id="buyer_message" 
+            maxlength="255" 
+            placeholder="e.g. Happy Birthday Sarah! Hope you love these surprises! 🎉"
+          >
+          <div class="input-hint" id="char-count">255 characters remaining</div>
+        </div>
+
+        <button class="btn-purchase" type="submit">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 0.5rem;">
+            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4h-3.5zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z"/>
+          </svg>
+          Complete Purchase - ${{ campaign.price }}
+        </button>
+
+        <div class="security-info">
+          <svg class="security-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.777 11.777 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7.159 7.159 0 0 0 1.048-.625 11.775 11.775 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.541 1.541 0 0 0-1.044-1.263 62.467 62.467 0 0 0-2.887-.87C9.843.266 8.69 0 8 0zm0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595L7.5 7.915A1.5 1.5 0 0 1 8 5z"/>
+          </svg>
+          Your payment information is secure and encrypted
+        </div>
+
+        <div class="trust-indicators">
+          <div class="trust-item">
+            <svg class="trust-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.061L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+            </svg>
+            Money-back guarantee
+          </div>
+          <div class="trust-item">
+            <svg class="trust-icon" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.061L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+            </svg>
+            Customer support
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
-{% endblock %} 
+{% endblock %}

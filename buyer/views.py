@@ -1637,22 +1637,57 @@ def promotion_checkout_view(request):
 
 @login_required
 def giftbox_marketplace_view(request):
-    # Show active campaign and participating sellers
-    campaign = GiftBoxCampaign.objects.filter(is_active=True).order_by('-start_date').first()
-    sellers = []
-    if campaign:
+    # Show all active campaigns and their participating sellers
+    from django.utils import timezone
+    today = timezone.now().date()
+    
+    # Get all active campaigns that haven't expired
+    campaigns = GiftBoxCampaign.objects.filter(
+        is_active=True,
+        end_date__gte=today  # Only show campaigns that haven't expired
+    ).order_by('-start_date')
+    
+    # Get all sellers participating in any active campaign
+    campaign_data = []
+    for campaign in campaigns:
         seller_ids = SellerGiftBoxParticipation.objects.filter(campaign=campaign).values_list('seller_id', flat=True)
         sellers = Seller.objects.filter(id__in=seller_ids)
+        campaign_data.append({
+            'campaign': campaign,
+            'sellers': sellers,
+            'seller_count': sellers.count()
+        })
+    
     return render(request, 'buyer/giftbox_marketplace.html', {
-        'campaign': campaign,
-        'sellers': sellers,
+        'campaigns': campaign_data,
     })
 
 @login_required
 def buy_giftbox_view(request, seller_id):
-    campaign = GiftBoxCampaign.objects.filter(is_active=True).order_by('-start_date').first()
+    from django.utils import timezone
+    today = timezone.now().date()
+    
+    # Get active campaigns that haven't expired
+    active_campaigns = GiftBoxCampaign.objects.filter(
+        is_active=True,
+        end_date__gte=today
+    ).order_by('-start_date')
+    
     seller = get_object_or_404(Seller, id=seller_id)
     buyer = get_object_or_404(Buyer, email=request.user.email)
+    
+    # Check if seller is participating in any active campaign
+    seller_participations = SellerGiftBoxParticipation.objects.filter(
+        seller=seller,
+        campaign__in=active_campaigns
+    ).select_related('campaign')
+    
+    if not seller_participations.exists():
+        messages.error(request, 'This seller is not participating in any active gift box campaigns.')
+        return redirect('buyer:giftbox_marketplace')
+    
+    # Use the most recent campaign the seller is participating in
+    campaign = seller_participations.first().campaign
     
     if request.method == 'POST':
         message = request.POST.get('buyer_message', '').strip()
@@ -1660,9 +1695,9 @@ def buy_giftbox_view(request, seller_id):
         # Store gift box data in session for checkout
         request.session['giftbox_data'] = {
             'seller_id': seller_id,
-            'campaign_id': campaign.id if campaign else None,
+            'campaign_id': campaign.id,
             'buyer_message': message,
-            'price': float(campaign.price) if campaign else 0,
+            'price': float(campaign.price),
         }
         
         # Redirect to checkout page

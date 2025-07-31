@@ -34,6 +34,7 @@ from .models import GiftBoxCampaign, SellerGiftBoxParticipation
 from django.urls import reverse
 from buyer.models import GiftBoxOrder
 from django.forms import ModelMultipleChoiceField
+from django.http import JsonResponse
 
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY") or settings.STRIPE_SECRET_KEY
@@ -2696,7 +2697,15 @@ def test_create_promotion(request):
 @login_required
 def giftbox_campaigns_view(request):
     seller = get_object_or_404(Seller, user=request.user)
-    campaigns = GiftBoxCampaign.objects.filter(is_active=True)
+    from django.utils import timezone
+    today = timezone.now().date()
+    
+    # Get all active campaigns that haven't expired
+    campaigns = GiftBoxCampaign.objects.filter(
+        is_active=True,
+        end_date__gte=today  # Only show campaigns that haven't expired
+    ).order_by('-start_date')
+    
     participations = SellerGiftBoxParticipation.objects.filter(seller=seller)
     joined_campaign_ids = participations.values_list('campaign_id', flat=True)
     return render(request, 'seller/giftbox_campaigns.html', {
@@ -2707,7 +2716,16 @@ def giftbox_campaigns_view(request):
 @login_required
 def join_giftbox_campaign(request, campaign_id):
     seller = get_object_or_404(Seller, user=request.user)
-    campaign = get_object_or_404(GiftBoxCampaign, id=campaign_id, is_active=True)
+    from django.utils import timezone
+    today = timezone.now().date()
+    
+    campaign = get_object_or_404(
+        GiftBoxCampaign, 
+        id=campaign_id, 
+        is_active=True,
+        end_date__gte=today  # Only allow joining campaigns that haven't expired
+    )
+    
     participation, created = SellerGiftBoxParticipation.objects.get_or_create(seller=seller, campaign=campaign)
     if created:
         messages.success(request, f'You have joined the campaign: {campaign.name}!')
@@ -3193,6 +3211,76 @@ def get_filtered_products(request):
         return JsonResponse(response_data)
         
     except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+def get_buyer_info(request, buyer_id):
+    """Fetch buyer information for modal display"""
+    try:
+        buyer = get_object_or_404(Buyer, id=buyer_id)
+        
+        # Get buyer's address if available
+        address = None
+        try:
+            address = buyer.address
+        except Exception as addr_error:
+            print(f"Address error: {addr_error}")
+            pass
+        
+        # Get buyer's recent orders
+        recent_orders = Order.objects.filter(buyer=buyer).order_by('-created_at')[:5]
+        
+        # Get buyer's gift box orders
+        giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).order_by('-created_at')[:5]
+        
+        buyer_data = {
+            'id': buyer.id,
+            'name': buyer.name,
+            'email': buyer.email,
+            'phone': buyer.phone or 'Not provided',
+            'created_at': buyer.created_at.strftime('%B %d, %Y'),
+            'image': buyer.get_image_base64(),
+            'address': {
+                'street': address.street if address else 'Not provided',
+                'city': address.city if address else 'Not provided',
+                'zip_code': address.zip_code if address else 'Not provided',
+                'country': address.country if address else 'Not provided',
+            } if address else None,
+            'recent_orders': [
+                {
+                    'id': order.id,
+                    'status': order.status,
+                    'total_amount': float(order.total_amount),
+                    'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    'seller_name': order.seller.shop_name or order.seller.user.username,
+                } for order in recent_orders
+            ],
+            'giftbox_orders': [
+                {
+                    'id': order.id,
+                    'status': order.status,
+                    'campaign_name': order.campaign.name,
+                    'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    'seller_name': order.seller.shop_name or order.seller.user.username,
+                } for order in giftbox_orders
+            ],
+            'total_orders': Order.objects.filter(buyer=buyer).count(),
+            'total_giftbox_orders': GiftBoxOrder.objects.filter(buyer=buyer).count(),
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'buyer': buyer_data
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"Error in get_buyer_info: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
             'error': str(e)

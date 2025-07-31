@@ -1,140 +1,687 @@
 {% extends 'index.html' %}
+{% load static %}
+
 {% block title %}Fulfill Gift Box Order{% endblock %}
+
 {% block extra_css %}
 <style>
-:root {
-  --primary-blue: #3B82F6;
-  --primary-blue-dark: #2563EB;
-  --primary-blue-light: #DBEAFE;
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
-  --shadow-lg: 0 10px 15px -3px rgba(59,130,246,0.10), 0 4px 6px -2px rgba(59,130,246,0.05);
-  --radius-xl: 1rem;
-}
-body { background: linear-gradient(135deg, #dcdbff 0%, #ffffff   100%); }
-.container {
-  max-width: 480px;
-  margin: 2.5rem auto;
-  padding: 1.5rem;
-}
-.card {
-  background: rgba(255,255,255,0.97);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  border: 1.5px solid #e5e7eb;
-  overflow: hidden;
-  transition: box-shadow 0.2s, transform 0.2s;
-  backdrop-filter: blur(8px);
-}
-.card-header {
-  padding: 2rem 2rem 1rem 2rem;
-  border-bottom: 1px solid #f3f4f6;
-  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
-}
-.card-body {
-  padding: 2rem;
-}
-.form-group { margin-bottom: 1.5rem; }
-.form-label {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  display: block;
-  color: #1F2937;
-  font-size: 1rem;
-}
-.form-input {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  background: #fff;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.form-input:focus {
-  border-color: var(--primary-blue);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
-}
-.btn-primary {
-  background: linear-gradient(135deg, #3B82F6 0%, #764ba2 100%);
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 1rem 1.5rem;
-  font-weight: 700;
-  font-size: 1.1rem;
-  width: 100%;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.10);
-  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-}
-.btn-primary:hover, .btn-primary:focus {
-  background: linear-gradient(135deg, #2563EB 0%, #764ba2 100%);
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(59,130,246,0.15);
-}
-@media (max-width: 600px) {
-  .container { padding: 0.5rem; }
-  .card-header, .card-body { padding: 1rem; }
-}
+    /* Design System Variables */
+    :root {
+        --primary-blue: #4285F4;
+        --primary-blue-dark: #3367D6;
+        --primary-blue-light: #E3F2FD;
+        --neutral-50: #FAFAFA;
+        --neutral-100: #F5F5F5;
+        --neutral-200: #EEEEEE;
+        --neutral-300: #E0E0E0;
+        --neutral-400: #BDBDBD;
+        --neutral-500: #9E9E9E;
+        --neutral-600: #757575;
+        --neutral-700: #616161;
+        --neutral-800: #424242;
+        --neutral-900: #212121;
+        --success: #2ECC71;
+        --warning: #F39C12;
+        --error: #E74C3C;
+        --info: #3498DB;
+        --text-primary: #212121;
+        --text-secondary: #757575;
+        --text-muted: #9E9E9E;
+        --text-inverse: #FFFFFF;
+        --bg-primary: #FFFFFF;
+        --bg-secondary: #FAFAFA;
+        --bg-tertiary: #F5F5F5;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius-sm: 0.25rem;
+        --radius-md: 0.375rem;
+        --radius-lg: 0.5rem;
+        --radius-xl: 0.75rem;
+        --font-primary: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* Base Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: var(--font-primary);
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Layout Components */
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3rem;
+        margin-bottom: 3rem;
+        animation: slideUp 0.6s ease-out;
+        text-align: left;
+    }
+
+    .page-header-content {
+        flex: 1;
+        max-width: 500px;
+    }
+
+    .page-header-animation {
+        flex-shrink: 0;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        background: linear-gradient(135deg, var(--primary-blue) 0%, #667eea 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-subtitle {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Card Components */
+    .card {
+        background: var(--bg-primary);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--neutral-200);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 2rem;
+        animation: slideUp 0.6s ease-out 0.2s both;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        padding: 2rem 2rem 1.5rem 2rem;
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--neutral-100) 100%);
+        border-bottom: 1px solid var(--neutral-200);
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .card-icon {
+        width: 24px;
+        height: 24px;
+        color: var(--primary-blue);
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    /* Order Info Section */
+    .order-info {
+        display: grid;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .info-item {
+        background: var(--bg-secondary);
+        padding: 1.25rem;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--neutral-200);
+        transition: all 0.2s ease;
+    }
+
+    .info-item:hover {
+        border-color: var(--primary-blue-light);
+        background: var(--bg-primary);
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .info-value {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .info-value.highlight {
+        color: var(--primary-blue);
+    }
+
+    /* Form Components */
+    .form-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-icon {
+        width: 20px;
+        height: 20px;
+        color: var(--primary-blue);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border: 2px solid var(--neutral-300);
+        border-radius: var(--radius-lg);
+        font-size: 1rem;
+        background: var(--bg-primary);
+        transition: all 0.2s ease;
+        font-family: var(--font-primary);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+    }
+
+    .form-input:invalid {
+        border-color: var(--error);
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border: 2px solid var(--neutral-300);
+        border-radius: var(--radius-lg);
+        font-size: 1rem;
+        background: var(--bg-primary);
+        transition: all 0.2s ease;
+        font-family: var(--font-primary);
+        cursor: pointer;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border: 2px solid var(--neutral-300);
+        border-radius: var(--radius-lg);
+        font-size: 1rem;
+        background: var(--bg-primary);
+        transition: all 0.2s ease;
+        font-family: var(--font-primary);
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+    }
+
+    /* Button Components */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+        white-space: nowrap;
+        font-family: var(--font-primary);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, #667eea 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(66, 133, 244, 0.35);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--primary-blue);
+        border-color: var(--primary-blue);
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary-blue-light);
+        transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+        background: transparent;
+        color: var(--text-secondary);
+        border-color: var(--neutral-300);
+    }
+
+    .btn-ghost:hover {
+        background: var(--neutral-100);
+        color: var(--text-primary);
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .status-pending {
+        background: rgba(243, 156, 18, 0.1);
+        color: var(--warning);
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+
+    .status-packed {
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--info);
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+
+    .status-shipped {
+        background: rgba(155, 89, 182, 0.1);
+        color: #9B59B6;
+        border: 1px solid rgba(155, 89, 182, 0.2);
+    }
+
+    .status-delivered {
+        background: rgba(46, 204, 113, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(46, 204, 113, 0.2);
+    }
+
+    .status-cancelled {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--error);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+
+    /* Animations */
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Loading State */
+    .loading-spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem 0.75rem;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .page-header-animation {
+            order: -1;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+        }
+
+        .card-header,
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 0.75rem 0.5rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+        }
+
+        .card-header,
+        .card-body {
+            padding: 1rem;
+        }
+    }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+        <!-- Page Header -->
+    <header class="page-header">
+        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js" type="module"></script>
+        <div class="page-header-animation">
+            <dotlottie-wc src="https://lottie.host/6c43ba3f-d4a0-4edb-a06f-8e308c9ff0c3/6AWCpvDCWl.lottie" style="width: 300px;height: 300px" speed="1" autoplay loop></dotlottie-wc>
+        </div>
+        <div class="page-header-content">
+            <h1 class="page-title">Fulfill Gift Box Order</h1>
+            <p class="page-subtitle">Update order details and manage fulfillment for your customer</p>
+        </div>
+    </header>
+
+    <!-- Order Information Card -->
+    <section class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Order Details
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="order-info">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Buyer</div>
+                        <div class="info-value highlight">{{ order.buyer.name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Campaign</div>
+                        <div class="info-value">{{ order.campaign.name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Order Date</div>
+                        <div class="info-value">{{ order.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Campaign Price</div>
+                        <div class="info-value highlight">${{ order.campaign.price }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Current Status</div>
+                        <div class="info-value">
+                            <span class="status-badge status-{{ order.status }}">{{ order.status|title }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Order ID</div>
+                        <div class="info-value">#{{ order.id }}</div>
+                    </div>
+                </div>
+                
+                {% if order.buyer_message %}
+                <div class="info-item">
+                    <div class="info-label">Customer Message</div>
+                    <div class="info-value">{{ order.buyer_message }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Fulfillment Form Card -->
+    <section class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Update Order
+            </h2>
+        </div>
+        <div class="card-body">
+            <form method="post" id="fulfillmentForm">
+                {% csrf_token %}
+                
+                <!-- Product Selection -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        Select Products for Gift Box
+                    </h3>
+                    <div class="form-group">
+                        <label class="form-label">Choose products to include in this gift box</label>
+                        <select class="form-input" name="selected_products" multiple size="6" required>
+                            {% for product in products %}
+                            <option value="{{ product.id }}" {% if product.id in selected_ids %}selected{% endif %}>
+                                {{ product.name }} - ${{ product.base_price }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small style="color: var(--text-secondary); margin-top: 0.5rem; display: block;">
+                            Hold Ctrl (or Cmd on Mac) to select multiple products
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Order Status -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Update Order Status
+                    </h3>
+                    <div class="form-group">
+                        <label class="form-label">Order Status</label>
+                        <select class="form-select" name="status" required>
+                            {% for value, label in order.STATUS_CHOICES %}
+                            <option value="{{ value }}" {% if value == order.status %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" type="submit" id="submitBtn">
+                        <svg width="40" height="40" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Update Order
+                    </button>
+                    <a href="{% url 'seller:giftbox_orders' %}" class="btn btn-ghost">
+                        <svg width="40" height="40" fill="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back to Orders
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const card = document.querySelector('.card');
-  if (card) {
-    card.style.opacity = 0;
-    card.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-      card.style.transition = 'all 0.5s cubic-bezier(.4,0,.2,1)';
-      card.style.opacity = 1;
-      card.style.transform = 'translateY(0)';
-    }, 100);
-  }
-  const select = document.querySelector('select[name="selected_products"]');
-  if (select) {
-    select.addEventListener('change', function() {
-      select.classList.add('animate-pulse');
-      setTimeout(() => select.classList.remove('animate-pulse'), 400);
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('fulfillmentForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const originalBtnText = submitBtn.innerHTML;
+
+        // Form submission handling
+        form.addEventListener('submit', function(e) {
+            // Show loading state
+            submitBtn.innerHTML = `
+                <span class="loading-spinner"></span>
+                Updating Order...
+            `;
+            submitBtn.disabled = true;
+        });
+
+        // Enhanced select interactions
+        const productSelect = document.querySelector('select[name="selected_products"]');
+        if (productSelect) {
+            productSelect.addEventListener('change', function() {
+                this.classList.add('animate-pulse');
+                setTimeout(() => this.classList.remove('animate-pulse'), 400);
+            });
+        }
+
+        // Status select interactions
+        const statusSelect = document.querySelector('select[name="status"]');
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+                this.classList.add('animate-pulse');
+                setTimeout(() => this.classList.remove('animate-pulse'), 400);
+            });
+        }
+
+        // Card hover effects
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+            }
+            .animate-pulse { animation: pulse 0.4s ease-in-out; }
+        `;
+        document.head.appendChild(style);
     });
-  }
-});
 </script>
-{% endblock %}
-{% block content %}
-<div class="container py-8 max-w-lg mx-auto">
-    <div class="card">
-        <div class="card-header">
-            <h1 class="text-xl font-bold">Fulfill Gift Box Order</h1>
-        </div>
-        <div class="card-body">
-            <p><strong>Buyer:</strong> {{ order.buyer.name }}</p>
-            <p><strong>Campaign:</strong> {{ order.campaign.name }}</p>
-            <p><strong>Message:</strong> {{ order.buyer_message|default:'-' }}</p>
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label class="form-label">Select Products for Gift Box</label>
-                    <select class="form-input" name="selected_products" multiple size="6">
-                        {% for product in products %}
-                        <option value="{{ product.id }}" {% if product.id in selected_ids %}selected{% endif %}>{{ product.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Order Status</label>
-                    <select class="form-input" name="status">
-                        {% for value, label in order.STATUS_CHOICES %}
-                        <option value="{{ value }}" {% if value == order.status %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button class="btn btn-primary w-full" type="submit">Update Order</button>
-            </form>
-        </div>
-    </div>
-</div>
 {% endblock %} 

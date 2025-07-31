@@ -1,109 +1,1202 @@
 {% extends 'index.html' %}
-{% block title %}Gift Box Orders{% endblock %}
-{% block extra_css %}
-<style>
-:root {
-  --primary-blue: #3B82F6;
-  --primary-blue-dark: #2563EB;
-  --primary-blue-light: #DBEAFE;
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
-  --shadow-lg: 0 10px 15px -3px rgba(59,130,246,0.10), 0 4px 6px -2px rgba(59,130,246,0.05);
-  --radius-xl: 1rem;
-}
-body { background: linear-gradient(135deg, #dcdbff 0%, #ffffff   100%); }
-.container {
-  padding: 2.5rem 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.card {
-  background: rgba(255,255,255,0.97);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  border: 1.5px solid #e5e7eb;
-  overflow: hidden;
-  margin-bottom: 2rem;
-  transition: box-shadow 0.2s, transform 0.2s;
-  backdrop-filter: blur(8px);
-}
-.card-header {
-  padding: 2rem 2rem 1rem 2rem;
-  border-bottom: 1px solid #f3f4f6;
-  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
-}
-.card-body {
-  padding: 2rem;
-}
-.btn-primary {
-  background: linear-gradient(135deg, #3B82F6 0%, #764ba2 100%);
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.10);
-  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-}
-.btn-primary:hover, .btn-primary:focus {
-  background: linear-gradient(135deg, #2563EB 0%, #764ba2 100%);
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 24px rgba(59,130,246,0.15);
-}
-.text-muted { color: #9CA3AF; }
-.grid { display: grid; gap: 2rem; }
-.grid-cols-1 { grid-template-columns: 1fr; }
-@media (min-width: 768px) {
-  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-}
-@media (min-width: 1024px) {
-  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 600px) {
-  .container { padding: 0.5rem; }
-  .card-header, .card-body { padding-left: 1rem; padding-right: 1rem; }
-}
-.col-span-full { grid-column: 1 / -1; }
-</style>
-{% endblock %}
+{% load static %}
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.card').forEach((card, i) => {
-    card.style.opacity = 0;
-    card.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-      card.style.transition = 'all 0.5s cubic-bezier(.4,0,.2,1)';
-      card.style.opacity = 1;
-      card.style.transform = 'translateY(0)';
-    }, 100 + i * 80);
-  });
-});
-</script>
-{% endblock %}
-{% block content %}
-<div class="container py-8">
-    <h1 class="text-2xl font-bold mb-6">Gift Box Orders</h1>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for order in orders %}
-        <div class="card">
-            <div class="card-header">
-                <h2 class="text-lg font-semibold">{{ order.campaign.name }}</h2>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Box Orders - Seller Dashboard</title>
+    {% block extra_css %}
+<style>
+        /* Design System Variables */
+        :root {
+            /* Primary Brand Colors */
+            --primary-blue: #4285F4;
+            --primary-blue-dark: #3367D6;
+            --primary-blue-light: #E3F2FD;
+            
+            /* Neutral Foundation */
+            --neutral-50: #FAFAFA;
+            --neutral-100: #F5F5F5;
+            --neutral-200: #EEEEEE;
+            --neutral-300: #E0E0E0;
+            --neutral-400: #BDBDBD;
+            --neutral-500: #9E9E9E;
+            --neutral-600: #757575;
+            --neutral-700: #616161;
+            --neutral-800: #424242;
+            --neutral-900: #212121;
+            
+            /* Semantic Colors */
+            --success: #2ECC71;
+            --warning: #F39C12;
+            --error: #E74C3C;
+            --info: #3498DB;
+            
+            /* Text Colors */
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-muted: #9E9E9E;
+            --text-inverse: #FFFFFF;
+            
+            /* Background Colors */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #FAFAFA;
+            --bg-tertiary: #F5F5F5;
+            --bg-overlay: rgba(0, 0, 0, 0.5);
+            
+            /* Typography */
+            --font-primary: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Container System */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Grid System */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+
+        @media (min-width: 768px) {
+            .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+            .container { padding: 2.5rem 1.5rem; }
+        }
+
+        @media (min-width: 1024px) {
+            .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* Typography */
+        .text-2xl {
+            font-size: 1.5rem;
+            line-height: 1.4;
+            font-weight: 700;
+        }
+
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .text-2xl { font-size: 1.375rem; }
+            .text-lg { font-size: 1rem; }
+        }
+
+        /* Header Section */
+        .page-header {
+            background: var(--bg-primary);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .page-title {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--neutral-200);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue-light);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Card Components */
+        .card {
+            background: var(--bg-primary);
+            border-radius: 0.75rem;
+            border: 1px solid var(--neutral-200);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            border-color: var(--primary-blue-light);
+        }
+
+        .card-header {
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+            border-bottom: 1px solid var(--neutral-200);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--neutral-100) 100%);
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-footer {
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--neutral-200);
+        }
+
+        /* Order Details */
+        .order-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .order-detail:not(:last-child) {
+            border-bottom: 1px solid var(--neutral-100);
+        }
+
+        .order-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 80px;
+            font-size: 0.875rem;
+        }
+
+        .order-value {
+            color: var(--text-primary);
+            font-weight: 500;
+            text-align: right;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-packed {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-shipped {
+            background: #E0E7FF;
+            color: #3730A3;
+        }
+
+        .status-delivered {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-fulfilled {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-cancelled {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-blue-dark) 0%, #2563EB 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-blue-light);
+            border-color: var(--primary-blue-dark);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: var(--neutral-300);
+        }
+
+        .btn-ghost:hover {
+            background: var(--neutral-100);
+            color: var(--text-primary);
+            border-color: var(--neutral-400);
+        }
+
+        /* Action Buttons Grid */
+        .action-buttons {
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 640px) {
+            .action-buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+            .btn {
+                width: auto;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--bg-primary);
+            border-radius: 0.75rem;
+            border: 2px dashed var(--neutral-300);
+        }
+
+        .empty-state-icon {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem;
+            background: var(--neutral-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neutral-400);
+            font-size: 1.5rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-description {
+            color: var(--text-secondary);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-slideUp {
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Dynamic animation delays for order cards */
+        .order-card-1 { animation-delay: 0.5s; }
+        .order-card-2 { animation-delay: 0.6s; }
+        .order-card-3 { animation-delay: 0.7s; }
+        .order-card-4 { animation-delay: 0.8s; }
+        .order-card-5 { animation-delay: 0.9s; }
+        .order-card-6 { animation-delay: 1.0s; }
+        .order-card-7 { animation-delay: 1.1s; }
+        .order-card-8 { animation-delay: 1.2s; }
+        .order-card-9 { animation-delay: 1.3s; }
+        .order-card-10 { animation-delay: 1.4s; }
+
+        /* Loading State */
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-primary);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--neutral-200);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--neutral-100) 100%);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .modal-close {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        /* Buyer Info Styles */
+        .buyer-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .buyer-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-blue-light);
+            background: var(--neutral-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--text-muted);
+        }
+
+        .buyer-details {
+            flex: 1;
+        }
+
+        .buyer-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .buyer-email {
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .buyer-phone {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .buyer-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 1px solid var(--neutral-200);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .info-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--primary-blue);
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .order-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--neutral-200);
+            transition: all 0.2s ease;
+        }
+
+        .order-item:hover {
+            border-color: var(--primary-blue-light);
+            background: var(--bg-primary);
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .order-meta {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .order-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-processing { background: #DBEAFE; color: #1E40AF; }
+        .status-shipped { background: #E0E7FF; color: #3730A3; }
+        .status-delivered { background: #D1FAE5; color: #065F46; }
+        .status-cancelled { background: #FEE2E2; color: #991B1B; }
+
+        /* Responsive Adjustments */
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem 0.75rem;
+            }
+            
+            .page-header {
+                padding: 1.5rem;
+            }
+            
+            .card-header,
+            .card-body,
+            .card-footer {
+                padding: 1rem;
+            }
+            
+            .order-detail {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            
+            .order-label {
+                min-width: auto;
+            }
+            
+            .order-value {
+                text-align: left;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .modal-header,
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .buyer-profile {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .buyer-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    {% endblock %}
+    {% block content %}
+</head>
+<body>
+    <div class="container" style="margin-bottom: 20px;margin-top: 20px;">
+        <!-- Page Header -->
+        <section class="page-header animate-slideUp">
+            <h1 class="page-title text-2xl">🎁 Gift Box Orders</h1>
+            <p class="page-subtitle">Manage and fulfill your customer orders</p>
+        </section>
+
+        <!-- Order Statistics -->
+        <section class="stats-grid">
+            <div class="stat-card animate-slideUp" style="animation-delay: 0.1s">
+                <span class="stat-number" id="total-orders">{{ orders.count }}</span>
+                <span class="stat-label">Total Orders</span>
             </div>
-            <div class="card-body">
-                <p><strong>Buyer:</strong> {{ order.buyer.name }}</p>
-                <p><strong>Status:</strong> {{ order.get_status_display }}</p>
-                <p><strong>Placed:</strong> {{ order.created_at|date:'Y-m-d H:i' }}</p>
-                <p><strong>Message:</strong> {{ order.buyer_message|default:'-' }}</p>
-                <a href="{% url 'seller:fulfill_giftbox_order' order.id %}" class="btn btn-primary mt-4">Fulfill / Update</a>
+            <div class="stat-card animate-slideUp" style="animation-delay: 0.2s">
+                <span class="stat-number" id="pending-orders">{{ orders|length }}</span>
+                <span class="stat-label">Pending</span>
+            </div>
+            <div class="stat-card animate-slideUp" style="animation-delay: 0.3s">
+                <span class="stat-number" id="fulfilled-orders">{{ orders|length }}</span>
+                <span class="stat-label">Fulfilled</span>
+            </div>
+            <div class="stat-card animate-slideUp" style="animation-delay: 0.4s">
+                <span class="stat-number" id="cancelled-orders">0</span>
+                <span class="stat-label">Cancelled</span>
+            </div>
+        </section>
+
+        <!-- Orders Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" id="orders-container">
+            {% if orders %}
+                {% for order in orders %}
+                <article class="card animate-slideUp order-card-{{ forloop.counter }}">
+                    <header class="card-header">
+                        <h2 class="card-title text-lg">{{ order.campaign.name }}</h2>
+                    </header>
+                    <div class="card-body">
+                        <div class="order-detail">
+                            <span class="order-label">Buyer:</span>
+                            <span class="order-value">{{ order.buyer.name }}</span>
+                        </div>
+                        <div class="order-detail">
+                            <span class="order-label">Status:</span>
+                            <span class="order-value">
+                                <span class="status-badge status-{{ order.status }}">{{ order.status|title }}</span>
+                            </span>
+                        </div>
+                        <div class="order-detail">
+                            <span class="order-label">Placed:</span>
+                            <span class="order-value">{{ order.created_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        {% if order.buyer_message %}
+                        <div class="order-detail">
+                            <span class="order-label">Message:</span>
+                            <span class="order-value">{{ order.buyer_message }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="order-detail">
+                            <span class="order-label">Campaign:</span>
+                            <span class="order-value">{{ order.campaign.name }}</span>
+                        </div>
+                        <div class="order-detail">
+                            <span class="order-label">Price:</span>
+                            <span class="order-value">${{ order.campaign.price }}</span>
+                        </div>
+                    </div>
+                    <footer class="card-footer">
+                        <div class="action-buttons">
+                            {% if order.status == 'pending' %}
+                            <a href="{% url 'seller:fulfill_giftbox_order' order.id %}" class="btn btn-primary">
+                                Fulfill Order
+                            </a>
+                            {% else %}
+                            <button class="btn btn-ghost" disabled>
+                                {{ order.status|title }}
+                            </button>
+                            {% endif %}
+                            <button class="btn btn-secondary" onclick="viewBuyerInfo('{{ order.buyer.id }}', '{{ order.buyer.name }}')">
+                                View Buyer Info
+                            </button>
+                        </div>
+                    </footer>
+                </article>
+                {% endfor %}
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state" id="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <h3 class="empty-state-title">No Gift Box Orders Yet</h3>
+                <p class="empty-state-description">
+                    Once customers start placing orders for your gift boxes, they'll appear here for you to manage and fulfill.
+                </p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Buyer Info Modal -->
+    <div id="buyerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Buyer Information</h2>
+                <span class="modal-close" onclick="closeBuyerModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="buyerInfoContent">
+                    <div class="loading-spinner"></div>
+                    <p>Loading buyer information...</p>
+                </div>
             </div>
         </div>
-        {% empty %}
-        <div class="col-span-full text-center text-muted">No gift box orders yet.</div>
-        {% endfor %}
     </div>
-</div>
-{% endblock %} 
+    {% endblock %}
+    {% block extra_js %}
+    <script>
+        // Enhanced JavaScript functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeOrderManagement();
+            setupAnimations();
+        });
+
+        function initializeOrderManagement() {
+            // Simulate real-time updates
+            updateOrderStats();
+            
+            // Setup keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'f' && e.ctrlKey) {
+                    e.preventDefault();
+                    focusFirstPendingOrder();
+                }
+            });
+        }
+
+        function setupAnimations() {
+            // Enhanced card hover effects
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-6px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        }
+
+        function updateOrderStats() {
+            // Calculate actual stats from the DOM
+            const totalOrders = document.querySelectorAll('.card').length;
+            const pendingOrders = document.querySelectorAll('.status-pending').length;
+            const fulfilledOrders = document.querySelectorAll('.status-fulfilled, .status-packed, .status-shipped, .status-delivered').length;
+            const cancelledOrders = document.querySelectorAll('.status-cancelled').length;
+
+            // Update the stats without animation to avoid the fast counting issue
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('pending-orders').textContent = pendingOrders;
+            document.getElementById('fulfilled-orders').textContent = fulfilledOrders;
+            document.getElementById('cancelled-orders').textContent = cancelledOrders;
+        }
+
+        function animateValue(id, start, end, duration) {
+            const element = document.getElementById(id);
+            if (!element) return;
+
+            const range = end - start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+            let current = start;
+
+            const timer = setInterval(() => {
+                current += increment;
+                element.textContent = current;
+                if (current === end) {
+                    clearInterval(timer);
+                }
+            }, stepTime);
+        }
+
+        function fulfillOrder(orderId) {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<span class="loading-spinner"></span>Processing...';
+            button.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Update status badge
+                const card = button.closest('.card');
+                const statusBadge = card.querySelector('.status-badge');
+                statusBadge.className = 'status-badge status-fulfilled';
+                statusBadge.textContent = 'Fulfilled';
+                
+                // Update button
+                button.innerHTML = 'Fulfilled ✓';
+                button.className = 'btn btn-ghost';
+                button.disabled = true;
+                
+                // Update stats
+                updateOrderStats();
+                
+                // Show success feedback
+                showNotification('Order marked as fulfilled successfully!', 'success');
+            }, 1500);
+        }
+
+        function viewBuyerInfo(buyerId, buyerName) {
+            // Show modal
+            const modal = document.getElementById('buyerModal');
+            const content = document.getElementById('buyerInfoContent');
+            
+            // Show loading state
+            content.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+                    <p>Loading buyer information...</p>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+            
+            // Fetch buyer data
+            fetch(`/buyer-info/${buyerId}/`)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        displayBuyerInfo(data.buyer);
+                    } else {
+                        content.innerHTML = `
+                            <div style="text-align: center; padding: 2rem; color: var(--error);">
+                                <p>Error loading buyer information: ${data.error || 'Unknown error'}</p>
+                                <button class="btn btn-primary" onclick="closeBuyerModal()">Close</button>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    content.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--error);">
+                            <p>Error loading buyer information: ${error.message}</p>
+                            <button class="btn btn-primary" onclick="closeBuyerModal()">Close</button>
+                        </div>
+                    `;
+                });
+        }
+
+        function displayBuyerInfo(buyer) {
+            const content = document.getElementById('buyerInfoContent');
+            
+            // Create avatar HTML
+            const avatarHtml = buyer.image 
+                ? `<img src="data:image/jpeg;base64,${buyer.image}" alt="${buyer.name}" class="buyer-avatar">`
+                : `<div class="buyer-avatar">${buyer.name.charAt(0).toUpperCase()}</div>`;
+            
+            // Create address HTML
+            const addressHtml = buyer.address 
+                ? `
+                    <div class="info-item">
+                        <span class="info-label">Street</span>
+                        <span class="info-value">${buyer.address.street}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">City</span>
+                        <span class="info-value">${buyer.address.city}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">ZIP Code</span>
+                        <span class="info-value">${buyer.address.zip_code}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Country</span>
+                        <span class="info-value">${buyer.address.country}</span>
+                    </div>
+                `
+                : '<p style="color: var(--text-secondary); text-align: center; padding: 1rem;">No address information available</p>';
+            
+            // Create recent orders HTML
+            const recentOrdersHtml = buyer.recent_orders.length > 0
+                ? buyer.recent_orders.map(order => `
+                    <div class="order-item">
+                        <div class="order-info">
+                            <div class="order-title">Order #${order.id}</div>
+                            <div class="order-meta">
+                                ${order.seller_name} • $${order.total_amount} • ${order.created_at}
+                            </div>
+                        </div>
+                        <span class="order-status status-${order.status}">${order.status}</span>
+                    </div>
+                `).join('')
+                : '<p style="color: var(--text-secondary); text-align: center; padding: 1rem;">No recent orders</p>';
+            
+            // Create gift box orders HTML
+            const giftboxOrdersHtml = buyer.giftbox_orders.length > 0
+                ? buyer.giftbox_orders.map(order => `
+                    <div class="order-item">
+                        <div class="order-info">
+                            <div class="order-title">${order.campaign_name}</div>
+                            <div class="order-meta">
+                                ${order.seller_name} • ${order.created_at}
+                            </div>
+                        </div>
+                        <span class="order-status status-${order.status}">${order.status}</span>
+                    </div>
+                `).join('')
+                : '<p style="color: var(--text-secondary); text-align: center; padding: 1rem;">No gift box orders</p>';
+            
+            content.innerHTML = `
+                <div class="buyer-profile">
+                    ${avatarHtml}
+                    <div class="buyer-details">
+                        <div class="buyer-name">${buyer.name}</div>
+                        <div class="buyer-email">${buyer.email}</div>
+                        <div class="buyer-phone">${buyer.phone}</div>
+                    </div>
+                </div>
+                
+                <div class="buyer-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">${buyer.total_orders}</span>
+                        <span class="stat-label">Total Orders</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${buyer.total_giftbox_orders}</span>
+                        <span class="stat-label">Gift Box Orders</span>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <div class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Address Information
+                    </div>
+                    <div class="info-grid">
+                        ${addressHtml}
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <div class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        Recent Orders
+                    </div>
+                    <div class="order-list">
+                        ${recentOrdersHtml}
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <div class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        Gift Box Orders
+                    </div>
+                    <div class="order-list">
+                        ${giftboxOrdersHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeBuyerModal() {
+            const modal = document.getElementById('buyerModal');
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('buyerModal');
+            if (event.target === modal) {
+                closeBuyerModal();
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeBuyerModal();
+            }
+        });
+
+        function viewOrderDetails(orderId) {
+            showNotification(`Opening detailed view for order #${orderId}`, 'info');
+            // In a real application, this would show detailed order information
+        }
+
+        function focusFirstPendingOrder() {
+            const firstPendingCard = document.querySelector('.status-pending')?.closest('.card');
+            if (firstPendingCard) {
+                firstPendingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstPendingCard.style.outline = '2px solid var(--primary-blue)';
+                setTimeout(() => {
+                    firstPendingCard.style.outline = 'none';
+                }, 2000);
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 1rem;
+                right: 1rem;
+                background: var(--bg-primary);
+                border: 1px solid var(--neutral-300);
+                border-radius: 0.5rem;
+                padding: 1rem;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                z-index: 1000;
+                max-width: 300px;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            
+            const colors = {
+                success: '#2ECC71',
+                warning: '#F39C12',
+                error: '#E74C3C',
+                info: '#3498DB'
+            };
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 4px; height: 20px; background: ${colors[type]}; border-radius: 2px;"></div>
+                    <span style="color: var(--text-primary); font-weight: 500;">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto remove
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Show empty state if no orders (for demo purposes, this is hidden)
+        function checkEmptyState() {
+            const orders = document.querySelectorAll('.card:not(#empty-state)');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (orders.length === 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+    </script>
+    {% endblock %}
+</body>
+</html>

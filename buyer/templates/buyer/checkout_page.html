@@ -498,6 +498,8 @@
                         <h2 class="text-xl font-semibold">
                             {% if is_giftbox_checkout %}
                                 Gift Box Order
+                            {% elif is_promotion_checkout %}
+                                Promotion Order
                             {% else %}
                                 Your Items
                             {% endif %}
@@ -511,8 +513,10 @@
                                     <h3 class="font-semibold">{{ group.seller.shop_name }}</h3>
                                     {% if is_giftbox_checkout %}
                                         <p class="text-sm text-muted">Gift Box • ${{ group.subtotal|floatformat:2 }}</p>
+                                    {% elif is_promotion_checkout %}
+                                        <p class="text-sm text-muted">Promotion • ${{ group.subtotal|floatformat:2 }}</p>
                                     {% else %}
-                                        <p class="text-sm text-muted">{{ group.products|length }} item{{ group.products|length|pluralize }} • ${{ group.subtotal|floatformat:2 }}</p>
+                                    <p class="text-sm text-muted">{{ group.products|length }} item{{ group.products|length|pluralize }} • ${{ group.subtotal|floatformat:2 }}</p>
                                     {% endif %}
                                 </div>
                                 <div class="chevron" id="chevron-seller{{ forloop.counter }}">
@@ -529,12 +533,17 @@
                                         <div class="item-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
                                             🎁
                                         </div>
+                                    {% elif is_promotion_checkout %}
+                                        <!-- Promotion Display -->
+                                        <div class="item-image" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                            🎯
+                                        </div>
                                     {% else %}
                                         <!-- Regular Product Display -->
-                                        {% if product.image_url %}
-                                            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="item-image">
-                                        {% else %}
-                                            <img src="/static/images/placeholder.png" alt="No image" class="item-image">
+                                    {% if product.image_url %}
+                                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="item-image">
+                                    {% else %}
+                                        <img src="/static/images/placeholder.png" alt="No image" class="item-image">
                                         {% endif %}
                                     {% endif %}
                                     <div class="item-details">
@@ -1147,11 +1156,14 @@
                     if (result.is_giftbox) {
                         // Handle gift box order success
                         showReceipt(result.orders, 'cod', null, 'pending', true);
+                    } else if (result.is_promotion) {
+                        // Handle promotion order success
+                        showReceipt(result.orders, 'cod', null, 'pending', false, true);
                     } else {
-                        // Fetch order details from database for receipt
-                        const orderData = await fetchOrderDetails(result.orders);
-                        console.log('COD order details fetched:', orderData);
-                        showReceipt(result.orders, 'cod', orderData.grouped_order_details, orderData.payment_status);
+                    // Fetch order details from database for receipt
+                    const orderData = await fetchOrderDetails(result.orders);
+                    console.log('COD order details fetched:', orderData);
+                    showReceipt(result.orders, 'cod', orderData.grouped_order_details, orderData.payment_status);
                     }
                 } else {
                     throw new Error(result.error || 'Failed to place order');
@@ -1384,11 +1396,14 @@
                 if (result.is_giftbox) {
                     // Handle gift box order success
                     showReceipt(result.orders, 'stripe', null, 'paid', true);
+                } else if (result.is_promotion) {
+                    // Handle promotion order success
+                    showReceipt(result.orders, 'stripe', null, 'paid', false, true);
                 } else {
-                    // Fetch order details from database for receipt
-                    const orderData = await pollOrderPaymentStatus(result.orders);
-                    console.log('Stripe order details fetched:', orderData);
-                    showReceipt(result.orders, 'stripe', orderData.grouped_order_details, orderData.payment_status);
+                // Fetch order details from database for receipt
+                const orderData = await pollOrderPaymentStatus(result.orders);
+                console.log('Stripe order details fetched:', orderData);
+                showReceipt(result.orders, 'stripe', orderData.grouped_order_details, orderData.payment_status);
                 }
                 
             } catch (error) {
@@ -1428,7 +1443,7 @@
         }
 
         // Show receipt modal
-        function showReceipt(orders, paymentMethod, groupedOrderDetails, paymentStatus = 'paid', isGiftbox = false) {
+        function showReceipt(orders, paymentMethod, groupedOrderDetails, paymentStatus = 'paid', isGiftbox = false, isPromotion = false) {
             try {
                 console.log('showReceipt called with:', { orders, paymentMethod, groupedOrderDetails, paymentStatus, isGiftbox });
                 
@@ -1456,36 +1471,36 @@
                     minute: '2-digit'
                 });
                 
-                orderIdElement.textContent = orderId;
-                const receiptBody = document.getElementById('receipt-content');
-                if (!receiptBody) {
-                    throw new Error('Receipt content element not found');
-                }
+                            orderIdElement.textContent = orderId;
+            const receiptBody = document.getElementById('receipt-content');
+            if (!receiptBody) {
+                throw new Error('Receipt content element not found');
+            }
                 
-                let html = `
-                    <div style="margin-bottom: 1.5rem;">
-                        <h3 class="text-lg font-semibold mb-2">Order Details</h3>
-                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span><strong>Order ID:</strong></span>
-                                <span>#${orderId}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span><strong>Order Date:</strong></span>
-                                <span>${currentDate}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span><strong>Payment Method:</strong></span>
-                                <span>${paymentMethod.toUpperCase()}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span><strong>Payment Status:</strong></span>
-                                <span style="color: ${paymentStatus === 'paid' ? '#28a745' : paymentStatus === 'failed' ? '#dc3545' : '#ffc107'}; font-weight: 600;">
-                                    ${paymentStatus === 'paid' ? '✓ Paid' : paymentStatus === 'failed' ? '✗ Failed' : '⏳ Pending'}
-                                </span>
-                            </div>
+            let html = `
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 class="text-lg font-semibold mb-2">Order Details</h3>
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>Order ID:</strong></span>
+                            <span>#${orderId}</span>
+</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>Order Date:</strong></span>
+                            <span>${currentDate}</span>
                         </div>
-                    </div>`;
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>Payment Method:</strong></span>
+                            <span>${paymentMethod.toUpperCase()}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>Payment Status:</strong></span>
+                            <span style="color: ${paymentStatus === 'paid' ? '#28a745' : paymentStatus === 'failed' ? '#dc3545' : '#ffc107'}; font-weight: 600;">
+                                ${paymentStatus === 'paid' ? '✓ Paid' : paymentStatus === 'failed' ? '✗ Failed' : '⏳ Pending'}
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
                 
                 if (isGiftbox) {
                     // Handle gift box receipt
@@ -1501,6 +1516,26 @@
                                         <div>
                                             <div style="font-weight: 500;">🎁 Gift Box</div>
                                             <div style="font-size: 0.85em; color: #6c757d;">Surprise contents selected by seller</div>
+                                        </div>
+                                        <div style="font-weight: 600; color: #495057;">$${parseFloat('{{ order_summary.subtotal|default:0 }}').toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                } else if (isPromotion) {
+                    // Handle promotion receipt
+                    html += `
+                        <div style="margin-bottom: 1.5rem;">
+                            <h4 class="text-md font-semibold mb-3">Promotion Order</h4>
+                            <div style="border: 1px solid #e9ecef; border-radius: 4px; margin-bottom: 1rem; overflow: hidden;">
+                                <div style="background: #f8f9fa; padding: 0.75rem 1rem; border-bottom: 1px solid #e9ecef;">
+                                    <h5 class="font-semibold" style="margin: 0; color: #495057;">Promotion - Special Offer</h5>
+                                </div>
+                                <div style="padding: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                                        <div>
+                                            <div style="font-weight: 500;">🎯 Promotion</div>
+                                            <div style="font-size: 0.85em; color: #6c757d;">Special discounted offer</div>
                                         </div>
                                         <div style="font-weight: 600; color: #495057;">$${parseFloat('{{ order_summary.subtotal|default:0 }}').toFixed(2)}</div>
                                     </div>
@@ -1534,59 +1569,59 @@
                         </div>`;
                 } else if (groupedOrderDetails && groupedOrderDetails.length > 0) {
                     // Handle regular order receipt
-                    html += `<h4 class="text-md font-semibold mb-3">Order Items by Seller</h4>`;
-                    groupedOrderDetails.forEach((group, index) => {
-                        html += `
-                            <div style="border: 1px solid #e9ecef; border-radius: 4px; margin-bottom: 1rem; overflow: hidden;">
-                                <div style="background: #f8f9fa; padding: 0.75rem 1rem; border-bottom: 1px solid #e9ecef;">
-                                    <h5 class="font-semibold" style="margin: 0; color: #495057;">${group.seller_name}</h5>
-                                </div>
-                                <div style="padding: 1rem;">
-                                    <div style="margin-bottom: 0.75rem;">`;
-                        group.items.forEach(item => {
-                            html += `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f1f3f4;">
-                                    <div>
-                                        <div style="font-weight: 500;">${item.name}</div>
-                                        <div style="font-size: 0.85em; color: #6c757d;">Quantity: ${item.quantity}</div>
-                                    </div>
-                                    <div style="font-weight: 600; color: #495057;">$${item.price.toFixed(2)}</div>
-                                </div>`;
-                        });
-                        html += `
-                                </div>
-                                <div style="display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid #e9ecef; font-weight: 600;">
-                                    <span>Subtotal:</span>
-                                    <span>$${group.subtotal.toFixed(2)}</span>
-                                </div>
-                            </div>
-                        </div>`;
-                    });
-                    const subtotal = groupedOrderDetails.reduce((acc, g) => acc + g.subtotal, 0);
-                    const shipping = parseFloat('{{ order_summary.shipping|default:0 }}') || 0;
-                    // const tax = parseFloat('{{ order_summary.tax|default:0 }}') || 0; // Remove tax from total
-                    const total = subtotal + shipping;
+                html += `<h4 class="text-md font-semibold mb-3">Order Items by Seller</h4>`;
+                groupedOrderDetails.forEach((group, index) => {
                     html += `
-                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span>Subtotal:</span>
-                                <span>$${subtotal.toFixed(2)}</span>
+                        <div style="border: 1px solid #e9ecef; border-radius: 4px; margin-bottom: 1rem; overflow: hidden;">
+                            <div style="background: #f8f9fa; padding: 0.75rem 1rem; border-bottom: 1px solid #e9ecef;">
+                                <h5 class="font-semibold" style="margin: 0; color: #495057;">${group.seller_name}</h5>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span>Shipping:</span>
-                                <span>$${shipping.toFixed(2)}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #dee2e6; font-weight: 600; font-size: 1.1em;">
-                                <span>Total:</span>
-                                <span style="color: #4285F4;">$${total.toFixed(2)}</span>
-                            </div>
-                        </div>`;
-                } else {
-                    html += `<div style="text-align: center; padding: 2rem; color: #6c757d;">
-                        <p>Thank you for your purchase!</p>
-                        <p style="font-size: 0.9em;">Order details will be available shortly.</p>
+                            <div style="padding: 1rem;">
+                                <div style="margin-bottom: 0.75rem;">`;
+            group.items.forEach(item => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f1f3f4;">
+                        <div>
+                            <div style="font-weight: 500;">${item.name}</div>
+                            <div style="font-size: 0.85em; color: #6c757d;">Quantity: ${item.quantity}</div>
+                        </div>
+                        <div style="font-weight: 600; color: #495057;">$${item.price.toFixed(2)}</div>
                     </div>`;
-                }
+            });
+            html += `
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid #e9ecef; font-weight: 600;">
+                            <span>Subtotal:</span>
+                            <span>$${group.subtotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        const subtotal = groupedOrderDetails.reduce((acc, g) => acc + g.subtotal, 0);
+        const shipping = parseFloat('{{ order_summary.shipping|default:0 }}') || 0;
+        // const tax = parseFloat('{{ order_summary.tax|default:0 }}') || 0; // Remove tax from total
+        const total = subtotal + shipping;
+        html += `
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Subtotal:</span>
+                    <span>$${subtotal.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Shipping:</span>
+                    <span>$${shipping.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid #dee2e6; font-weight: 600; font-size: 1.1em;">
+                    <span>Total:</span>
+                    <span style="color: #4285F4;">$${total.toFixed(2)}</span>
+                </div>
+            </div>`;
+    } else {
+        html += `<div style="text-align: center; padding: 2rem; color: #6c757d;">
+            <p>Thank you for your purchase!</p>
+            <p style="font-size: 0.9em;">Order details will be available shortly.</p>
+        </div>`;
+    }
                 html += `
                 <div class="action-buttons" style="text-align: center; margin-top: 1.5rem;">
                     <button class="btn btn-secondary mr-3" onclick="downloadReceipt()">Download Receipt</button>

@@ -330,41 +330,94 @@ def product_page_view(request, product_id):
     return render(request, 'seller/product_page.html', context)
 
 
-# UPDATE Product
+# UPDATE Product (for seller dashboard - AJAX)
 @login_required
 def update_product_view(request, product_id):
     seller = get_object_or_404(Seller, user=request.user)
     product = get_object_or_404(Product, id=product_id, seller=seller)
     
     if request.method == 'POST':
-        form = DynamicProductForm(request.POST, request.FILES, instance=product)
-        if form.is_valid():
-            product = form.save()
-            # --- Image upload logic ---
+        # Check if this is an AJAX request
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        
+        try:
+
+            
+            # Use form validation for all requests (like the working repo code)
+            form = DynamicProductForm(request.POST, request.FILES, instance=product)
+            if form.is_valid():
+                product = form.save()
+            else:
+                if is_ajax:
+                    return JsonResponse({'success': False, 'error': 'Form validation failed'})
+                else:
+                    messages.error(request, 'Form validation failed!')
+                    return redirect('sellers:product_page', product_id=product.id)
+            
+            # --- Image upload logic (exact working code from repo) ---
             image_files = request.FILES.getlist('image_file')
             image_mode = request.POST.get('image_mode', 'add')
+            print(f"DEBUG: Image files count: {len(image_files)}")
+            print(f"DEBUG: Image mode: {image_mode}")
+            print(f"DEBUG: Thumbnail index: {request.POST.get('thumbnail', 0)}")
+            print(f"DEBUG: Existing thumbnail: {request.POST.get('existing_thumbnail')}")
+            
             if image_files:
                 if image_mode == 'replace':
                     # Delete all existing images for this product
                     product.images.all().delete()
+                    print(f"DEBUG: Replaced existing images")
                 # Handle new images
                 thumbnail_index = int(request.POST.get('thumbnail', 0))
                 for idx, image_file in enumerate(image_files):
+                    image_data = image_file.read()
                     ProductImage.objects.create(
                         product=product,
-                        image=image_file.read(),
+                        image=image_data,
                         is_thumbnail=(idx == thumbnail_index)
                     )
+                    print(f"DEBUG: Created image {idx}, thumbnail: {idx == thumbnail_index}")
             # Handle existing images (if editing)
             existing_thumbnail_id = request.POST.get('existing_thumbnail')
             if existing_thumbnail_id:
                 for img in product.images.all():
                     img.is_thumbnail = (str(img.id) == existing_thumbnail_id)
                     img.save()
-            messages.success(request, 'Product updated successfully!')
-            return redirect('sellers:product_page', product_id=product.id)
-    else:
-        form = DynamicProductForm(instance=product)
+                    print(f"DEBUG: Updated existing image {img.id}, thumbnail: {img.is_thumbnail}")
+            if existing_thumbnail_id:
+                for img in product.images.all():
+                    img.is_thumbnail = (str(img.id) == existing_thumbnail_id)
+                    img.save()
+            
+            # Return JSON for AJAX requests, redirect for regular requests
+            if is_ajax:
+                return JsonResponse({
+                    'success': True, 
+                    'message': 'Product updated successfully',
+                    'product': {
+                        'id': product.id,
+                        'name': product.name,
+                        'description': product.description,
+                        'base_price': product.base_price,
+                        'final_price': product.final_price,
+                        'stock': product.stock,
+                        'condition': product.condition,
+                        'discount_percentage': product.discount_percentage
+                    }
+                })
+            else:
+                messages.success(request, 'Product updated successfully!')
+                return redirect('sellers:product_page', product_id=product.id)
+                
+        except Exception as e:
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': str(e)})
+            else:
+                messages.error(request, f'Error updating product: {str(e)}')
+                return redirect('sellers:product_page', product_id=product.id)
+    
+    # For GET requests, render the form (non-AJAX)
+    form = DynamicProductForm(instance=product)
     
     # Get parent categories (categories with no parent)
     parent_categories = Category.objects.filter(parent__isnull=True)
@@ -398,7 +451,10 @@ def update_product_view(request, product_id):
     return render(request, 'seller/product_form.html', context)
 
 
-# AJAX Update Product Form
+
+
+
+# AJAX Update Product Form (for seller dashboard)
 @login_required
 def update_product_form_view(request, product_id):
     """AJAX view to load update form in modal"""
@@ -433,9 +489,15 @@ def update_product_form_view(request, product_id):
         'parent_categories': parent_categories,
         'current_parent_category': parent_category,
         'current_child_category': child_category,
-        'existing_attributes': existing_attributes
+        'existing_attributes': existing_attributes,
+        'is_update': True,
+        'form_title': 'Update Product',
+        'submit_text': 'Update Product'
     }
     return render(request, 'seller/product_form_modal.html', context)
+
+
+
 
 
 # DELETE Product
@@ -777,6 +839,57 @@ def seller_dashboard_overview(request):
     # Get notifications from database
     notifications = seller.notifications.filter(is_read=False)[:10]
 
+    # Gift Boxes Data
+    # Get active campaigns the seller is participating in
+    seller_giftbox_participations = SellerGiftBoxParticipation.objects.filter(
+        seller=seller,
+        campaign__is_active=True
+    ).select_related('campaign')
+    
+    active_campaigns_count = seller_giftbox_participations.count()
+    
+    # Get gift box orders for this seller
+    giftbox_orders = GiftBoxOrder.objects.filter(seller=seller).select_related('buyer', 'campaign')
+    giftbox_orders_count = giftbox_orders.count()
+    
+    # Calculate gift box revenue
+    giftbox_revenue = giftbox_orders.filter(
+        status__in=['packed', 'shipped', 'delivered']
+    ).aggregate(
+        total=Sum('campaign__price')
+    )['total'] or 0
+    
+    # Get pending gift box orders
+    pending_giftbox_orders = giftbox_orders.filter(status='pending').count()
+    
+    # Get recent gift box orders
+    recent_giftbox_orders = giftbox_orders.order_by('-created_at')[:10]
+
+    # Promotions Data
+    # Get active promotions for this seller
+    active_promotions = Promotion.objects.filter(
+        seller=seller,
+        is_active=True,
+        valid_until__gte=timezone.now()
+    ).order_by('-created_at')
+    
+    active_promotions_count = active_promotions.count()
+    
+    # Calculate total promotion orders from used_count (include all promotions, not just active ones)
+    all_promotions = Promotion.objects.filter(seller=seller)
+    promotion_orders_count = sum(promotion.used_count for promotion in all_promotions)
+    
+    # Calculate estimated promotion revenue (this is a simplified approach)
+    promotion_revenue = active_promotions.aggregate(
+        total=Sum('discount_value')
+    )['total'] or 0
+    
+    # Calculate conversion rate (estimated)
+    total_orders_for_conversion = all_orders.count()
+    promotion_conversion_rate = 0
+    if total_orders_for_conversion > 0:
+        promotion_conversion_rate = round((promotion_orders_count / total_orders_for_conversion) * 100, 1)
+
     context = {
         'seller': seller,
         'recent_orders': recent_orders,
@@ -801,6 +914,18 @@ def seller_dashboard_overview(request):
         'sales_data': sales_data,
         'categories': categories,
         'notifications': notifications,
+        # Gift Boxes data
+        'active_campaigns_count': active_campaigns_count,
+        'giftbox_orders_count': giftbox_orders_count,
+        'giftbox_revenue': giftbox_revenue,
+        'pending_giftbox_orders': pending_giftbox_orders,
+        'recent_giftbox_orders': recent_giftbox_orders,
+        # Promotions data
+        'active_promotions_count': active_promotions_count,
+        'promotion_orders_count': promotion_orders_count,
+        'promotion_revenue': promotion_revenue,
+        'promotion_conversion_rate': promotion_conversion_rate,
+        'active_promotions': active_promotions,
     }
     return render(request, 'seller/seller_dashboard.html', context)
 
@@ -1047,57 +1172,77 @@ def promotion_create(request):
     seller = get_object_or_404(Seller, user=request.user)
     
     try:
+        # Get form data
         name = request.POST.get('name')
-        discount = request.POST.get('discount')
+        promotion_type = request.POST.get('promotion_type')
+        discount_value = request.POST.get('discount_value')
+        min_order_amount = request.POST.get('min_order_amount', 0)
+        max_discount_amount = request.POST.get('max_discount_amount')
+        usage_limit = request.POST.get('usage_limit')
+        valid_from_str = request.POST.get('valid_from')
         valid_until_str = request.POST.get('valid_until')
+        description = request.POST.get('description', '')
+        # Check if the checkbox is checked (sends 'on' when checked, nothing when unchecked)
+        is_active = request.POST.get('is_active') == 'on'
         product_ids = request.POST.getlist('products')
         
-        if not name or not discount or not valid_until_str:
+        # Validate required fields
+        if not name or not promotion_type or not discount_value or not valid_from_str or not valid_until_str:
             return JsonResponse({'success': False, 'error': 'All required fields must be filled'})
         
-        # Parse the valid_until string into a datetime object
+        # Parse dates
         try:
-            # Handle different date formats
-            if 'T' in valid_until_str:
-                # ISO format: "2024-12-31T23:59:59"
-                valid_until = timezone.datetime.fromisoformat(valid_until_str.replace('Z', '+00:00'))
-            elif len(valid_until_str) == 10:
-                # Date-only format: "2024-12-31" (from HTML date input)
-                # Set time to end of day (23:59:59)
-                valid_until = timezone.datetime.strptime(valid_until_str + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
-            else:
-                # Django format: "2024-12-31 23:59:59"
-                valid_until = timezone.datetime.strptime(valid_until_str, '%Y-%m-%d %H:%M:%S')
+            valid_from = timezone.datetime.fromisoformat(valid_from_str.replace('Z', '+00:00'))
+            valid_until = timezone.datetime.fromisoformat(valid_until_str.replace('Z', '+00:00'))
             
-            # Make it timezone-aware if it's not already
+            # Make timezone-aware if needed
+            if timezone.is_naive(valid_from):
+                valid_from = timezone.make_aware(valid_from)
             if timezone.is_naive(valid_until):
                 valid_until = timezone.make_aware(valid_until)
                 
         except ValueError as e:
-            return JsonResponse({'success': False, 'error': f'Invalid date format: {valid_until_str}. Expected format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS'})
+            return JsonResponse({'success': False, 'error': f'Invalid date format: {str(e)}'})
         
-        # Create the promotion with proper valid_from field
+        # Validate discount value
+        try:
+            discount_value = float(discount_value)
+            if discount_value <= 0:
+                return JsonResponse({'success': False, 'error': 'Discount value must be greater than 0'})
+        except ValueError:
+            return JsonResponse({'success': False, 'error': 'Invalid discount value'})
+        
+        # Validate dates
+        if valid_until <= valid_from:
+            return JsonResponse({'success': False, 'error': 'Valid Until date must be after Valid From date'})
+        
+        # Create the promotion
         promotion = Promotion.objects.create(
             seller=seller,
             name=name,
-            promotion_type='percentage',
-            discount_value=float(discount),
-            valid_from=timezone.now(),  # Set to current time
+            description=description,
+            promotion_type=promotion_type,
+            discount_value=discount_value,
+            min_order_amount=float(min_order_amount) if min_order_amount else 0,
+            max_discount_amount=float(max_discount_amount) if max_discount_amount else None,
+            valid_from=valid_from,
             valid_until=valid_until,
-            is_active=True
+            usage_limit=int(usage_limit) if usage_limit else None,
+            is_active=is_active
         )
         
-        # Add selected products to the promotion
+        # Handle product selection
         if product_ids:
-            products = Product.objects.filter(id__in=product_ids, seller=seller)
-            promotion.products.set(products)
+            # Get selected products that belong to this seller
+            selected_products = Product.objects.filter(id__in=product_ids, seller=seller)
+            promotion.products.set(selected_products)
         
         # Create activity for the promotion
         Activity.objects.create(
             seller=seller,
             type='product_updated',
             title=f'Promotion Created: {name}',
-            description=f'Created promotion "{name}" with {discount}% discount'
+            description=f'Created promotion "{name}" with {discount_value} discount'
         )
         
         return JsonResponse({
@@ -1114,10 +1259,101 @@ def seller_create_promotion(request):
     seller = get_object_or_404(Seller, user=request.user)
     
     if request.method == 'POST':
-        # Handle promotion creation
-        # This would integrate with a promotion/discount system
-        messages.success(request, 'Promotion created successfully!')
-        return redirect('seller:dashboard')
+        try:
+            # Get form data
+            name = request.POST.get('name')
+            promotion_type = request.POST.get('promotion_type')
+            discount_value = request.POST.get('discount_value')
+            min_order_amount = request.POST.get('min_order_amount', 0)
+            max_discount_amount = request.POST.get('max_discount_amount')
+            usage_limit = request.POST.get('usage_limit')
+            valid_from_str = request.POST.get('valid_from')
+            valid_until_str = request.POST.get('valid_until')
+            description = request.POST.get('description', '')
+            # Check if the checkbox is checked (sends 'on' when checked, nothing when unchecked)
+            is_active = request.POST.get('is_active') == 'on'
+            print(f"DEBUG: is_active checkbox value: '{request.POST.get('is_active')}'")
+            print(f"DEBUG: is_active boolean: {is_active}")
+            
+            # Validate required fields
+            if not name or not promotion_type or not discount_value or not valid_from_str or not valid_until_str:
+                messages.error(request, 'All required fields must be filled.')
+                return redirect('sellers:create_promotion')
+            
+            # Parse dates
+            try:
+                valid_from = timezone.datetime.fromisoformat(valid_from_str.replace('Z', '+00:00'))
+                valid_until = timezone.datetime.fromisoformat(valid_until_str.replace('Z', '+00:00'))
+                
+                # Make timezone-aware if needed
+                if timezone.is_naive(valid_from):
+                    valid_from = timezone.make_aware(valid_from)
+                if timezone.is_naive(valid_until):
+                    valid_until = timezone.make_aware(valid_until)
+                
+                # Ensure valid_from is not in the future (set to current time if it is)
+                now = timezone.now()
+                if valid_from > now:
+                    print(f"WARNING: valid_from ({valid_from}) is in the future, setting to current time ({now})")
+                    valid_from = now
+                    
+            except ValueError as e:
+                messages.error(request, f'Invalid date format: {str(e)}')
+                return redirect('sellers:create_promotion')
+            
+            # Validate discount value
+            try:
+                discount_value = float(discount_value)
+                if discount_value <= 0:
+                    messages.error(request, 'Discount value must be greater than 0.')
+                    return redirect('sellers:create_promotion')
+            except ValueError:
+                messages.error(request, 'Invalid discount value.')
+                return redirect('sellers:create_promotion')
+            
+            # Validate dates
+            if valid_until <= valid_from:
+                messages.error(request, 'Valid Until date must be after Valid From date.')
+                return redirect('sellers:create_promotion')
+            
+            # Create the promotion
+            print(f"DEBUG: Creating promotion with valid_from: {valid_from}, valid_until: {valid_until}")
+            promotion = Promotion.objects.create(
+                seller=seller,
+                name=name,
+                description=description,
+                promotion_type=promotion_type,
+                discount_value=discount_value,
+                min_order_amount=float(min_order_amount) if min_order_amount else 0,
+                max_discount_amount=float(max_discount_amount) if max_discount_amount else None,
+                valid_from=valid_from,
+                valid_until=valid_until,
+                usage_limit=int(usage_limit) if usage_limit else None,
+                is_active=is_active
+            )
+            print(f"DEBUG: Created promotion ID: {promotion.id}, is_valid: {promotion.is_valid}")
+            
+            # Handle product selection
+            product_ids = request.POST.getlist('products')
+            if product_ids:
+                # Get selected products that belong to this seller
+                selected_products = Product.objects.filter(id__in=product_ids, seller=seller)
+                promotion.products.set(selected_products)
+            
+            # Create activity for the promotion
+            Activity.objects.create(
+                seller=seller,
+                type='product_updated',
+                title=f'Promotion Created: {name}',
+                description=f'Created promotion "{name}" with {discount_value} discount'
+            )
+            
+            messages.success(request, f'Promotion "{name}" created successfully!')
+            return redirect('sellers:promotions_list')
+            
+        except Exception as e:
+            messages.error(request, f'Error creating promotion: {str(e)}')
+            return redirect('sellers:create_promotion')
     
     products = Product.objects.filter(seller=seller)
     
@@ -1228,8 +1464,58 @@ def export_csv(request, seller, export_type, start_date, end_date):
                     item.quantity,
                     item.price_at_purchase,
                     item.price_at_purchase * item.quantity,
-                    item.order.created_at.strftime('%Y-%m-%d'),
+                    item.order.created_at.strftime('%Y-%m-%d %H:%M'),
                     item.order.get_status_display()
+                ])
+        
+        elif export_type == 'giftboxes':
+            writer.writerow(['Gift Box Order ID', 'Campaign Name', 'Buyer Name', 'Buyer Email', 'Status', 'Price', 'Created Date', 'Buyer Message'])
+            from buyer.models import GiftBoxOrder
+            giftbox_orders = GiftBoxOrder.objects.filter(seller=seller).select_related('buyer', 'campaign')
+            
+            # Fix date filtering for gift boxes
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                giftbox_orders = giftbox_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in giftbox_orders:
+                writer.writerow([
+                    order.id,
+                    order.campaign.name,
+                    order.buyer.name,
+                    order.buyer.email,
+                    order.get_status_display(),
+                    order.campaign.price,
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    order.buyer_message or 'N/A'
+                ])
+        
+        elif export_type == 'promotions':
+            writer.writerow(['Promotion ID', 'Name', 'Type', 'Discount Value', 'Min Order Amount', 'Valid From', 'Valid Until', 'Status', 'Used Count', 'Created Date'])
+            from seller.models import Promotion
+            promotions = Promotion.objects.filter(seller=seller)
+            
+            # Fix date filtering for promotions
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                promotions = promotions.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for promotion in promotions:
+                writer.writerow([
+                    promotion.id,
+                    promotion.name,
+                    promotion.get_promotion_type_display(),
+                    promotion.discount_value,
+                    promotion.min_order_amount,
+                    promotion.valid_from.strftime('%Y-%m-%d %H:%M'),
+                    promotion.valid_until.strftime('%Y-%m-%d %H:%M'),
+                    'Active' if promotion.is_active else 'Inactive',
+                    promotion.used_count,
+                    promotion.created_at.strftime('%Y-%m-%d %H:%M')
                 ])
         
         elif export_type == 'inventory':
@@ -1398,6 +1684,72 @@ def export_excel(request, seller, export_type, start_date, end_date):
                     product.created_at.strftime('%Y-%m-%d %H:%M')
                 ])
         
+        elif export_type == 'giftboxes':
+            headers = ['Gift Box Order ID', 'Campaign Name', 'Buyer Name', 'Buyer Email', 'Status', 'Price', 'Created Date', 'Buyer Message']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            from buyer.models import GiftBoxOrder
+            giftbox_orders = GiftBoxOrder.objects.filter(seller=seller).select_related('buyer', 'campaign')
+            
+            # Fix date filtering for gift boxes
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                giftbox_orders = giftbox_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in giftbox_orders:
+                ws.append([
+                    order.id,
+                    order.campaign.name,
+                    order.buyer.name,
+                    order.buyer.email,
+                    order.get_status_display(),
+                    order.campaign.price,
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    order.buyer_message or 'N/A'
+                ])
+        
+        elif export_type == 'promotions':
+            headers = ['Promotion ID', 'Name', 'Type', 'Discount Value', 'Min Order Amount', 'Valid From', 'Valid Until', 'Status', 'Used Count', 'Created Date']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            from seller.models import Promotion
+            promotions = Promotion.objects.filter(seller=seller)
+            
+            # Fix date filtering for promotions
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                promotions = promotions.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for promotion in promotions:
+                ws.append([
+                    promotion.id,
+                    promotion.name,
+                    promotion.get_promotion_type_display(),
+                    promotion.discount_value,
+                    promotion.min_order_amount,
+                    promotion.valid_from.strftime('%Y-%m-%d %H:%M'),
+                    promotion.valid_until.strftime('%Y-%m-%d %H:%M'),
+                    'Active' if promotion.is_active else 'Inactive',
+                    promotion.used_count,
+                    promotion.created_at.strftime('%Y-%m-%d %H:%M')
+                ])
+        
         # Auto-adjust column widths
         for column in ws.columns:
             max_length = 0
@@ -1537,6 +1889,55 @@ def export_pdf(request, seller, export_type, start_date, end_date):
                     low_stock,
                     str(total_sold),
                     f"${revenue_generated}"
+                ])
+        
+        elif export_type == 'giftboxes':
+            headers = ['Gift Box ID', 'Campaign', 'Buyer', 'Status', 'Price', 'Date']
+            data = [headers]
+            
+            from buyer.models import GiftBoxOrder
+            giftbox_orders = GiftBoxOrder.objects.filter(seller=seller).select_related('buyer', 'campaign')
+            
+            # Fix date filtering for gift boxes
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                giftbox_orders = giftbox_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in giftbox_orders:
+                data.append([
+                    str(order.id),
+                    order.campaign.name,
+                    order.buyer.name,
+                    order.get_status_display(),
+                    f"${order.campaign.price}",
+                    order.created_at.strftime('%Y-%m-%d')
+                ])
+        
+        elif export_type == 'promotions':
+            headers = ['Promotion ID', 'Name', 'Type', 'Discount', 'Status', 'Used Count', 'Created Date']
+            data = [headers]
+            
+            from seller.models import Promotion
+            promotions = Promotion.objects.filter(seller=seller)
+            
+            # Fix date filtering for promotions
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                promotions = promotions.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for promotion in promotions:
+                data.append([
+                    str(promotion.id),
+                    promotion.name,
+                    promotion.get_promotion_type_display(),
+                    f"{promotion.discount_value}%",
+                    'Active' if promotion.is_active else 'Inactive',
+                    str(promotion.used_count),
+                    promotion.created_at.strftime('%Y-%m-%d')
                 ])
         
         # Create table
@@ -1726,28 +2127,12 @@ def mark_activity_as_cleared(request):
 # ========== HOT OFFERS FEATURE ==========
 
 def hot_offers_view(request):
-    """Display all active promotions across the platform"""
+    """Display all promotions across the platform"""
     from django.db.models import Q
     from django.utils import timezone
     
-    # Get all active promotions
-    active_promotions = Promotion.objects.filter(
-        is_active=True,
-        valid_from__lte=timezone.now(),
-        valid_until__gte=timezone.now()
-    ).select_related('seller').prefetch_related('products', 'categories')
-    
-    # Debug: Print promotion dates
-    print("=== DEBUG: Active Promotions ===")
-    for promo in active_promotions:
-        print(f"Promotion: {promo.name}")
-        print(f"  valid_from: {promo.valid_from}")
-        print(f"  valid_until: {promo.valid_until}")
-        print(f"  is_active: {promo.is_active}")
-        print(f"  now: {timezone.now()}")
-        print(f"  valid_from <= now: {promo.valid_from <= timezone.now()}")
-        print(f"  valid_until >= now: {promo.valid_until >= timezone.now()}")
-        print("---")
+    # Get all promotions (not just active ones)
+    promotions = Promotion.objects.all().select_related('seller').prefetch_related('products', 'categories').order_by('-created_at')
     
     # Get all categories for filtering
     categories = Category.objects.all()
@@ -1757,7 +2142,7 @@ def hot_offers_view(request):
     category_filter = request.GET.getlist('category')
     
     if search_query:
-        active_promotions = active_promotions.filter(
+        promotions = promotions.filter(
             Q(name__icontains=search_query) |
             Q(description__icontains=search_query) |
             Q(seller__shop_name__icontains=search_query) |
@@ -1765,7 +2150,7 @@ def hot_offers_view(request):
         ).distinct()
     
     if category_filter:
-        active_promotions = active_promotions.filter(
+        promotions = promotions.filter(
             Q(categories__id__in=category_filter) |
             Q(products__category__id__in=category_filter)
         ).distinct()
@@ -1788,7 +2173,7 @@ def hot_offers_view(request):
                 pass
     
     context = {
-        'promotions': active_promotions,
+        'promotions': promotions,
         'categories': categories,
         'search_query': search_query,
         'category_filter': category_filter,
@@ -1997,6 +2382,9 @@ def product_edit_data(request, product_id):
 @require_POST
 def product_update(request, product_id):
     """Update product data"""
+    print(f"DEBUG: product_update view called for product {product_id}")
+    print(f"DEBUG: POST data: {dict(request.POST)}")
+    print(f"DEBUG: FILES data: {dict(request.FILES)}")
     seller = get_object_or_404(Seller, user=request.user)
     product = get_object_or_404(Product, id=product_id, seller=seller)
     
@@ -2088,29 +2476,125 @@ def product_duplicate(request, product_id):
 def order_details(request, order_id):
     """Get order details"""
     seller = get_object_or_404(Seller, user=request.user)
-    order = get_object_or_404(Order, id=order_id, seller=seller)
     
-    # Check if it's an AJAX request
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'id': order.id,
-            'customer_name': order.buyer.name if hasattr(order.buyer, 'name') else order.buyer.user.username,
-            'customer_email': order.buyer.email,
-            'order_type': order.order_type,
-            'status': order.status,
-            'payment_status': order.payment_status,
-            'total_amount': order.total_amount,
-            'tracking_number': order.tracking_number or '',
-            'notes': order.notes or '',
-            'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
-            'delivery_address': order.delivery_address or 'N/A'
-        })
-    
-    context = {
-        'order': order,
-        'seller': seller,
-    }
-    return render(request, 'seller/order_details.html', context)
+    # Check if it's a gift box order first
+    from buyer.models import GiftBoxOrder
+    try:
+        giftbox_order = GiftBoxOrder.objects.get(id=order_id, seller=seller)
+        # Handle gift box order
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Get buyer information
+            buyer_info = {
+                'name': getattr(giftbox_order.buyer, 'name', None) or getattr(giftbox_order.buyer.user, 'username', 'Anonymous'),
+                'email': getattr(giftbox_order.buyer, 'email', 'N/A'),
+                'phone': getattr(giftbox_order.buyer, 'phone', 'N/A'),
+            }
+            
+            # Get payment information (gift box orders use campaign price)
+            payment_info = {
+                'method': 'GIFT_BOX',
+                'transaction_id': 'N/A',
+                'status': 'paid',  # Gift boxes are paid upfront
+                'payment_time': giftbox_order.created_at.isoformat()
+            }
+            
+            return JsonResponse({
+                'id': giftbox_order.id,
+                'customer_name': buyer_info['name'],
+                'customer_email': buyer_info['email'],
+                'order_type': 'giftbox',
+                'status': giftbox_order.status,
+                'payment_status': 'paid',
+                'total_amount': float(giftbox_order.campaign.price),
+                'tracking_number': '',  # Gift boxes don't have tracking initially
+                'notes': giftbox_order.buyer_message or '',
+                'created_at': giftbox_order.created_at.isoformat(),
+                'delivery_address': giftbox_order.delivery_address or 'N/A',
+                # Add display values
+                'get_status_display': giftbox_order.get_status_display(),
+                'get_payment_status_display': 'Paid',
+                # Add buyer and payment objects
+                'buyer': buyer_info,
+                'payment': payment_info,
+                # Add order items (gift box items are selected by seller)
+                'items': []
+            })
+        
+        context = {
+            'order': giftbox_order,
+            'seller': seller,
+        }
+        return render(request, 'seller/order_details.html', context)
+        
+    except GiftBoxOrder.DoesNotExist:
+        # Handle regular order
+        order = get_object_or_404(Order, id=order_id, seller=seller)
+        
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Check if this is a promotion order
+            is_promotion_order = order.notes and order.notes.startswith('Promotion:')
+            promotion_name = order.notes.replace('Promotion: ', '') if is_promotion_order else ''
+            
+            # Get order items
+            order_items = []
+            for item in order.items.all():
+                order_items.append({
+                    'id': item.id,
+                    'product': {
+                        'id': item.product.id,
+                        'name': item.product.name,
+                    },
+                    'quantity': item.quantity,
+                    'price_at_purchase': float(item.price_at_purchase),
+                    'total': float(item.price_at_purchase * item.quantity)
+                })
+            
+            # Get buyer information
+            buyer_info = {
+                'name': getattr(order.buyer, 'name', None) or getattr(order.buyer.user, 'username', 'Anonymous'),
+                'email': getattr(order.buyer, 'email', 'N/A'),
+                'phone': getattr(order.buyer, 'phone', 'N/A'),
+            }
+            
+            # Get payment information
+            payment_info = {
+                'method': 'PROMOTION' if is_promotion_order else order.order_type.upper(),
+                'transaction_id': getattr(order, 'stripe_payment_intent_id', 'N/A'),
+                'status': order.payment_status,
+                'payment_time': order.created_at.isoformat() if order.payment_status == 'paid' else None
+            }
+            
+            return JsonResponse({
+                'id': order.id,
+                'customer_name': buyer_info['name'],
+                'customer_email': buyer_info['email'],
+                'order_type': 'promotion' if is_promotion_order else order.order_type,
+                'status': order.status,
+                'payment_status': order.payment_status,
+                'total_amount': float(order.total_amount),
+                'tracking_number': order.tracking_number or '',
+                'notes': order.notes or '',
+                'created_at': order.created_at.isoformat(),
+                'delivery_address': order.delivery_address or 'N/A',
+                # Add display values
+                'get_status_display': order.get_status_display(),
+                'get_payment_status_display': order.get_payment_status_display(),
+                # Add buyer and payment objects
+                'buyer': buyer_info,
+                'payment': payment_info,
+                # Add order items
+                'items': order_items,
+                # Add promotion info if applicable
+                'is_promotion': is_promotion_order,
+                'promotion_name': promotion_name
+            })
+        
+        context = {
+            'order': order,
+            'seller': seller,
+        }
+        return render(request, 'seller/order_details.html', context)
 
 @login_required
 @require_POST
@@ -2251,3 +2735,150 @@ def fulfill_giftbox_order_view(request, order_id):
         'products': products,
         'selected_ids': order.selected_products.values_list('id', flat=True),
     })
+
+@login_required
+@require_POST
+def delete_promotion(request, promotion_id):
+    """Delete a promotion"""
+    seller = get_object_or_404(Seller, user=request.user)
+    promotion = get_object_or_404(Promotion, id=promotion_id, seller=seller)
+    
+    promotion_name = promotion.name
+    promotion.delete()
+    
+    messages.success(request, f'Promotion "{promotion_name}" deleted successfully!')
+    return JsonResponse({'success': True, 'message': 'Promotion deleted successfully'})
+
+@login_required
+def promotion_update_form_view(request, promotion_id):
+    """Get promotion update form"""
+    seller = get_object_or_404(Seller, user=request.user)
+    promotion = get_object_or_404(Promotion, id=promotion_id, seller=seller)
+    products = Product.objects.filter(seller=seller)
+    
+    context = {
+        'promotion': promotion,
+        'products': products,
+        'is_update': True,
+        'form_title': 'Update Promotion',
+        'submit_text': 'Update Promotion'
+    }
+    return render(request, 'seller/promotion_update_modal.html', context)
+
+@login_required
+def promotion_update_view(request, promotion_id):
+    """Update a promotion"""
+    seller = get_object_or_404(Seller, user=request.user)
+    promotion = get_object_or_404(Promotion, id=promotion_id, seller=seller)
+    
+    if request.method == 'POST':
+        try:
+            # Parse form data similar to seller_create_promotion
+            name = request.POST.get('name')
+            description = request.POST.get('description', '')
+            promotion_type = request.POST.get('promotion_type')
+            discount_value = request.POST.get('discount_value')
+            min_order_amount = request.POST.get('min_order_amount')
+            max_discount_amount = request.POST.get('max_discount_amount')
+            valid_from_str = request.POST.get('valid_from')
+            valid_until_str = request.POST.get('valid_until')
+            usage_limit = request.POST.get('usage_limit')
+            is_active = request.POST.get('is_active') == 'on'
+            
+            # Validation
+            if not all([name, promotion_type, discount_value, valid_from_str, valid_until_str]):
+                return JsonResponse({'success': False, 'error': 'All required fields must be filled'})
+            
+            # Parse dates
+            try:
+                valid_from = timezone.datetime.fromisoformat(valid_from_str.replace('Z', '+00:00'))
+                valid_until = timezone.datetime.fromisoformat(valid_until_str.replace('Z', '+00:00'))
+                
+                if timezone.is_naive(valid_from):
+                    valid_from = timezone.make_aware(valid_from)
+                if timezone.is_naive(valid_until):
+                    valid_until = timezone.make_aware(valid_until)
+                    
+            except ValueError as e:
+                return JsonResponse({'success': False, 'error': f'Invalid date format: {str(e)}'})
+            
+            # Update promotion
+            promotion.name = name
+            promotion.description = description
+            promotion.promotion_type = promotion_type
+            promotion.discount_value = float(discount_value)
+            promotion.min_order_amount = float(min_order_amount) if min_order_amount else 0
+            promotion.max_discount_amount = float(max_discount_amount) if max_discount_amount else None
+            promotion.valid_from = valid_from
+            promotion.valid_until = valid_until
+            promotion.usage_limit = int(usage_limit) if usage_limit else None
+            promotion.is_active = is_active
+            promotion.save()
+            
+            # Update products
+            selected_products = request.POST.getlist('products')
+            promotion.products.clear()
+            if selected_products:
+                products = Product.objects.filter(id__in=selected_products, seller=seller)
+                promotion.products.add(*products)
+            
+            # Create activity
+            Activity.objects.create(
+                seller=seller,
+                type='product_updated',
+                title=f'Promotion Updated: {name}',
+                description=f'Promotion "{name}" was updated successfully'
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'promotion': {
+                    'id': promotion.id,
+                    'name': promotion.name,
+                    'promotion_type': promotion.promotion_type,
+                    'discount_value': promotion.discount_value,
+                    'is_active': promotion.is_active
+                }
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@login_required
+def promotions_list_view(request):
+    """List all promotions for the seller"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
+    # Get all promotions for this seller
+    promotions = Promotion.objects.filter(seller=seller).order_by('-created_at')
+    
+    # Apply search filter
+    search_query = request.GET.get('search', '')
+    if search_query:
+        promotions = promotions.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    # Apply status filter
+    status_filter = request.GET.get('status', '')
+    if status_filter == 'active':
+        promotions = promotions.filter(is_active=True, valid_until__gte=timezone.now())
+    elif status_filter == 'inactive':
+        promotions = promotions.filter(Q(is_active=False) | Q(valid_until__lt=timezone.now()))
+    
+    # Add pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(promotions, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'seller': seller,
+        'promotions': page_obj,
+        'total_promotions': promotions.count(),
+    }
+    
+    return render(request, 'seller/promotions_list.html', context)

@@ -1,0 +1,162 @@
+<!-- Promotion Update Modal Form -->
+<form method="POST" class="form-body">
+  {% csrf_token %}
+  
+  <div class="form-grid">
+    <div class="form-group">
+      <label class="form-label">Promotion Name *</label>
+      <input type="text" name="name" class="form-input" placeholder="e.g., Summer Sale 20% Off" value="{{ promotion.name }}" required>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Promotion Type *</label>
+      <select name="promotion_type" class="form-select" required>
+        <option value="">Select promotion type</option>
+        <option value="percentage" {% if promotion.promotion_type == 'percentage' %}selected{% endif %}>Percentage Discount</option>
+        <option value="fixed" {% if promotion.promotion_type == 'fixed' %}selected{% endif %}>Fixed Amount Discount</option>
+        <option value="buy_one_get_one" {% if promotion.promotion_type == 'buy_one_get_one' %}selected{% endif %}>Buy One Get One</option>
+        <option value="free_shipping" {% if promotion.promotion_type == 'free_shipping' %}selected{% endif %}>Free Shipping</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Discount Value *</label>
+      <input type="number" name="discount_value" class="form-input" placeholder="e.g., 20 for 20% or 15 for $15" step="0.01" value="{{ promotion.discount_value }}" required>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Minimum Order Amount</label>
+      <input type="number" name="min_order_amount" class="form-input" placeholder="e.g., 50 for $50 minimum" step="0.01" value="{{ promotion.min_order_amount|default:'0' }}">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Maximum Discount Amount</label>
+      <input type="number" name="max_discount_amount" class="form-input" placeholder="e.g., 100 for $100 max discount" step="0.01" value="{{ promotion.max_discount_amount|default:'' }}">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Usage Limit</label>
+      <input type="number" name="usage_limit" class="form-input" placeholder="e.g., 100 for max 100 uses" value="{{ promotion.usage_limit|default:'' }}">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Valid From *</label>
+      <input type="datetime-local" name="valid_from" class="form-input" value="{{ promotion.valid_from|date:'Y-m-d\TH:i' }}" required>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Valid Until *</label>
+      <input type="datetime-local" name="valid_until" class="form-input" value="{{ promotion.valid_until|date:'Y-m-d\TH:i' }}" required>
+    </div>
+  </div>
+  
+  <!-- Product Selection -->
+  <div class="form-group" style="margin-top: 1.5rem;">
+    <label class="form-label">Products (Optional)</label>
+    <select name="products" multiple class="form-select" style="min-height: 120px;">
+      {% for product in products %}
+        <option value="{{ product.id }}" {% if product in promotion.products.all %}selected{% endif %}>
+          {{ product.name }} - ${{ product.final_price }}
+        </option>
+      {% endfor %}
+    </select>
+    <div class="help-text" style="margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;">
+      Hold Ctrl/Cmd to select multiple products. Leave empty to apply promotion to all products.
+    </div>
+    {% if not products %}
+      <div class="help-text" style="margin-top: 0.5rem; font-size: 0.875rem; color: #f59e0b;">
+        No products available. You can still create a promotion without products.
+      </div>
+    {% endif %}
+  </div>
+  
+  <div class="form-group" style="margin-top: 1.5rem;">
+    <label class="form-label">Description</label>
+    <textarea name="description" class="form-textarea" placeholder="Describe your promotion details...">{{ promotion.description|default:'' }}</textarea>
+  </div>
+  
+  <div class="form-checkbox" style="margin-top: 1rem;">
+    <input type="checkbox" name="is_active" id="is_active" {% if promotion.is_active %}checked{% endif %}>
+    <label for="is_active" class="form-label">Active Promotion</label>
+  </div>
+</form>
+
+<style>
+/* Modal-specific styles */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.form-input, .form-select, .form-textarea {
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-select[multiple] {
+  min-height: 120px;
+}
+
+.form-select option {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.form-select option:checked {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.help-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-checkbox input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: #f59e0b;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+</style> 

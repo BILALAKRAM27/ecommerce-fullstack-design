@@ -555,6 +555,10 @@ def checkout_view(request):
     giftbox_data = request.session.get('giftbox_data')
     is_giftbox_checkout = giftbox_data is not None
     
+    # Check if this is a promotion checkout
+    promotion_data = request.session.get('promotion_data')
+    is_promotion_checkout = promotion_data is not None
+    
     if is_giftbox_checkout:
         # Handle gift box checkout
         seller_id = giftbox_data.get('seller_id')
@@ -562,7 +566,16 @@ def checkout_view(request):
         buyer_message = giftbox_data.get('buyer_message', '')
         giftbox_price = giftbox_data.get('price', 0)
         
-        seller = get_object_or_404(Seller, id=seller_id)
+        # Get seller object
+        try:
+            seller = get_object_or_404(Seller, id=seller_id)
+        except:
+            # If seller doesn't exist, clear the session and redirect to cart
+            print(f"DEBUG: Seller {seller_id} not found, clearing session")
+            if 'giftbox_data' in request.session:
+                del request.session['giftbox_data']
+            messages.error(request, 'The seller for this gift box is no longer available.')
+            return redirect('buyer:cart_page')
         campaign = get_object_or_404(GiftBoxCampaign, id=campaign_id) if campaign_id else None
         
         # Create gift box seller group
@@ -611,6 +624,74 @@ def checkout_view(request):
             'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
             'is_giftbox_checkout': True,
             'giftbox_data': giftbox_data,
+        }
+    elif is_promotion_checkout:
+        # Handle promotion checkout
+        promotion_id = promotion_data.get('promotion_id')
+        promotion_name = promotion_data.get('promotion_name', 'Promotion')
+        promotion_type = promotion_data.get('promotion_type', 'percentage')
+        discount_value = promotion_data.get('discount_value', 0)
+        total_amount = promotion_data.get('total_amount', 0)
+        seller_id = promotion_data.get('seller_id')
+        seller_name = promotion_data.get('seller_name', 'Seller')
+        
+        # Get seller object
+        try:
+            seller = get_object_or_404(Seller, id=seller_id)
+        except:
+            # If seller doesn't exist, clear the session and redirect to cart
+            print(f"DEBUG: Seller {seller_id} not found, clearing session")
+            if 'promotion_data' in request.session:
+                del request.session['promotion_data']
+            messages.error(request, 'The seller for this promotion is no longer available.')
+            return redirect('buyer:cart_page')
+        
+        # Create promotion seller group
+        grouped_sellers = [{
+            'seller': {'shop_name': seller_name},
+            'products': [{
+                'name': f'Promotion: {promotion_name}',
+                'image_url': '',  # No image for promotion
+                'attributes': f'Discount: {discount_value}%' if promotion_type == 'percentage' else f'Discount: ${discount_value}',
+                'quantity': 1,
+                'price': total_amount,
+                'is_promotion': True,
+            }],
+            'subtotal': total_amount,
+        }]
+        
+        # Calculate order summary for promotion
+        subtotal = total_amount
+        shipping = 15.99
+        tax = round(subtotal * 0.125, 2)  # 12.5% tax
+        total = subtotal + shipping + tax
+        total_items = 1
+        
+        order_summary = {
+            'subtotal': subtotal,
+            'shipping': shipping,
+            'tax': tax,
+            'total': total,
+            'total_items': total_items,
+        }
+        
+        address_obj = getattr(buyer, 'address', None)
+        shipping_address = {
+            'street': address_obj.street if address_obj else '',
+            'city': address_obj.city if address_obj else '',
+            'zip_code': address_obj.zip_code if address_obj else '',
+            'country': address_obj.country if address_obj else 'US',
+        }
+        
+        context = {
+            'grouped_sellers': grouped_sellers,
+            'order_summary': order_summary,
+            'shipping_address': shipping_address,
+            'buyer': buyer,
+            'cart': None,  # No cart for promotion
+            'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
+            'is_promotion_checkout': True,
+            'promotion_data': promotion_data,
         }
     else:
         # Handle regular cart checkout
@@ -710,6 +791,10 @@ def place_order_view(request):
         giftbox_data = request.session.get('giftbox_data')
         is_giftbox_order = giftbox_data is not None
         
+        # Check if this is a promotion order
+        promotion_data = request.session.get('promotion_data')
+        is_promotion_order = promotion_data is not None
+        
         if is_giftbox_order:
             # Handle gift box order
             seller_id = giftbox_data.get('seller_id')
@@ -732,6 +817,7 @@ def place_order_view(request):
                 campaign=campaign,
                 status='pending',
                 buyer_message=buyer_message,
+                delivery_address=shipping_address_str,
             )
             
             # Clear gift box data from session
@@ -742,6 +828,70 @@ def place_order_view(request):
                 'success': True,
                 'orders': [giftbox_order.id],
                 'is_giftbox': True
+            })
+        elif is_promotion_order:
+            # Handle promotion order
+            print(f"DEBUG: Processing promotion order")
+            promotion_id = promotion_data.get('promotion_id')
+            promotion_name = promotion_data.get('promotion_name', 'Promotion')
+            total_amount = promotion_data.get('total_amount', 0)
+            seller_id = promotion_data.get('seller_id')
+            print(f"DEBUG: Promotion ID: {promotion_id}, Name: {promotion_name}, Amount: {total_amount}, Seller ID: {seller_id}")
+            
+            seller = get_object_or_404(Seller, id=seller_id)
+            from seller.models import Promotion
+            promotion = get_object_or_404(Promotion, id=promotion_id)
+            
+            # Get shipping address from request
+            import json
+            data = json.loads(request.body)
+            shipping_address = data.get('shipping_address', {})
+            shipping_address_str = f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('zip_code', '')}, {shipping_address.get('country', '')}"
+            
+            # Create promotion order (using regular Order model)
+            print(f"DEBUG: Creating promotion order for promotion {promotion_id}")
+            order = Order.objects.create(
+                buyer=buyer,
+                seller=seller,
+                status='pending',
+                total_amount=total_amount,
+                payment_status='pending',
+                order_type='cod',
+                delivery_address=shipping_address_str,
+                notes=f'Promotion: {promotion_name}'
+            )
+            print(f"DEBUG: Created promotion order ID: {order.id}")
+            
+            # Create order item for the promotion
+            # Use the first product from the seller as a placeholder
+            placeholder_product = seller.products.first()
+            if not placeholder_product:
+                # If no products exist, create a minimal order item
+                return JsonResponse({'success': False, 'error': 'Seller has no products available'})
+            
+            OrderItem.objects.create(
+                order=order,
+                product=placeholder_product,
+                price_at_purchase=total_amount,
+                quantity=1
+            )
+            
+            # Increment promotion used_count
+            try:
+                promotion.used_count += 1
+                promotion.save()
+                print(f"DEBUG: Incremented promotion {promotion.id} used_count to {promotion.used_count}")
+            except Exception as e:
+                print(f"DEBUG: Error incrementing promotion used_count: {str(e)}")
+            
+            # Clear promotion data from session
+            if 'promotion_data' in request.session:
+                del request.session['promotion_data']
+            
+            return JsonResponse({
+                'success': True,
+                'orders': [order.id],
+                'is_promotion': True
             })
         else:
             # Handle regular cart order
@@ -836,6 +986,10 @@ def process_stripe_payment(request):
         giftbox_data = request.session.get('giftbox_data')
         is_giftbox_order = giftbox_data is not None
         
+        # Check if this is a promotion order
+        promotion_data = request.session.get('promotion_data')
+        is_promotion_order = promotion_data is not None
+        
         if is_giftbox_order:
             # Handle gift box Stripe payment
             seller_id = giftbox_data.get('seller_id')
@@ -869,6 +1023,7 @@ def process_stripe_payment(request):
                 campaign=campaign,
                 status='pending',
                 buyer_message=buyer_message,
+                delivery_address=shipping_address,
             )
             
             # Create Stripe PaymentIntent for gift box
@@ -902,6 +1057,110 @@ def process_stripe_payment(request):
                 }],
                 'orders': [giftbox_order.id],
                 'is_giftbox': True
+            })
+        elif is_promotion_order:
+            # Handle promotion Stripe payment
+            print(f"DEBUG: Processing promotion Stripe payment")
+            promotion_id = promotion_data.get('promotion_id')
+            promotion_name = promotion_data.get('promotion_name', 'Promotion')
+            total_amount = promotion_data.get('total_amount', 0)
+            seller_id = promotion_data.get('seller_id')
+            print(f"DEBUG: Promotion ID: {promotion_id}, Name: {promotion_name}, Amount: {total_amount}, Seller ID: {seller_id}")
+            
+            seller = get_object_or_404(Seller, id=seller_id)
+            from seller.models import Promotion
+            promotion = get_object_or_404(Promotion, id=promotion_id)
+            
+            # Check if seller has Stripe account
+            if not seller.stripe_account_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Seller {seller.shop_name} is not set up for online payments. Please contact the seller or choose Cash on Delivery.'
+                })
+            
+            # Get shipping address from form and format it
+            shipping_address_raw = request.POST.get('shipping_address', '')
+            # Parse the shipping address if it's JSON, otherwise use as is
+            import json
+            try:
+                shipping_address_data = json.loads(shipping_address_raw) if shipping_address_raw else {}
+                shipping_address_str = f"{shipping_address_data.get('street', '')}, {shipping_address_data.get('city', '')}, {shipping_address_data.get('zip_code', '')}, {shipping_address_data.get('country', '')}"
+            except (json.JSONDecodeError, TypeError):
+                shipping_address_str = shipping_address_raw
+            
+            # Calculate total with shipping and tax
+            subtotal = total_amount
+            shipping = 15.99
+            tax = round(subtotal * 0.125, 2)  # 12.5% tax
+            final_total = subtotal + shipping + tax
+            
+            # Create promotion order (using regular Order model)
+            print(f"DEBUG: Creating promotion order for promotion {promotion_id}")
+            order = Order.objects.create(
+                buyer=buyer,
+                seller=seller,
+                status='pending',
+                total_amount=final_total,
+                payment_status='pending',
+                order_type='stripe',
+                delivery_address=shipping_address_str,
+                notes=f'Promotion: {promotion_name}'
+            )
+            print(f"DEBUG: Created promotion order ID: {order.id}")
+            
+            # Create order item for the promotion
+            # Use the first product from the seller as a placeholder
+            placeholder_product = seller.products.first()
+            if not placeholder_product:
+                # If no products exist, create a minimal order item
+                return JsonResponse({'success': False, 'error': 'Seller has no products available'})
+            
+            OrderItem.objects.create(
+                order=order,
+                product=placeholder_product,
+                price_at_purchase=final_total,
+                quantity=1
+            )
+            
+            # Increment promotion used_count
+            try:
+                promotion.used_count += 1
+                promotion.save()
+                print(f"DEBUG: Incremented promotion {promotion.id} used_count to {promotion.used_count}")
+            except Exception as e:
+                print(f"DEBUG: Error incrementing promotion used_count: {str(e)}")
+            
+            # Create Stripe PaymentIntent for promotion
+            amount = int(final_total * 100)  # in cents
+            commission = int(final_total * 0.10 * 100)  # 10% commission, in cents
+            
+            payment_intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency="usd",
+                payment_method_types=["card"],
+                application_fee_amount=commission,
+                transfer_data={
+                    "destination": seller.stripe_account_id,
+                },
+                metadata={
+                    "order_id": order.id,
+                    "order_type": "promotion",
+                }
+            )
+            
+            # Clear promotion data from session
+            if 'promotion_data' in request.session:
+                del request.session['promotion_data']
+            
+            return JsonResponse({
+                'success': True,
+                'payment_intents': [{
+                    'order_id': order.id,
+                    'client_secret': payment_intent.client_secret,
+                    'amount': final_total
+                }],
+                'orders': [order.id],
+                'is_promotion': True
             })
         else:
             # Handle regular cart Stripe payment
@@ -1214,7 +1473,7 @@ def clear_all_buyer_notifications(request):
 
 @login_required
 def promotion_checkout_view(request):
-    """Handle promotion checkout by adding promotion items to cart"""
+    """Handle promotion checkout by storing promotion data in session and redirecting to checkout"""
     buyer = get_object_or_404(Buyer, email=request.user.email)
     
     # Get promotion data from URL parameters
@@ -1229,58 +1488,65 @@ def promotion_checkout_view(request):
     
     try:
         from seller.models import Promotion
-        promotion = Promotion.objects.get(id=promotion_id, is_active=True)
-        
+        # First try to get the promotion without the is_active filter to see if it exists
+        promotion = Promotion.objects.get(id=promotion_id)
         print(f"Found promotion: {promotion.name}")
+        print(f"Promotion is_active: {promotion.is_active}")
+        
+        # Check if promotion is active
+        if not promotion.is_active:
+            print(f"Promotion {promotion_id} is not active")
+            messages.error(request, 'This promotion is not active')
+            return redirect('buyer:cart_page')
+        
+        print(f"Promotion {promotion_id} is active, proceeding to date validation")
         
         # Check if promotion is still valid
         from django.utils import timezone
         now = timezone.now()
+        print(f"DEBUG: Current time: {now}")
+        print(f"DEBUG: Promotion valid_from: {promotion.valid_from}")
+        print(f"DEBUG: Promotion valid_until: {promotion.valid_until}")
+        print(f"DEBUG: Promotion is_active: {promotion.is_active}")
+        print(f"DEBUG: Time comparison - now < valid_from: {now < promotion.valid_from}")
+        print(f"DEBUG: Time comparison - now > valid_until: {now > promotion.valid_until}")
+        
+        # Add a small buffer for timezone issues (5 minutes)
+        buffer_time = timezone.timedelta(minutes=5)
+        adjusted_now = now + buffer_time
+        
+        # Check if promotion is within valid date range
+        # valid_from should be <= now <= valid_until
         if now < promotion.valid_from or now > promotion.valid_until:
-            messages.error(request, 'This promotion has expired')
+            print(f"DEBUG: Promotion validation failed")
+            print(f"DEBUG: now: {now}")
+            print(f"DEBUG: valid_from: {promotion.valid_from}")
+            print(f"DEBUG: valid_until: {promotion.valid_until}")
+            print(f"DEBUG: now < valid_from: {now < promotion.valid_from}")
+            print(f"DEBUG: now > valid_until: {now > promotion.valid_until}")
+            messages.error(request, 'This promotion has expired or is not yet active')
             return redirect('buyer:cart_page')
         
-        # Get or create cart
-        cart, _ = Cart.objects.get_or_create(buyer=buyer)
+        print(f"Promotion {promotion_id} passed date validation, proceeding to session storage")
         
-        print(f"Cart ID: {cart.id}")
+        # Store promotion data in session (similar to gift box checkout)
+        request.session['promotion_data'] = {
+            'promotion_id': promotion_id,
+            'promotion_name': promotion.name,
+            'promotion_type': promotion.promotion_type,
+            'discount_value': float(promotion.discount_value),
+            'total_amount': float(total) if total else 0,
+            'seller_id': promotion.seller.id,
+            'seller_name': promotion.seller.shop_name,
+        }
         
-        # Clear existing cart items (optional - you might want to keep existing items)
-        # cart.items.all().delete()
+        print(f"DEBUG: Stored promotion data in session: {request.session['promotion_data']}")
+        print(f"DEBUG: Promotion {promotion_id} current used_count: {promotion.used_count}")
         
-        # Add promotion products to cart
-        promotion_products = promotion.products.all()
-        items_added = 0
+        print(f"Stored promotion data in session: {request.session['promotion_data']}")
+        print(f"DEBUG: Redirecting to checkout with total_amount: {request.session['promotion_data']['total_amount']}")
         
-        print(f"Promotion has {promotion_products.count()} products")
-        
-        for product in promotion_products:
-            # Check if product is already in cart
-            existing_item = cart.items.filter(product=product).first()
-            
-            if existing_item:
-                # Update quantity if already exists
-                existing_item.quantity += 1
-                existing_item.save()
-                print(f"Updated quantity for product: {product.name}")
-            else:
-                # Add new item to cart
-                CartItem.objects.create(
-                    cart=cart,
-                    product=product,
-                    quantity=1
-                )
-                items_added += 1
-                print(f"Added product to cart: {product.name}")
-        
-        if items_added > 0:
-            messages.success(request, f'Added {items_added} promotion items to your cart')
-        else:
-            messages.info(request, 'Promotion items are already in your cart')
-        
-        print(f"Total items added: {items_added}")
-        
-        # Redirect to checkout
+        # Redirect to checkout page
         return redirect('buyer:checkout_page')
         
     except Promotion.DoesNotExist:
@@ -1289,6 +1555,9 @@ def promotion_checkout_view(request):
         return redirect('buyer:cart_page')
     except Exception as e:
         print(f"Error in promotion checkout: {str(e)}")
+        print(f"Exception type: {type(e).__name__}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         messages.error(request, f'Error processing promotion: {str(e)}')
         return redirect('buyer:cart_page')
 

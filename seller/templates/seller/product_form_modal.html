@@ -1,6 +1,6 @@
 {% load b64filters %}
 <!-- Product Update Form for Modal -->
-<form method="POST" enctype="multipart/form-data" id="updateProductForm">
+<form method="POST" enctype="multipart/form-data" id="updateForm">
     {% csrf_token %}
     
     <div class="form-group">
@@ -241,7 +241,7 @@ function previewImages(event) {
                     <img src="${e.target.result}" alt="Preview" class="image-preview" style="margin-bottom: 5px;">
                     <br>
                     <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;">
-                        <input type='radio' name='new_thumbnail' value='${i}' ${i===0?'checked':''}> 
+                        <input type='radio' name='thumbnail' value='${i}' ${i===0?'checked':''}> 
                         <span>Thumbnail</span>
                     </label>
                 `;

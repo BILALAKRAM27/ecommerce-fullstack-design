@@ -43,7 +43,7 @@ urlpatterns = [
 
     # Enhanced Dashboard URLs
     path('product/<int:product_id>/edit/', views.product_edit_data, name='product_edit_data'),
-    path('product/<int:product_id>/update/', views.product_update, name='product_update'),
+    path('product/<int:product_id>/update/', views.product_update, name='product_update_simple'),
     path('product/<int:product_id>/delete/', views.product_delete, name='product_delete'),
     path('product/<int:product_id>/duplicate/', views.product_duplicate, name='product_duplicate'),
     path('order/<int:order_id>/details/', views.order_details, name='order_details'),
@@ -74,4 +74,8 @@ urlpatterns += [
     path('giftbox-campaigns/join/<int:campaign_id>/', join_giftbox_campaign, name='join_giftbox_campaign'),
     path('giftbox-orders/', giftbox_orders_seller_view, name='giftbox_orders'),
     path('giftbox-orders/fulfill/<int:order_id>/', fulfill_giftbox_order_view, name='fulfill_giftbox_order'),
+    path('promotions/', views.promotions_list_view, name='promotions_list'),
+    path('promotions/<int:promotion_id>/delete/', views.delete_promotion, name='delete_promotion'),
+    path('promotions/<int:promotion_id>/update/form/', views.promotion_update_form_view, name='promotion_update_form'),
+    path('promotions/<int:promotion_id>/update/', views.promotion_update_view, name='promotion_update'),
 ]

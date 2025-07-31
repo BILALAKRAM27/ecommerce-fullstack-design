@@ -1220,8 +1220,8 @@
                             <button type="submit" class="btn btn-primary">Add to Cart</button>
                         </form>
                     {% elif user_type == 'seller' and seller and product.seller_id == seller.id %}
-                        <button class="btn btn-primary" onclick="openUpdateModal({{ product.id }}, '{{ product.name|escapejs }}')">Edit Product</button>
-                        <button class="btn btn-danger" onclick="openDeleteModal({{ product.id }}, '{{ product.name|escapejs }}')">Delete Product</button>
+                        <button class="btn btn-primary" onclick="openUpdateModal('{{ product.id }}', '{{ product.name|escapejs }}')">Edit Product</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal('{{ product.id }}', '{{ product.name|escapejs }}')">Delete Product</button>
                     {% else %}
                     <button class="btn btn-secondary" style=" border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 10px;"><a href="{% url 'seller:login' %}" style="color:inherit;text-decoration:none;">login</a></button>
                     <button class="btn btn-danger" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block;"><a href="{% url 'seller:register' %}" style="color:inherit;text-decoration:none;">signup</a></button>
@@ -1387,10 +1387,12 @@
             })
             .then(response => response.text())
             .then(html => {
+                console.log('DEBUG: Form HTML loaded');
                 updateFormContent.innerHTML = html;
                 setMultipleFileInput();
                 initializeUpdateForm(); // Attach dynamic JS after form loads
-                // attachPreviewImagesListener(); // Ensure preview works for new images in modal
+                attachPreviewImagesListener(); // Ensure preview works for new images in modal
+                console.log('DEBUG: Form initialization complete');
             })
             .catch(error => {
                 updateFormContent.innerHTML = '<div style="color: #e74c3c;">Error loading form</div>';
@@ -1422,16 +1424,21 @@
             const formData = new FormData(updateForm);
             formData.append('product_id', currentProductId);
             
-            // Debug: Log form data
-            console.log('Form data being sent:');
+
+            
+            // Debug: Log form data before sending
+            console.log('DEBUG: Form data being sent:');
             for (let [key, value] of formData.entries()) {
-                console.log(key, value);
+                console.log(`${key}: ${value}`);
             }
             
             fetch(`{% url 'sellers:product_update' 0 %}`.replace('0', currentProductId), {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+                headers: { 
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(response => response.json())
             .then(data => {
@@ -1473,6 +1480,151 @@
         function setMultipleFileInput() {
             const fileInputs = updateFormContent.querySelectorAll('input[type="file"]');
             fileInputs.forEach(input => input.setAttribute('multiple', 'multiple'));
+        }
+
+        // Attach preview images listener to the file input after DOM is loaded
+        function attachPreviewImagesListener() {
+            console.log('DEBUG: attachPreviewImagesListener called');
+            const fileInput = document.getElementById('id_image_file');
+            console.log('DEBUG: File input found:', fileInput);
+            if (fileInput) {
+                fileInput.removeEventListener('change', previewImages); // Prevent duplicate
+                fileInput.addEventListener('change', previewImages);
+                console.log('DEBUG: Preview listener attached to file input');
+            }
+            
+            // Add event listeners for image mode changes
+            const imageModeRadios = document.querySelectorAll('input[name="image_mode"]');
+            console.log('DEBUG: Image mode radios found:', imageModeRadios.length);
+            imageModeRadios.forEach(radio => {
+                radio.removeEventListener('change', handleImageModeChange); // Prevent duplicate
+                radio.addEventListener('change', handleImageModeChange);
+            });
+            console.log('DEBUG: Image mode listeners attached');
+        }
+
+        // Image preview function
+        function previewImages(event) {
+            console.log('DEBUG: previewImages called');
+            const files = event.target.files;
+            console.log('DEBUG: Files selected:', files.length);
+            const previewContainer = document.getElementById('imagePreviews');
+            const thumbnailSelector = document.getElementById('thumbnailSelector');
+            const imageMode = document.querySelector('input[name="image_mode"]:checked').value;
+            console.log('DEBUG: Image mode:', imageMode);
+            
+            // Handle existing thumbnail radios based on image mode
+            const existingThumbRadios = document.querySelectorAll('input[name="existing_thumbnail"]');
+            const existingImagesContainer = document.querySelector('.existing-images-container');
+            
+            if (files.length > 0) {
+                if (imageMode === 'replace') {
+                    // In replace mode, disable existing thumbnail selection
+                    existingThumbRadios.forEach(radio => {
+                        radio.disabled = true;
+                        radio.closest('div').style.opacity = 0.5;
+                    });
+                    if (existingImagesContainer) {
+                        existingImagesContainer.style.opacity = 0.5;
+                    }
+                } else {
+                    // In add mode, keep existing thumbnail selection enabled
+                    existingThumbRadios.forEach(radio => {
+                        radio.disabled = false;
+                        radio.closest('div').style.opacity = 1;
+                    });
+                    if (existingImagesContainer) {
+                        existingImagesContainer.style.opacity = 1;
+                    }
+                }
+            } else {
+                // No new files selected, enable existing thumbnail selection
+                existingThumbRadios.forEach(radio => {
+                    radio.disabled = false;
+                    radio.closest('div').style.opacity = 1;
+                });
+                if (existingImagesContainer) {
+                    existingImagesContainer.style.opacity = 1;
+                }
+            }
+            
+            previewContainer.innerHTML = '';
+            thumbnailSelector.innerHTML = '';
+            
+            if (files.length > 0) {
+                // Add preview for new images
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.style.display = 'inline-block';
+                        div.style.marginRight = '10px';
+                        div.style.textAlign = 'center';
+                        div.style.padding = '8px';
+                        div.style.background = 'white';
+                        div.style.borderRadius = '6px';
+                        div.style.border = '1px solid #dee2e6';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview" class="image-preview" style="margin-bottom: 5px;">
+                            <br>
+                            <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;">
+                                <input type='radio' name='thumbnail' value='${i}' ${i===0?'checked':''}> 
+                                <span>Thumbnail</span>
+                            </label>
+                        `;
+                        previewContainer.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        // Handle image mode changes
+        function handleImageModeChange() {
+            const imageMode = document.querySelector('input[name="image_mode"]:checked').value;
+            const fileInput = document.getElementById('id_image_file');
+            const existingImagesContainer = document.querySelector('.existing-images-container');
+            const addModeLabel = document.getElementById('add-mode-label');
+            const replaceModeLabel = document.getElementById('replace-mode-label');
+            
+            // Update visual styling for mode selection
+            if (imageMode === 'replace') {
+                // Style for replace mode
+                addModeLabel.style.border = '2px solid #e9ecef';
+                addModeLabel.style.background = 'white';
+                addModeLabel.querySelector('span').style.color = '#6c757d';
+                
+                replaceModeLabel.style.border = '2px solid #dc3545';
+                replaceModeLabel.style.background = '#f8d7da';
+                replaceModeLabel.querySelector('span').style.color = '#721c24';
+                
+                // Show warning for replace mode
+                if (existingImagesContainer && existingImagesContainer.querySelector('img')) {
+                    existingImagesContainer.style.opacity = 0.5;
+                    existingImagesContainer.style.border = '2px solid #dc3545';
+                }
+            } else {
+                // Style for add mode
+                addModeLabel.style.border = '2px solid #28a745';
+                addModeLabel.style.background = '#d4edda';
+                addModeLabel.querySelector('span').style.color = '#155724';
+                
+                replaceModeLabel.style.border = '2px solid #e9ecef';
+                replaceModeLabel.style.background = 'white';
+                replaceModeLabel.querySelector('span').style.color = '#6c757d';
+                
+                // Reset styling for add mode
+                if (existingImagesContainer) {
+                    existingImagesContainer.style.opacity = 1;
+                    existingImagesContainer.style.border = '1px solid #e9ecef';
+                }
+            }
+            
+            // Re-trigger preview if files are selected
+            if (fileInput.files.length > 0) {
+                previewImages({ target: fileInput });
+            }
         }
 
         // --- Dynamic form logic from product_detail.html ---

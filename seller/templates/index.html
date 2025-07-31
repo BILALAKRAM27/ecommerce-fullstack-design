@@ -1213,7 +1213,11 @@
                     </a>
                     <a href="#" class="nav-item">All Categories</a>
                     <a href="{% url 'seller:hot_offers' %}" class="nav-item">Hot offers</a>
-                    <a href="#" class="nav-item">Gift boxes</a>
+                    {% if user.is_authenticated and user_type == 'buyer' %}
+                    <a href="{% url 'buyer:giftbox_marketplace' %}" class="nav-item">Gift boxes</a>
+                    {% else%}
+                    <a href="{% url 'seller:giftbox_campaigns' %}" class="nav-item">Gift boxes</a>
+                    {% endif %}
                     <a href="#" class="nav-item">Projects</a>
                     <a href="#" class="nav-item">Menu item</a>
                     <a href="#" class="nav-item">Help <i class="fas fa-chevron-down"></i></a>
@@ -1251,8 +1255,8 @@
                     {% endif %}
 
                     <!-- Promo Cards -->
-                    <div class="promo-cards">
-                        <div class="promo-card">
+                    <div class="promo-cards" >
+                        <div class="promo-card" style="margin-top:20px;">
                             Get US $10 off<br>with a new<br>supplier
                         </div>
                     </div>

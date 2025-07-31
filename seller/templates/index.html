@@ -1211,15 +1211,13 @@
                     <a href="#" class="nav-item active" id="sidebar-open">
                         <i class="fas fa-bars"></i>
                     </a>
-                    <a href="#" class="nav-item">All Categories</a>
+                    <a href="{% url 'seller:product_listing' %}" class="nav-item">All Categories</a>
                     <a href="{% url 'seller:hot_offers' %}" class="nav-item">Hot offers</a>
                     {% if user.is_authenticated and user_type == 'buyer' %}
                     <a href="{% url 'buyer:giftbox_marketplace' %}" class="nav-item">Gift boxes</a>
                     {% else%}
                     <a href="{% url 'seller:giftbox_campaigns' %}" class="nav-item">Gift boxes</a>
                     {% endif %}
-                    <a href="#" class="nav-item">Projects</a>
-                    <a href="#" class="nav-item">Menu item</a>
                     <a href="#" class="nav-item">Help <i class="fas fa-chevron-down"></i></a>
                 </div>
             </div>

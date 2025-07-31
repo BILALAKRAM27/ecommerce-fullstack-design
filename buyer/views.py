@@ -418,6 +418,75 @@ def add_to_wishlist(request):
 
 @login_required
 @require_POST
+def check_cart_status(request):
+    print("=== Checking cart status ===")
+    try:
+        product_id = int(request.POST.get('product_id'))
+        print(f"Product ID: {product_id}")
+        
+        if not request.user.is_authenticated:
+            print("User not authenticated")
+            return JsonResponse({
+                'success': False,
+                'error': 'Please login to check cart'
+            })
+            
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        print(f"Found buyer: {buyer.name}")
+        
+        cart, _ = Cart.objects.get_or_create(buyer=buyer)
+        in_cart = cart.items.filter(product_id=product_id).exists()
+        print(f"Product in cart: {in_cart}")
+        
+        return JsonResponse({
+            'success': True,
+            'in_cart': in_cart
+        })
+        
+    except Exception as e:
+        print(f"Error checking cart status: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_POST
+def check_wishlist_status(request):
+    print("=== Checking wishlist status ===")
+    try:
+        product_id = int(request.POST.get('product_id'))
+        print(f"Product ID: {product_id}")
+        
+        if not request.user.is_authenticated:
+            print("User not authenticated")
+            return JsonResponse({
+                'success': False,
+                'error': 'Please login to check wishlist'
+            })
+            
+        buyer = get_object_or_404(Buyer, email=request.user.email)
+        print(f"Found buyer: {buyer.name}")
+        
+        in_wishlist = Wishlist.objects.filter(buyer=buyer, product_id=product_id).exists()
+        print(f"Product in wishlist: {in_wishlist}")
+        
+        return JsonResponse({
+            'success': True,
+            'in_wishlist': in_wishlist
+        })
+        
+    except Exception as e:
+        print(f"Error checking wishlist status: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@require_POST
 def remove_from_wishlist(request):
     print("=== Removing from wishlist ===")
     try:

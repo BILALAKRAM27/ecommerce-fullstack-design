@@ -78,4 +78,5 @@ urlpatterns += [
     path('promotions/<int:promotion_id>/delete/', views.delete_promotion, name='delete_promotion'),
     path('promotions/<int:promotion_id>/update/form/', views.promotion_update_form_view, name='promotion_update_form'),
     path('promotions/<int:promotion_id>/update/', views.promotion_update_view, name='promotion_update'),
+    path('marketplace/', views.product_listing_view, name='product_listing'),
 ]

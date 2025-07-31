@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
+from django.core.paginator import Paginator
 from .models import Seller, Product, ProductImage, Brand, Category, CategoryAttribute, AttributeOption, ProductAttributeValue, Notification, Activity
 from .forms import UserRegisterForm, SellerUpdateForm, SellerLoginForm, ProductForm, ProductImageForm, DynamicProductForm
 from django.utils import timezone
@@ -17,7 +18,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from .models import Seller
 from django.views.decorators.http import require_POST, require_GET
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, Min, Max
 from datetime import datetime, timedelta
 import csv
 from io import StringIO
@@ -341,8 +342,6 @@ def update_product_view(request, product_id):
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('x-requested-with') == 'XMLHttpRequest'
         
         try:
-
-            
             # Use form validation for all requests (like the working repo code)
             form = DynamicProductForm(request.POST, request.FILES, instance=product)
             if form.is_valid():
@@ -2555,36 +2554,36 @@ def order_details(request, order_id):
                 'payment_time': order.created_at.isoformat() if order.payment_status == 'paid' else None
             }
             
-            return JsonResponse({
-                'id': order.id,
-                'customer_name': buyer_info['name'],
-                'customer_email': buyer_info['email'],
-                'order_type': 'promotion' if is_promotion_order else order.order_type,
-                'status': order.status,
-                'payment_status': order.payment_status,
-                'total_amount': float(order.total_amount),
-                'tracking_number': order.tracking_number or '',
-                'notes': order.notes or '',
-                'created_at': order.created_at.isoformat(),
-                'delivery_address': order.delivery_address or 'N/A',
-                # Add display values
-                'get_status_display': order.get_status_display(),
-                'get_payment_status_display': order.get_payment_status_display(),
-                # Add buyer and payment objects
-                'buyer': buyer_info,
-                'payment': payment_info,
-                # Add order items
-                'items': order_items,
-                # Add promotion info if applicable
-                'is_promotion': is_promotion_order,
-                'promotion_name': promotion_name
-            })
-        
-        context = {
-            'order': order,
-            'seller': seller,
-        }
-        return render(request, 'seller/order_details.html', context)
+        return JsonResponse({
+            'id': order.id,
+            'customer_name': buyer_info['name'],
+            'customer_email': buyer_info['email'],
+            'order_type': 'promotion' if is_promotion_order else order.order_type,
+            'status': order.status,
+            'payment_status': order.payment_status,
+            'total_amount': float(order.total_amount),
+            'tracking_number': order.tracking_number or '',
+            'notes': order.notes or '',
+            'created_at': order.created_at.isoformat(),
+            'delivery_address': order.delivery_address or 'N/A',
+            # Add display values
+            'get_status_display': order.get_status_display(),
+            'get_payment_status_display': order.get_payment_status_display(),
+            # Add buyer and payment objects
+            'buyer': buyer_info,
+            'payment': payment_info,
+            # Add order items
+            'items': order_items,
+            # Add promotion info if applicable
+            'is_promotion': is_promotion_order,
+            'promotion_name': promotion_name
+        })
+    
+    context = {
+        'order': order,
+        'seller': seller,
+    }
+    return render(request, 'seller/order_details.html', context)
 
 @login_required
 @require_POST
@@ -2872,3 +2871,98 @@ def promotions_list_view(request):
     }
     
     return render(request, 'seller/promotions_list.html', context)
+
+def product_listing_view(request):
+    """Comprehensive product listing page showing all products from all sellers"""
+    # Get all products with related data
+    products = Product.objects.select_related('seller', 'category', 'brand').prefetch_related('images').all()
+    
+    # Get filter parameters
+    category_id = request.GET.get('category')
+    brand_id = request.GET.get('brand')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    condition = request.GET.get('condition')
+    rating = request.GET.get('rating')
+    search_query = request.GET.get('search')
+    sort_by = request.GET.get('sort', 'featured')
+    view_type = request.GET.get('view', 'grid')
+    verified_only = request.GET.get('verified') == 'on'
+    
+    # Apply filters
+    if category_id:
+        products = products.filter(category_id=category_id)
+    if brand_id:
+        products = products.filter(brand_id=brand_id)
+    if min_price:
+        products = products.filter(base_price__gte=float(min_price))
+    if max_price:
+        products = products.filter(base_price__lte=float(max_price))
+    if condition and condition != 'any':
+        products = products.filter(condition=condition)
+    if rating:
+        products = products.filter(rating_avg__gte=float(rating))
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) | 
+            Q(description__icontains=search_query) |
+            Q(category__name__icontains=search_query) |
+            Q(brand__name__icontains=search_query)
+        )
+    if verified_only:
+        products = products.filter(seller__is_verified=True)
+    
+    # Apply sorting
+    if sort_by == 'price_low':
+        products = products.order_by('base_price')
+    elif sort_by == 'price_high':
+        products = products.order_by('-base_price')
+    elif sort_by == 'newest':
+        products = products.order_by('-created_at')
+    elif sort_by == 'rating':
+        products = products.order_by('-rating_avg')
+    elif sort_by == 'orders':
+        products = products.order_by('-order_count')
+    else:  # featured
+        products = products.order_by('-order_count', '-rating_avg')
+    
+    # Pagination
+    paginator = Paginator(products, 12)  # 12 products per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get filter options
+    categories = Category.objects.all()
+    brands = Brand.objects.all()
+    
+    # Calculate price range for slider
+    if products.exists():
+        min_price_range = products.aggregate(Min('base_price'))['base_price__min']
+        max_price_range = products.aggregate(Max('base_price'))['base_price__max']
+    else:
+        min_price_range = 0
+        max_price_range = 1000
+    
+    context = {
+        'page_obj': page_obj,
+        'categories': categories,
+        'brands': brands,
+        'min_price_range': min_price_range,
+        'max_price_range': max_price_range,
+        'current_filters': {
+            'category': category_id,
+            'brand': brand_id,
+            'min_price': min_price,
+            'max_price': max_price,
+            'condition': condition,
+            'rating': rating,
+            'search': search_query,
+            'sort': sort_by,
+            'view': view_type,
+            'verified': verified_only,
+        },
+        'total_products': products.count(),
+        'view_type': view_type,
+    }
+    
+    return render(request, 'seller/ecom_product_listing.html', context)

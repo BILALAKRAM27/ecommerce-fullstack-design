@@ -8,6 +8,7 @@ urlpatterns = [
     path('buyer/profile/', views.buyer_profile_view, name='buyer_profile'),
     path('buyer/profile/update/', views.update_buyer_view, name='buyer_update'),
     path('buyer/profile/delete/', views.delete_buyer_view, name='buyer_delete'),
+    path('buyer/dashboard/', views.buyer_dashboard_view, name='buyer_dashboard'),
     path('wishlist/add/', views.add_to_wishlist, name='add_to_wishlist'),
     path('wishlist/remove/', views.remove_from_wishlist, name='remove_from_wishlist'),
     path('wishlist/check/', views.check_wishlist_status, name='check_wishlist_status'),
@@ -47,4 +48,10 @@ urlpatterns += [
     path('orders/<int:order_id>/', views.order_details_view, name='order_details'),
     path('orders/<int:order_id>/track/', views.track_order_view, name='track_order'),
     path('support/', views.contact_support_view, name='contact_support'),
+]
+
+# Export functionality URLs
+urlpatterns += [
+    path('buyer/export/', views.buyer_export_data, name='buyer_export_data'),
+    path('buyer/test-export/', views.test_export_url, name='test_export_url'),
 ]

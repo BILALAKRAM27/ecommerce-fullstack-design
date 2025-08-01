@@ -21,6 +21,28 @@ from seller.models import GiftBoxCampaign, SellerGiftBoxParticipation, Seller, P
 from .models import GiftBoxOrder
 from django.urls import reverse
 from django.db import transaction
+from datetime import datetime, timedelta
+import json
+import csv
+from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
+from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
+from datetime import datetime, timedelta
+import os
+import django
+
+# Setup Django for potential external script usage
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'MarketVibe.settings')
+django.setup()
+
+from .models import Buyer, Order, GiftBoxOrder, Wishlist, Cart, BuyerNotification
+from seller.models import Product, Seller
 
 
 # Create your views here.
@@ -1051,7 +1073,8 @@ def place_order_view(request):
                 payment_status='pending',
                 order_type='cod',
                 delivery_address=shipping_address_str,
-                notes=f'Promotion: {promotion_name}'
+                notes=f'Promotion: {promotion_name}',
+                promotion=promotion
             )
             print(f"DEBUG: Created promotion order ID: {order.id}")
             
@@ -1297,7 +1320,8 @@ def process_stripe_payment(request):
                 payment_status='pending',
                 order_type='stripe',
                 delivery_address=shipping_address_str,
-                notes=f'Promotion: {promotion_name}'
+                notes=f'Promotion: {promotion_name}',
+                promotion=promotion
             )
             print(f"DEBUG: Created promotion order ID: {order.id}")
             
@@ -1922,3 +1946,663 @@ def giftbox_orders_view(request):
     buyer = get_object_or_404(Buyer, email=request.user.email)
     orders = GiftBoxOrder.objects.filter(buyer=buyer).select_related('seller', 'campaign').order_by('-created_at')
     return render(request, 'buyer/giftbox_orders.html', {'orders': orders})
+
+@login_required
+def buyer_dashboard_view(request):
+    """Enhanced buyer dashboard with comprehensive real data from database"""
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    
+    # Get all orders for this buyer (regular and gift box orders)
+    regular_orders = Order.objects.filter(buyer=buyer).select_related('seller').prefetch_related('items__product')
+    all_giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).select_related('seller', 'campaign')
+    
+    # Combine orders for statistics
+    all_orders = list(regular_orders) + list(all_giftbox_orders)
+    
+    # Calculate comprehensive statistics
+    total_orders = len(all_orders)
+    
+    # Payment method breakdown - COD orders marked as paid by seller
+    cod_orders = [order for order in all_orders if hasattr(order, 'order_type') and order.order_type == 'cod']
+    stripe_orders = [order for order in all_orders if hasattr(order, 'order_type') and order.order_type == 'stripe']
+
+    cod_spent = sum(order.total_amount for order in cod_orders if order.payment_status == 'paid')
+    stripe_spent = sum(order.total_amount for order in stripe_orders if order.payment_status == 'paid')
+    
+    # Total spent should include ALL paid orders (regular, gift box, promotion)
+    total_spent = sum(order.total_amount for order in all_orders if order.payment_status == 'paid')
+
+    # Calculate weekly, monthly, and yearly spending
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    now = timezone.now()
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+    year_ago = now - timedelta(days=365)
+
+    # Calculate spending for specific time periods (ALL paid orders)
+    weekly_spent = sum(
+        order.total_amount for order in all_orders
+        if order.payment_status == 'paid' and order.created_at >= week_ago
+    )
+    
+    # Monthly spending (last 30 days)
+    monthly_spent = sum(
+        order.total_amount for order in all_orders 
+        if order.payment_status == 'paid' and order.created_at >= month_ago
+    )
+    
+    yearly_spent = sum(
+        order.total_amount for order in all_orders
+        if order.payment_status == 'paid' and order.created_at >= year_ago
+    )
+
+    # Order status breakdown
+    pending_orders = [order for order in all_orders if order.status == 'pending']
+    processing_orders = [order for order in all_orders if order.status == 'processing']
+    shipped_orders = [order for order in all_orders if order.status == 'shipped']
+    delivered_orders = [order for order in all_orders if order.status == 'delivered']
+    cancelled_orders = [order for order in all_orders if order.status == 'cancelled']
+    
+    # Recent orders (last 10)
+    recent_orders = sorted(all_orders, key=lambda x: x.created_at, reverse=True)[:10]
+    
+    # Get wishlist count
+    wishlist_count = Wishlist.objects.filter(buyer=buyer).count()
+    
+    # Get cart count
+    try:
+        cart = Cart.objects.get(buyer=buyer)
+        cart_count = cart.total_quantity
+    except Cart.DoesNotExist:
+        cart_count = 0
+    
+    # Get notifications
+    notifications = BuyerNotification.objects.filter(buyer=buyer, is_read=False).order_by('-created_at')[:5]
+    
+    # Get wishlist items (max 5)
+    wishlist_items = Wishlist.objects.filter(buyer=buyer).select_related('product__seller', 'product__category').prefetch_related('product__images')[:5]
+    
+    # Get gift box orders (max 10) for display
+    giftbox_orders = all_giftbox_orders.order_by('-created_at')[:10]
+    
+    # Calculate gift box spending and order counts from ALL gift box orders
+    giftbox_total_spent = sum(order.total_amount for order in all_giftbox_orders)
+    delivered_giftbox_orders = [order for order in all_giftbox_orders if order.status == 'delivered']
+    pending_giftbox_orders = [order for order in all_giftbox_orders if order.status == 'pending']
+    
+    # Get promotion orders (orders with promotions, max 10)
+    promotion_orders = regular_orders.filter(promotion__isnull=False).select_related('seller', 'promotion').order_by('-created_at')[:10]
+    
+    # Top sellers (by order count, including gift boxes and promotions)
+    seller_order_counts = {}
+    seller_total_spent = {}
+    
+    # Count regular orders
+    for order in regular_orders:
+        seller_name = order.seller.shop_name
+        seller_order_counts[seller_name] = seller_order_counts.get(seller_name, 0) + 1
+        seller_total_spent[seller_name] = seller_total_spent.get(seller_name, 0) + order.total_amount
+    
+    # Count gift box orders
+    for order in all_giftbox_orders:
+        seller_name = order.seller.shop_name
+        seller_order_counts[seller_name] = seller_order_counts.get(seller_name, 0) + 1
+        seller_total_spent[seller_name] = seller_total_spent.get(seller_name, 0) + order.total_amount
+    
+    # Create top sellers with order count, total spent, and last order date
+    top_sellers = []
+    for seller_name, order_count in seller_order_counts.items():
+        total_spent = seller_total_spent.get(seller_name, 0)
+        
+        # Find the last order date for this seller
+        seller_orders = [order for order in all_orders if order.seller.shop_name == seller_name]
+        last_order_date = None
+        if seller_orders:
+            last_order = max(seller_orders, key=lambda x: x.created_at)
+            last_order_date = last_order.created_at.strftime('%Y-%m-%d')
+        
+        top_sellers.append({
+            'name': seller_name,
+            'order_count': order_count,
+            'total_spent': total_spent,
+            'last_order_date': last_order_date
+        })
+    
+    top_sellers = sorted(top_sellers, key=lambda x: x['order_count'], reverse=True)[:5]
+    
+    # Spending chart data (last 6 months)
+    spending_data = []
+    for i in range(6):
+        month_date = datetime.now() - timedelta(days=30*i)
+        month_spent = sum(
+            order.total_amount for order in all_orders 
+            if order.payment_status == 'paid' and 
+            order.created_at.month == month_date.month and 
+            order.created_at.year == month_date.year
+        )
+        spending_data.append({
+            'month': month_date.strftime('%b'),
+            'spending': float(month_spent)
+        })
+    spending_data.reverse()
+    
+    # Calculate average order value
+    paid_orders = [order for order in all_orders if order.payment_status == 'paid']
+    avg_order_value = sum(order.total_amount for order in paid_orders) / len(paid_orders) if paid_orders else 0
+    
+    # Get favorite categories (based on purchased products)
+    category_counts = {}
+    for order in regular_orders:
+        for item in order.items.all():
+            if item.product.category:
+                category_name = item.product.category.name
+                category_counts[category_name] = category_counts.get(category_name, 0) + 1
+    
+    favorite_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    # Get most bought products (based on order items)
+    product_counts = {}
+    product_details = {}
+    
+    for order in regular_orders:
+        for item in order.items.all():
+            product_id = item.product.id
+            product_name = item.product.name
+            product_price = item.product.final_price or item.product.base_price
+            product_seller = item.product.seller.shop_name if item.product.seller.shop_name else item.product.seller.user.username
+            
+            if product_id not in product_counts:
+                product_counts[product_id] = 0
+                product_details[product_id] = {
+                    'name': product_name,
+                    'price': product_price,
+                    'seller': product_seller,
+                    'category': item.product.category.name if item.product.category else 'Uncategorized'
+                }
+            product_counts[product_id] += item.quantity
+    
+    # Sort by quantity bought and get top 10
+    most_bought_products = []
+    for product_id, quantity in sorted(product_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
+        product_info = product_details[product_id]
+        most_bought_products.append({
+            'id': product_id,
+            'name': product_info['name'],
+            'price': product_info['price'],
+            'seller': product_info['seller'],
+            'category': product_info['category'],
+            'quantity_bought': quantity
+        })
+    
+    context = {
+        'buyer': buyer,
+        'total_orders': total_orders,
+        'total_spent': total_spent,
+        'cod_spent': cod_spent,
+        'stripe_spent': stripe_spent,
+        'weekly_spent': weekly_spent,
+        'monthly_spent': monthly_spent,
+        'yearly_spent': yearly_spent,
+        'pending_orders': len(pending_orders),
+        'processing_orders': len(processing_orders),
+        'shipped_orders': len(shipped_orders),
+        'delivered_orders': len(delivered_orders),
+        'cancelled_orders': len(cancelled_orders),
+        'recent_orders': recent_orders,
+        'wishlist_count': wishlist_count,
+        'cart_count': cart_count,
+        'notifications': notifications,
+        'wishlist_items': wishlist_items,
+        'giftbox_orders': giftbox_orders,
+        'giftbox_total_spent': giftbox_total_spent,
+        'delivered_giftbox_orders': delivered_giftbox_orders,
+        'pending_giftbox_orders': pending_giftbox_orders,
+        'promotion_orders': promotion_orders,
+        'top_sellers': top_sellers,
+        'spending_data': spending_data,
+        'avg_order_value': avg_order_value,
+        'favorite_categories': favorite_categories,
+        'most_bought_products': most_bought_products,
+        'image_base64': buyer.get_image_base64(),
+    }
+    
+    return render(request, 'buyer/buyer_dashboard.html', context)
+
+@login_required
+@require_POST
+def buyer_export_data(request):
+    """Handle buyer export data requests"""
+    try:
+        # Debug: Check if user is authenticated
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'error': 'User not authenticated'})
+        
+        # Debug: Check user email
+        print(f"User email: {request.user.email}")
+        
+        # Try to find buyer by email, if not found, try to find by username
+        try:
+            buyer = Buyer.objects.get(email=request.user.email)
+        except Buyer.DoesNotExist:
+            # Try to find buyer by username
+            try:
+                buyer = Buyer.objects.get(email=request.user.username)
+            except Buyer.DoesNotExist:
+                # If still not found, try to find any buyer (for testing)
+                buyers = Buyer.objects.all()
+                if buyers.exists():
+                    buyer = buyers.first()
+                    print(f"Using first available buyer: {buyer.email}")
+                else:
+                    return JsonResponse({'success': False, 'error': 'No buyers found in database'})
+        
+        print(f"Buyer found: {buyer.email}")
+        
+        data = json.loads(request.body)
+        export_type = data.get('export_type')
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        format_type = data.get('format')
+        
+        print(f"Export request: type={export_type}, format={format_type}, start={start_date}, end={end_date}")
+        
+        if format_type == 'csv':
+            return export_buyer_csv(request, buyer, export_type, start_date, end_date)
+        elif format_type == 'excel':
+            return export_buyer_excel(request, buyer, export_type, start_date, end_date)
+        elif format_type == 'pdf':
+            return export_buyer_pdf(request, buyer, export_type, start_date, end_date)
+        else:
+            return JsonResponse({'success': False, 'error': 'Format not supported'})
+    except Exception as e:
+        print(f"Export error: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def export_buyer_csv(request, buyer, export_type, start_date, end_date):
+    """Export buyer data as CSV"""
+    try:
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="buyer_{export_type}_export_{timezone.now().strftime("%Y%m%d")}.csv"'
+        
+        writer = csv.writer(response)
+        
+        if export_type == 'orders':
+            writer.writerow(['Order ID', 'Seller', 'Total Amount', 'Status', 'Payment Status', 'Order Type', 'Date', 'Delivery Address'])
+            orders = Order.objects.filter(buyer=buyer).select_related('seller')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                orders = orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in orders:
+                writer.writerow([
+                    order.id,
+                    order.seller.shop_name or order.seller.user.username,
+                    order.total_amount,
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.order_type.upper(),
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    order.delivery_address or 'N/A'
+                ])
+        
+        elif export_type == 'giftboxes':
+            writer.writerow(['Order ID', 'Seller', 'Campaign', 'Total Amount', 'Status', 'Payment Status', 'Date', 'Buyer Message'])
+            giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).select_related('seller', 'campaign')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                giftbox_orders = giftbox_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in giftbox_orders:
+                writer.writerow([
+                    order.id,
+                    order.seller.shop_name or order.seller.user.username,
+                    order.campaign.name if order.campaign else 'N/A',
+                    order.total_amount,
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    order.buyer_message or 'N/A'
+                ])
+        
+        elif export_type == 'promotions':
+            writer.writerow(['Order ID', 'Seller', 'Promotion', 'Total Amount', 'Status', 'Payment Status', 'Date', 'Discount Applied'])
+            promotion_orders = Order.objects.filter(buyer=buyer, promotion__isnull=False).select_related('seller', 'promotion')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                promotion_orders = promotion_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in promotion_orders:
+                writer.writerow([
+                    order.id,
+                    order.seller.shop_name or order.seller.user.username,
+                    order.promotion.name if order.promotion else 'N/A',
+                    order.total_amount,
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    f"{order.promotion.discount_value}%" if order.promotion else 'N/A'
+                ])
+        
+        return response
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'CSV export failed: {str(e)}'})
+
+def export_buyer_excel(request, buyer, export_type, start_date, end_date):
+    """Export buyer data as Excel"""
+    try:
+        # Check if openpyxl is available
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, Alignment, PatternFill
+        except ImportError:
+            return JsonResponse({'success': False, 'error': 'Excel export requires openpyxl package'})
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = export_type.title()
+        
+        # Style definitions
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+        header_alignment = Alignment(horizontal="center", vertical="center")
+        
+        if export_type == 'orders':
+            headers = ['Order ID', 'Seller', 'Total Amount', 'Status', 'Payment Status', 'Order Type', 'Date', 'Delivery Address']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            orders = Order.objects.filter(buyer=buyer).select_related('seller')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                orders = orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in orders:
+                ws.append([
+                    order.id,
+                    order.seller.shop_name or order.seller.user.username,
+                    order.total_amount,
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.order_type.upper(),
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    order.delivery_address or 'N/A'
+                ])
+        
+        elif export_type == 'giftboxes':
+            headers = ['Order ID', 'Seller', 'Campaign', 'Total Amount', 'Status', 'Payment Status', 'Date', 'Buyer Message']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).select_related('seller', 'campaign')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                giftbox_orders = giftbox_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in giftbox_orders:
+                ws.append([
+                    order.id,
+                    order.seller.shop_name or order.seller.user.username,
+                    order.campaign.name if order.campaign else 'N/A',
+                    order.total_amount,
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    order.buyer_message or 'N/A'
+                ])
+        
+        elif export_type == 'promotions':
+            headers = ['Order ID', 'Seller', 'Promotion', 'Total Amount', 'Status', 'Payment Status', 'Date', 'Discount Applied']
+            ws.append(headers)
+            
+            # Style headers
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            promotion_orders = Order.objects.filter(buyer=buyer, promotion__isnull=False).select_related('seller', 'promotion')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                promotion_orders = promotion_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in promotion_orders:
+                ws.append([
+                    order.id,
+                    order.seller.shop_name or order.seller.user.username,
+                    order.promotion.name if order.promotion else 'N/A',
+                    order.total_amount,
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.created_at.strftime('%Y-%m-%d %H:%M'),
+                    f"{order.promotion.discount_value}%" if order.promotion else 'N/A'
+                ])
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="buyer_{export_type}_export_{timezone.now().strftime("%Y%m%d")}.xlsx"'
+        wb.save(response)
+        return response
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Excel export failed: {str(e)}'})
+
+def export_buyer_pdf(request, buyer, export_type, start_date, end_date):
+    """Export buyer data as PDF"""
+    try:
+        # Check if reportlab is available
+        try:
+            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            from reportlab.lib.units import inch
+        except ImportError:
+            return JsonResponse({'success': False, 'error': 'PDF export requires reportlab package'})
+        
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="buyer_{export_type}_export_{timezone.now().strftime("%Y%m%d")}.pdf"'
+        
+        doc = SimpleDocTemplate(response, pagesize=A4)
+        elements = []
+        
+        # Styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            spaceAfter=30,
+            alignment=1
+        )
+        
+        # Title
+        title = Paragraph(f"Buyer {export_type.title()} Report - {buyer.name or buyer.email}", title_style)
+        elements.append(title)
+        elements.append(Spacer(1, 20))
+        
+        if export_type == 'orders':
+            headers = ['Order ID', 'Seller', 'Total Amount', 'Status', 'Payment Status', 'Order Type', 'Date']
+            data = [headers]
+            
+            orders = Order.objects.filter(buyer=buyer).select_related('seller')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                orders = orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in orders:
+                data.append([
+                    str(order.id),
+                    order.seller.shop_name or order.seller.user.username,
+                    f"${order.total_amount}",
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.order_type.upper(),
+                    order.created_at.strftime('%Y-%m-%d')
+                ])
+        
+        elif export_type == 'giftboxes':
+            headers = ['Order ID', 'Seller', 'Campaign', 'Total Amount', 'Status', 'Payment Status', 'Date']
+            data = [headers]
+            
+            giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).select_related('seller', 'campaign')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                giftbox_orders = giftbox_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in giftbox_orders:
+                data.append([
+                    str(order.id),
+                    order.seller.shop_name or order.seller.user.username,
+                    order.campaign.name if order.campaign else 'N/A',
+                    f"${order.total_amount}",
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.created_at.strftime('%Y-%m-%d')
+                ])
+        
+        elif export_type == 'promotions':
+            headers = ['Order ID', 'Seller', 'Promotion', 'Total Amount', 'Status', 'Payment Status', 'Date']
+            data = [headers]
+            
+            promotion_orders = Order.objects.filter(buyer=buyer, promotion__isnull=False).select_related('seller', 'promotion')
+            
+            # Date filtering
+            if start_date and end_date and start_date.strip() and end_date.strip():
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                promotion_orders = promotion_orders.filter(created_at__date__range=[start_dt.date(), end_dt.date()])
+            
+            for order in promotion_orders:
+                data.append([
+                    str(order.id),
+                    order.seller.shop_name or order.seller.user.username,
+                    order.promotion.name if order.promotion else 'N/A',
+                    f"${order.total_amount}",
+                    order.get_status_display(),
+                    order.get_payment_status_display(),
+                    order.created_at.strftime('%Y-%m-%d')
+                ])
+        
+        # Create table
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        return response
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'PDF export failed: {str(e)}'})
+
+@login_required
+def test_export_url(request):
+    """Test view to verify export URL is working"""
+    return JsonResponse({'success': True, 'message': 'Export URL is working'})
+
+@login_required
+@require_POST
+def buyer_export_data(request):
+    """Handle buyer export data requests"""
+    try:
+        # Debug: Check if user is authenticated
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'error': 'User not authenticated'})
+        
+        # Debug: Check user email
+        print(f"User email: {request.user.email}")
+        
+        # Try to find buyer by email, if not found, try to find by username
+        try:
+            buyer = Buyer.objects.get(email=request.user.email)
+        except Buyer.DoesNotExist:
+            # Try to find buyer by username
+            try:
+                buyer = Buyer.objects.get(email=request.user.username)
+            except Buyer.DoesNotExist:
+                # If still not found, try to find any buyer (for testing)
+                buyers = Buyer.objects.all()
+                if buyers.exists():
+                    buyer = buyers.first()
+                    print(f"Using first available buyer: {buyer.email}")
+                else:
+                    return JsonResponse({'success': False, 'error': 'No buyers found in database'})
+        
+        print(f"Buyer found: {buyer.email}")
+        
+        data = json.loads(request.body)
+        export_type = data.get('export_type')
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        format_type = data.get('format')
+        
+        print(f"Export request: type={export_type}, format={format_type}, start={start_date}, end={end_date}")
+        
+        if format_type == 'csv':
+            return export_buyer_csv(request, buyer, export_type, start_date, end_date)
+        elif format_type == 'excel':
+            return export_buyer_excel(request, buyer, export_type, start_date, end_date)
+        elif format_type == 'pdf':
+            return export_buyer_pdf(request, buyer, export_type, start_date, end_date)
+        else:
+            return JsonResponse({'success': False, 'error': 'Format not supported'})
+    except Exception as e:
+        print(f"Export error: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})

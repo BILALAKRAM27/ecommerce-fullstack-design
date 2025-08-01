@@ -37,6 +37,14 @@ urlpatterns += [
 
 urlpatterns += [
     path('gift-boxes/', giftbox_marketplace_view, name='giftbox_marketplace'),
-    path('gift-boxes/buy/<int:seller_id>/', buy_giftbox_view, name='buy_giftbox'),
+    path('gift-boxes/buy/<int:seller_id>/<int:campaign_id>/', buy_giftbox_view, name='buy_giftbox'),
     path('gift-boxes/orders/', giftbox_orders_view, name='giftbox_orders'),
+]
+
+# Order management URLs
+urlpatterns += [
+    path('buyer_orders/', views.buyer_order_list_view, name='buyer_order_list'),
+    path('orders/<int:order_id>/', views.order_details_view, name='order_details'),
+    path('orders/<int:order_id>/track/', views.track_order_view, name='track_order'),
+    path('support/', views.contact_support_view, name='contact_support'),
 ]

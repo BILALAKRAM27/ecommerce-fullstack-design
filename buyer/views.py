@@ -17,7 +17,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from .models import Payment
-from seller.models import GiftBoxCampaign, SellerGiftBoxParticipation, Seller, Product
+from seller.models import GiftBoxCampaign, SellerGiftBoxParticipation, Seller, Product, Promotion
 from .models import GiftBoxOrder
 from django.urls import reverse
 from django.db import transaction
@@ -28,9 +28,51 @@ from django.db import transaction
 def buyer_profile_view(request):
     try:
         buyer = Buyer.objects.get(email=request.user.email)
+        
+        # Handle form submission for profile update
+        if request.method == 'POST':
+            form = BuyerUpdateForm(request.POST, request.FILES, instance=buyer)
+            if form.is_valid():
+                buyer = form.save()
+                messages.success(request, 'Buyer profile updated successfully.')
+                return redirect('buyer:buyer_profile')
+            else:
+                messages.error(request, f'Please fix the errors below: {form.errors}')
+        else:
+            form = BuyerUpdateForm(instance=buyer)
+        
+        # Get relevant data for the profile page
+        total_orders = Order.objects.filter(buyer=buyer).count()
+        giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).count()
+        total_all_orders = total_orders + giftbox_orders
+        
+        # Get wishlist count
+        wishlist_count = Wishlist.objects.filter(buyer=buyer).count()
+        
+        # Get cart count
+        try:
+            cart = Cart.objects.get(buyer=buyer)
+            cart_count = cart.total_quantity
+        except Cart.DoesNotExist:
+            cart_count = 0
+        
+        # Get recent orders
+        recent_orders = Order.objects.filter(buyer=buyer).order_by('-created_at')[:5]
+        recent_giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).order_by('-created_at')[:5]
+        
+        # Get notifications
+        notifications = BuyerNotification.objects.filter(buyer=buyer, is_read=False).order_by('-created_at')[:5]
+        
         context = {
             'buyer': buyer,
-            'image_base64': buyer.get_image_base64()
+            'image_base64': buyer.get_image_base64(),
+            'form': form,
+            'total_orders': total_all_orders,
+            'wishlist_count': wishlist_count,
+            'cart_count': cart_count,
+            'recent_orders': recent_orders,
+            'recent_giftbox_orders': recent_giftbox_orders,
+            'notifications': notifications,
         }
         return render(request, 'buyer/buyer_profile.html', context)
     except Buyer.DoesNotExist:
@@ -633,7 +675,52 @@ def checkout_view(request):
     promotion_data = request.session.get('promotion_data')
     is_promotion_checkout = promotion_data is not None
     
+    # Clear conflicting session data to ensure proper checkout type
+    if is_giftbox_checkout and is_promotion_checkout:
+        # If both are present, we need to determine which one is more recent
+        # Check if we came from a promotion checkout URL
+        referer = request.META.get('HTTP_REFERER', '')
+        if 'promotion/checkout' in referer or 'promotion/' in referer:
+            # Clear giftbox data if we came from promotion checkout
+            if 'giftbox_data' in request.session:
+                del request.session['giftbox_data']
+            is_giftbox_checkout = False
+        else:
+            # Clear promotion data if we came from giftbox checkout
+            if 'promotion_data' in request.session:
+                del request.session['promotion_data']
+            is_promotion_checkout = False
+    
+    # Add debug logging
+    print(f"DEBUG: Checkout view - Giftbox: {is_giftbox_checkout}, Promotion: {is_promotion_checkout}")
+    print(f"DEBUG: Session data - Giftbox: {giftbox_data}, Promotion: {promotion_data}")
+    print(f"DEBUG: Referer: {request.META.get('HTTP_REFERER', '')}")
+    
+    # If neither giftbox nor promotion checkout, this is a regular cart checkout
+    if not is_giftbox_checkout and not is_promotion_checkout:
+        # Clear any existing session data for other checkout types
+        if 'giftbox_data' in request.session:
+            del request.session['giftbox_data']
+        if 'promotion_data' in request.session:
+            del request.session['promotion_data']
+    else:
+        # If we have session data but the referer indicates we came from cart page,
+        # we should clear the session data and treat as regular checkout
+        referer = request.META.get('HTTP_REFERER', '')
+        if 'cart/page/' in referer or 'cart/' in referer:
+            print(f"DEBUG: Clearing session data because we came from cart page")
+            if 'giftbox_data' in request.session:
+                del request.session['giftbox_data']
+            if 'promotion_data' in request.session:
+                del request.session['promotion_data']
+            is_giftbox_checkout = False
+            is_promotion_checkout = False
+    
     if is_giftbox_checkout:
+        # Clear any existing promotion data when doing giftbox checkout
+        if 'promotion_data' in request.session:
+            del request.session['promotion_data']
+        
         # Handle gift box checkout
         seller_id = giftbox_data.get('seller_id')
         campaign_id = giftbox_data.get('campaign_id')
@@ -681,12 +768,13 @@ def checkout_view(request):
             'total_items': total_items,
         }
         
-        address_obj = getattr(buyer, 'address', None)
+        # Get buyer's address (it's a TextField, not an object)
+        buyer_address = getattr(buyer, 'address', '')
         shipping_address = {
-            'street': address_obj.street if address_obj else '',
-            'city': address_obj.city if address_obj else '',
-            'zip_code': address_obj.zip_code if address_obj else '',
-            'country': address_obj.country if address_obj else 'US',
+            'street': buyer_address,
+            'city': '',
+            'zip_code': '',
+            'country': 'US',
         }
         
         context = {
@@ -697,9 +785,15 @@ def checkout_view(request):
             'cart': None,  # No cart for gift box
             'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
             'is_giftbox_checkout': True,
+            'is_promotion_checkout': False,
+            'is_regular_checkout': False,
             'giftbox_data': giftbox_data,
         }
     elif is_promotion_checkout:
+        # Clear any existing giftbox data when doing promotion checkout
+        if 'giftbox_data' in request.session:
+            del request.session['giftbox_data']
+        
         # Handle promotion checkout
         promotion_id = promotion_data.get('promotion_id')
         promotion_name = promotion_data.get('promotion_name', 'Promotion')
@@ -720,9 +814,16 @@ def checkout_view(request):
             messages.error(request, 'The seller for this promotion is no longer available.')
             return redirect('buyer:cart_page')
         
+        # Get the actual promotion object to access its products
+        try:
+            promotion_obj = Promotion.objects.get(id=promotion_id)
+        except Promotion.DoesNotExist:
+            promotion_obj = None
+        
         # Create promotion seller group
         grouped_sellers = [{
             'seller': {'shop_name': seller_name},
+            'promotion': promotion_obj,  # Include the promotion object
             'products': [{
                 'name': f'Promotion: {promotion_name}',
                 'image_url': '',  # No image for promotion
@@ -749,12 +850,13 @@ def checkout_view(request):
             'total_items': total_items,
         }
         
-        address_obj = getattr(buyer, 'address', None)
+        # Get buyer's address (it's a TextField, not an object)
+        buyer_address = getattr(buyer, 'address', '')
         shipping_address = {
-            'street': address_obj.street if address_obj else '',
-            'city': address_obj.city if address_obj else '',
-            'zip_code': address_obj.zip_code if address_obj else '',
-            'country': address_obj.country if address_obj else 'US',
+            'street': buyer_address,
+            'city': '',
+            'zip_code': '',
+            'country': 'US',
         }
         
         context = {
@@ -764,18 +866,31 @@ def checkout_view(request):
             'buyer': buyer,
             'cart': None,  # No cart for promotion
             'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
+            'is_giftbox_checkout': False,
             'is_promotion_checkout': True,
+            'is_regular_checkout': False,
             'promotion_data': promotion_data,
         }
     else:
         # Handle regular cart checkout
+        print(f"DEBUG: Processing regular cart checkout")
         cart, _ = Cart.objects.get_or_create(buyer=buyer)
         cart_items = cart.items.select_related('product__seller')
+        
+        # Check if cart has items
+        if not cart_items.exists():
+            print(f"DEBUG: Cart is empty, redirecting to cart page")
+            messages.error(request, 'Your cart is empty. Please add items before checkout.')
+            return redirect('buyer:cart_page')
+        
+        print(f"DEBUG: Cart has {cart_items.count()} items")
 
         grouped_sellers = []
         seller_map = {}
+        print(f"DEBUG: Processing {cart_items.count()} cart items")
         for item in cart_items:
             seller = item.product.seller
+            print(f"DEBUG: Processing item: {item.product.name} from seller: {seller.shop_name}")
             if seller.id not in seller_map:
                 seller_map[seller.id] = {
                     'seller': {'shop_name': seller.shop_name},
@@ -796,6 +911,7 @@ def checkout_view(request):
             })
             seller_map[seller.id]['subtotal'] += item.get_total_price()  # Use cart item's total price
         grouped_sellers = list(seller_map.values())
+        print(f"DEBUG: Created {len(grouped_sellers)} seller groups")
 
         # Use cart's calculated values instead of manual calculation
         subtotal = cart.subtotal
@@ -812,12 +928,13 @@ def checkout_view(request):
             'total_items': total_items,
         }
 
-        address_obj = getattr(buyer, 'address', None)
+        # Get buyer's address (it's a TextField, not an object)
+        buyer_address = getattr(buyer, 'address', '')
         shipping_address = {
-            'street': address_obj.street if address_obj else '', 
-            'city': address_obj.city if address_obj else '',
-            'zip_code': address_obj.zip_code if address_obj else '', 
-            'country': address_obj.country if address_obj else 'US',
+            'street': buyer_address,
+            'city': '',
+            'zip_code': '',
+            'country': 'US',
         }
 
         context = {
@@ -828,6 +945,8 @@ def checkout_view(request):
             'cart': cart,  # Add cart to context for discount display
             'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
             'is_giftbox_checkout': False,
+            'is_promotion_checkout': False,
+            'is_regular_checkout': True,
         }
     
     return render(request, 'buyer/checkout_page.html', context)
@@ -1663,7 +1782,7 @@ def giftbox_marketplace_view(request):
     })
 
 @login_required
-def buy_giftbox_view(request, seller_id):
+def buy_giftbox_view(request, seller_id, campaign_id):
     from django.utils import timezone
     today = timezone.now().date()
     
@@ -1676,18 +1795,22 @@ def buy_giftbox_view(request, seller_id):
     seller = get_object_or_404(Seller, id=seller_id)
     buyer = get_object_or_404(Buyer, email=request.user.email)
     
-    # Check if seller is participating in any active campaign
-    seller_participations = SellerGiftBoxParticipation.objects.filter(
-        seller=seller,
-        campaign__in=active_campaigns
-    ).select_related('campaign')
-    
-    if not seller_participations.exists():
-        messages.error(request, 'This seller is not participating in any active gift box campaigns.')
+    # Check if seller is participating in the specific campaign
+    try:
+        seller_participation = SellerGiftBoxParticipation.objects.get(
+            seller=seller,
+            campaign_id=campaign_id
+        )
+        campaign = seller_participation.campaign
+        
+        # Verify the campaign is active and not expired
+        if not campaign.is_active or campaign.end_date < today:
+            messages.error(request, 'This gift box campaign is no longer active.')
+            return redirect('buyer:giftbox_marketplace')
+            
+    except SellerGiftBoxParticipation.DoesNotExist:
+        messages.error(request, 'This seller is not participating in the selected gift box campaign.')
         return redirect('buyer:giftbox_marketplace')
-    
-    # Use the most recent campaign the seller is participating in
-    campaign = seller_participations.first().campaign
     
     if request.method == 'POST':
         message = request.POST.get('buyer_message', '').strip()
@@ -1707,6 +1830,92 @@ def buy_giftbox_view(request, seller_id):
         'campaign': campaign,
         'seller': seller,
     })
+
+@login_required
+def buyer_order_list_view(request):
+    """View for displaying all buyer orders (regular and gift box orders)"""
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    
+    # Get regular orders
+    regular_orders = Order.objects.filter(buyer=buyer).select_related('seller').order_by('-created_at')
+    
+    # Get gift box orders
+    giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).select_related('seller', 'campaign').order_by('-created_at')
+    
+    # Combine and sort all orders by creation date
+    all_orders = []
+    for order in regular_orders:
+        order.order_type = 'regular'
+        all_orders.append(order)
+    
+    for order in giftbox_orders:
+        order.order_type = 'giftbox'
+        all_orders.append(order)
+    
+    # Sort by creation date (newest first)
+    all_orders.sort(key=lambda x: x.created_at, reverse=True)
+    
+    context = {
+        'orders': all_orders,
+        'regular_orders': regular_orders,
+        'giftbox_orders': giftbox_orders,
+    }
+    return render(request, 'buyer/buyer_order_list.html', context)
+
+@login_required
+def order_details_view(request, order_id):
+    """View for displaying detailed order information"""
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    
+    # Try to find the order (could be regular or gift box)
+    try:
+        order = Order.objects.get(id=order_id, buyer=buyer)
+        order_type = 'regular'
+    except Order.DoesNotExist:
+        try:
+            order = GiftBoxOrder.objects.get(id=order_id, buyer=buyer)
+            order_type = 'giftbox'
+        except GiftBoxOrder.DoesNotExist:
+            messages.error(request, 'Order not found.')
+            return redirect('buyer:buyer_order_list')
+    
+    context = {
+        'order': order,
+        'order_type': order_type,
+    }
+    return render(request, 'buyer/order_details.html', context)
+
+@login_required
+def track_order_view(request, order_id):
+    """View for tracking order status"""
+    buyer = get_object_or_404(Buyer, email=request.user.email)
+    
+    # Try to find the order (could be regular or gift box)
+    try:
+        order = Order.objects.get(id=order_id, buyer=buyer)
+        order_type = 'regular'
+    except Order.DoesNotExist:
+        try:
+            order = GiftBoxOrder.objects.get(id=order_id, buyer=buyer)
+            order_type = 'giftbox'
+        except GiftBoxOrder.DoesNotExist:
+            messages.error(request, 'Order not found.')
+            return redirect('buyer:buyer_order_list')
+    
+    context = {
+        'order': order,
+        'order_type': order_type,
+    }
+    return render(request, 'buyer/track_order.html', context)
+
+@login_required
+def contact_support_view(request):
+    """View for contacting support about an order"""
+    order_number = request.GET.get('order')
+    context = {
+        'order_number': order_number,
+    }
+    return render(request, 'buyer/contact_support.html', context)
 
 @login_required
 def giftbox_orders_view(request):

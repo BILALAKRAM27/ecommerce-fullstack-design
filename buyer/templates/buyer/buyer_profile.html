@@ -1,193 +1,742 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buyer Profile</title>
-    <style>
-        * {
+{% extends 'index.html' %}
+{% block extra_css %}
+<style>
+        /* Design System Variables */
+        :root {
+            --primary-blue: #3B82F6;
+            --primary-blue-dark: #2563EB;
+            --primary-blue-light: #EFF6FF;
+            --success-green: #10B981;
+            --warning-yellow: #F59E0B;
+            --error-red: #EF4444;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #F9FAFB;
+            --border-light: #E5E7EB;
+            --border-medium: #D1D5DB;
+            --border-dark: #9CA3AF;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --radius-full: 9999px;
+        }
+
+        /* Reset and Base Styles */
+        .buyer-profile-container * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .buyer-profile-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
             min-height: 100vh;
-            padding: 20px 0;
         }
 
-        .container {
-            max-width: 1200px;
+        /* Profile Container */
+        .buyer-profile-page {
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            background: var(--bg-secondary);
         }
 
-        .header {
-            background: white;
-            padding: 1rem 2rem;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        /* Profile Header */
+        .buyer-profile-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem;
             margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .buyer-profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .buyer-profile-header-content {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 2.5rem;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
 
-        .header h1 {
-            color: #333;
-            font-size: 2rem;
-        }
-
-        .nav-links {
+        /* Profile Avatar */
+        .buyer-profile-avatar {
+            position: relative;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 1rem;
         }
 
-        .nav-links button {
-            padding: 0.5rem 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-        }
-
-        .nav-links button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .nav-links a {
-            padding: 0.5rem 1rem;
-            background: #95a5a6;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            background: #7f8c8d;
-            transform: translateY(-2px);
-        }
-
-        .profile-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        .buyer-avatar-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            border-radius: var(--radius-full);
             overflow: hidden;
-            margin-bottom: 2rem;
-        }
-
-        .profile-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid white;
-            margin: 0 auto 1rem;
-            background: #f8f9fa;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
-            color: #667eea;
-            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
         }
 
-        .profile-avatar img {
+        .buyer-avatar-container:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .buyer-avatar-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
         }
 
-        .profile-name {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        .buyer-avatar-container:hover .buyer-avatar-image {
+            transform: scale(1.1);
         }
 
-        .profile-email {
-            font-size: 1.1rem;
-            opacity: 0.9;
+        .buyer-avatar-placeholder {
+            font-size: 3.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .profile-details {
-            padding: 2rem;
+        /* Profile Info */
+        .buyer-profile-info {
+            flex: 1;
+            color: white;
         }
 
-        .detail-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+        .buyer-profile-info h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: -0.025em;
+        }
+
+        .buyer-profile-info .subtitle {
+            font-size: 1.25rem;
             margin-bottom: 1.5rem;
+            opacity: 0.9;
+            font-weight: 500;
         }
 
-        .detail-item {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
+        .buyer-profile-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
         }
 
-        .detail-label {
+        .buyer-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            opacity: 0.9;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .buyer-meta-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .buyer-meta-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+
+        /* Profile Actions */
+        .buyer-profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        /* Main Content Grid */
+        .buyer-main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Form Section */
+        .buyer-profile-form-section {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+        }
+
+        .buyer-profile-form-section:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-2px);
+        }
+
+        .buyer-form-section-header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-light);
+            position: relative;
+        }
+
+        .buyer-form-section-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue) 0%, var(--success-green) 50%, var(--warning-yellow) 100%);
+        }
+
+        .buyer-form-section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .buyer-form-section-header h2::before {
+            content: '👤';
+            font-size: 1.25rem;
+        }
+
+        .buyer-form-section-body {
+            padding: 2.5rem;
+        }
+
+        /* Form Grid */
+        .buyer-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .buyer-form-grid .buyer-form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Form Groups */
+        .buyer-form-group {
+            position: relative;
+        }
+
+        .buyer-form-label {
+            display: block;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            position: relative;
         }
 
-        .detail-value {
-            color: #666;
+        .buyer-form-label::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-blue);
+            transition: width 0.3s ease;
+        }
+
+        .buyer-form-group:focus-within .buyer-form-label::after {
+            width: 100%;
+        }
+
+        .buyer-form-input, .buyer-form-textarea {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        /* Django form field styling */
+        .buyer-profile-form input[type="text"],
+        .buyer-profile-form input[type="email"],
+        .buyer-profile-form input[type="tel"],
+        .buyer-profile-form input[type="password"] {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .buyer-profile-form input[type="text"]:focus,
+        .buyer-profile-form input[type="email"]:focus,
+        .buyer-profile-form input[type="tel"]:focus,
+        .buyer-profile-form input[type="password"]:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .buyer-profile-form input[type="text"]:disabled,
+        .buyer-profile-form input[type="email"]:disabled,
+        .buyer-profile-form input[type="tel"]:disabled,
+        .buyer-profile-form input[type="password"]:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            border-color: var(--border-medium);
+        }
+
+        /* Date input styling */
+        .buyer-profile-form input[type="date"] {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .buyer-profile-form input[type="date"]:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Textarea styling */
+        .buyer-profile-form textarea {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .buyer-profile-form textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .buyer-form-input:focus, .buyer-form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .buyer-form-input:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            border-color: var(--border-medium);
+        }
+
+        .buyer-form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Image Upload Section */
+        .buyer-image-upload-section {
+            grid-column: 1 / -1;
+            border: 3px dashed var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .buyer-image-upload-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.05) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .buyer-image-upload-section:hover::before {
+            transform: translateX(100%);
+        }
+
+        .buyer-image-upload-section:hover {
+            border-color: var(--primary-blue);
+            background: var(--primary-blue-light);
+            transform: scale(1.02);
+        }
+
+        .buyer-image-upload-section.drag-over {
+            border-color: var(--primary-blue);
+            background: var(--primary-blue-light);
+            transform: scale(1.02);
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.1);
+        }
+
+        .buyer-upload-content svg {
+            margin: 0 auto 1.5rem;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .buyer-image-upload-section:hover .buyer-upload-content svg {
+            color: var(--primary-blue);
+            transform: scale(1.1);
+        }
+
+        .buyer-upload-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(10px);
+        }
+
+        .buyer-preview-container {
+            position: relative;
+        }
+
+        .buyer-preview-image {
+            width: 120px;
+            height: 120px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            border: 4px solid var(--primary-blue);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .buyer-preview-image:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .buyer-remove-preview {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--error-red);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .buyer-remove-preview:hover {
+            background: #DC2626;
+            transform: scale(1.1);
+        }
+
+        /* Sidebar */
+        .buyer-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .buyer-sidebar-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .buyer-sidebar-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .buyer-sidebar-card-header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            position: relative;
+        }
+
+        .buyer-sidebar-card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-blue);
+        }
+
+        .buyer-sidebar-card-header h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .buyer-sidebar-card-body {
+            padding: 1.5rem;
+        }
+
+        /* Stats */
+        .buyer-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .buyer-stat-item:hover {
+            background: var(--bg-secondary);
+            margin: 0 -1.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+        }
+
+        .buyer-stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .buyer-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .buyer-stat-value {
+            font-weight: 700;
+            color: var(--text-primary);
             font-size: 1.1rem;
         }
 
-        .detail-value:empty::after {
-            content: "Not provided";
-            color: #999;
-            font-style: italic;
+        /* Form Actions */
+        .buyer-form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: 2rem;
         }
 
-        .messages {
-            margin-bottom: 1rem;
+        /* Buttons */
+        .buyer-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+            min-height: 44px;
         }
 
-        .message {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
+        .buyer-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
         }
 
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .buyer-btn:hover::before {
+            left: 100%;
         }
 
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .buyer-btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .buyer-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .buyer-btn-secondary {
+            
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-medium);
+        }
+
+        .buyer-btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-dark);
+            transform: translateY(-1px);
+        }
+
+        .buyer-btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid transparent;
+        }
+
+        .buyer-btn-ghost:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--border-light);
+        }
+
+        .buyer-btn-danger {
+            width: 190px;
+            height: 60px;
+            background: var(--error-red);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .buyer-btn-danger:hover {
+            background: #DC2626;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Alert Messages */
+        .buyer-alert {
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin: 1rem auto 1.5rem auto;
+            max-width: 600px;
+            border: 1px solid;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            font-size: 1rem;
+            box-shadow: var(--shadow-sm);
+            animation: buyerSlideInDown 0.3s ease;
+        }
+
+        @keyframes buyerSlideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .buyer-alert-success {
+            background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+            border-color: var(--success-green);
+            color: #166534;
+        }
+
+        .buyer-alert-error {
+            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+            border-color: var(--error-red);
+            color: #991B1B;
+        }
+
+        .buyer-alert .buyer-alert-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            flex-shrink: 0;
         }
 
         /* Modal Styles */
-        .modal {
+        .buyer-modal {
             display: none;
             position: fixed;
             z-index: 1000;
@@ -196,495 +745,1073 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s ease;
-            overflow-y: auto;
-            padding: 10px;
-            box-sizing: border-box;
+            animation: buyerFadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
+        @keyframes buyerFadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
 
-        .modal-content {
+        .buyer-modal-content {
             background-color: white;
-            margin: 10px auto;
-            border-radius: 15px;
-            width: 100%;
+            margin: 5% auto;
+            border-radius: var(--radius-xl);
+            width: 90%;
             max-width: 600px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-            animation: slideDown 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            max-height: calc(100vh - 20px);
-            position: relative;
-            z-index: 1001;
+            box-shadow: var(--shadow-xl);
+            animation: buyerSlideDown 0.3s ease;
+            overflow: hidden;
         }
 
-        @keyframes slideDown {
+        @keyframes buyerSlideDown {
             from { transform: translateY(-50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
-        .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .buyer-modal-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
             color: white;
-            padding: 20px;
-            border-radius: 15px 15px 0 0;
+            padding: 1.5rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 1002;
         }
 
-        .modal-header h3 {
+        .buyer-modal-header h3 {
             margin: 0;
-            font-size: 1.5rem;
-            word-wrap: break-word;
-            flex: 1;
+            font-size: 1.25rem;
+            font-weight: 700;
         }
 
-        .close {
+        .buyer-close {
             color: white;
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            flex-shrink: 0;
-            margin-left: 15px;
-            line-height: 1;
         }
 
-        .close:hover {
+        .buyer-close:hover {
             transform: scale(1.1);
         }
 
-        .modal-body {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-            word-wrap: break-word;
-            min-height: 0;
-            background-color: white;
-            position: relative;
-            z-index: 1001;
+        .buyer-modal-body {
+            padding: 2rem;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-            width: 100%;
-            overflow: hidden;
-            background-color: white;
-            position: relative;
-            z-index: 1001;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            word-wrap: break-word;
-            background-color: white;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-            max-width: 100%;
-            word-wrap: break-word;
-            background-color: white;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group input:disabled {
-            background: #f8f9fa;
-            color: #6c757d;
-        }
-
-        .form-group small {
-            display: block;
-            margin-top: 5px;
-            color: #666;
-            font-size: 0.9rem;
-            word-wrap: break-word;
-            background-color: white;
-        }
-
-        .modal-footer {
-            padding: 20px;
-            border-top: 1px solid #e9ecef;
+        .buyer-modal-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border-light);
             display: flex;
-            gap: 10px;
+            gap: 1rem;
             justify-content: flex-end;
-            flex-shrink: 0;
-            background: white;
-            position: relative;
-            z-index: 1002;
         }
 
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+        /* Warning Box */
+        .buyer-warning-box {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            border: 1px solid var(--warning-yellow);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .buyer-warning-box h4 {
+            color: #92400E;
+            margin: 0 0 1rem 0;
+            font-size: 1.125rem;
             font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            white-space: nowrap;
-            min-width: 100px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
-        .errorlist {
-            color: #e74c3c;
-            font-size: 0.85rem;
-            margin-top: 5px;
-            list-style: none;
-            padding: 0;
-            word-wrap: break-word;
-            background-color: white;
-        }
-
-        .warning-box {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            word-wrap: break-word;
-        }
-
-        .warning-box h4 {
-            color: #856404;
-            margin: 0 0 10px 0;
-            word-wrap: break-word;
-        }
-
-        .warning-box ul {
-            color: #856404;
+        .buyer-warning-box ul {
+            color: #92400E;
             margin: 0;
-            padding-left: 20px;
-            word-wrap: break-word;
+            padding-left: 1.25rem;
         }
 
-        .warning-box li {
-            margin-bottom: 5px;
-            word-wrap: break-word;
+        .buyer-warning-box li {
+            margin-bottom: 0.5rem;
         }
 
-        .image-container {
-            display: flex;
-            gap: 20px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-            align-items: flex-start;
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .buyer-profile-page {
+                max-width: 100%;
+                padding: 1rem;
+            }
+            
+            .buyer-main-content {
+                grid-template-columns: 1fr 320px;
+                gap: 1.5rem;
+            }
+            
+            .buyer-profile-header-content {
+                gap: 2rem;
+            }
+            
+            .buyer-avatar-container {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .buyer-profile-info h1 {
+                font-size: 2rem;
+            }
         }
 
-        .image-section {
-            flex: 1;
-            min-width: 200px;
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            border: 2px solid #e1e5e9;
-        }
-
-        .image-section h4 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .image-preview {
-            max-width: 150px;
-            width: 150px;
-            height: 150px;
-            border-radius: 8px;
-            margin: 10px 0;
-            object-fit: contain;
-            overflow: hidden;
-            background-color: white;
-            position: relative;
-            z-index: 1001;
-            border: 2px solid #e1e5e9;
-        }
-
-        .form-group img {
-            max-width: 150px;
-            width: 150px;
-            height: 150px;
-            object-fit: contain;
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: white;
-            position: relative;
-            z-index: 1001;
-            border: 2px solid #e1e5e9;
-        }
-
-        .no-image {
-            width: 150px;
-            height: 150px;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 0.9rem;
-            background-color: #f8f9fa;
+        @media (max-width: 1024px) {
+            .buyer-main-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .buyer-sidebar {
+                order: -1;
+                position: static;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1rem;
+            }
+            
+            .buyer-sidebar-card {
+                margin-bottom: 0;
+            }
+            
+            .buyer-profile-meta {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
         }
 
         @media (max-width: 768px) {
-            .modal {
-                padding: 5px;
+            .buyer-profile-page {
+                padding: 0.75rem;
             }
             
-            .modal-content {
-                width: 100%;
-                margin: 5px auto;
-                max-height: calc(100vh - 10px);
+            .buyer-profile-header {
+                padding: 2rem 1.5rem;
+                margin-bottom: 1.5rem;
             }
             
-            .modal-header {
-                padding: 15px;
+            .buyer-profile-header-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                text-align: center;
             }
             
-            .modal-header h3 {
-                font-size: 1.2rem;
+            .buyer-profile-actions {
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
             }
             
-            .modal-body {
-                padding: 15px;
+            .buyer-avatar-container {
+                width: 100px;
+                height: 100px;
+                margin: 0 auto;
             }
             
-            .modal-footer {
-                padding: 15px;
-                flex-direction: column;
+            .buyer-profile-info h1 {
+                font-size: 1.75rem;
             }
             
-            .btn {
-                width: 100%;
-                margin-bottom: 5px;
-                min-width: auto;
+            .buyer-profile-info .subtitle {
+                font-size: 1.125rem;
             }
             
-            .detail-row {
+            .buyer-profile-meta {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
-
-            .header {
+            
+            .buyer-meta-item {
+                justify-content: center;
+            }
+            
+            .buyer-form-section-body {
+                padding: 1.5rem;
+            }
+            
+            .buyer-form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .buyer-form-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .buyer-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .buyer-image-upload-section {
+                padding: 2rem 1rem;
+            }
+            
+            .buyer-upload-preview {
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
             }
+            
+            .buyer-preview-image {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .buyer-sidebar {
+                grid-template-columns: 1fr;
+            }
 
-            .nav-links {
-                justify-content: center;
+            .buyer-modal-content {
+                width: 95%;
+                margin: 2% auto;
+            }
+
+            .buyer-modal-body {
+                padding: 1.5rem;
+            }
+
+            .buyer-modal-footer {
+                flex-direction: column;
+                gap: 0.75rem;
             }
         }
+
+        @media (max-width: 480px) {
+            .buyer-profile-page {
+                padding: 0.5rem;
+            }
+            
+            .buyer-profile-header {
+                padding: 1.5rem 1rem;
+                border-radius: var(--radius-lg);
+            }
+            
+            .buyer-profile-header-content {
+                gap: 1rem;
+            }
+            
+            .buyer-avatar-container {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .buyer-profile-info h1 {
+                font-size: 1.5rem;
+            }
+            
+            .buyer-profile-info .subtitle {
+                font-size: 1rem;
+            }
+            
+            .buyer-meta-item {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+            
+            .buyer-form-section-header {
+                padding: 1.5rem;
+            }
+            
+            .buyer-form-section-header h2 {
+                font-size: 1.25rem;
+            }
+            
+            .buyer-form-section-body {
+                padding: 1rem;
+            }
+            
+            .buyer-form-input, .buyer-form-textarea {
+                padding: 0.875rem 1rem;
+                font-size: 0.95rem;
+            }
+            
+            .buyer-sidebar-card-header {
+                padding: 1rem;
+            }
+            
+            .buyer-sidebar-card-body {
+                padding: 1rem;
+            }
+            
+            .buyer-stat-item {
+                padding: 0.75rem 0;
+            }
+            
+            .buyer-btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                min-height: 40px;
+            }
+        }
+
+        /* Loading State */
+        .buyer-btn.loading {
+            position: relative;
+            color: transparent;
+            pointer-events: none;
+        }
+
+        .buyer-btn.loading::after {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            top: 50%;
+            left: 50%;
+            margin-left: -9px;
+            margin-top: -9px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: buyerSpin 1s linear infinite;
+        }
+
+        @keyframes buyerSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Form Error States */
+        .buyer-form-error {
+            color: var(--error-red);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            animation: buyerShake 0.5s ease;
+        }
+
+        @keyframes buyerShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .buyer-form-input.invalid {
+            border-color: var(--error-red);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        /* Light mode only - removed dark mode support */
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Focus styles for better accessibility */
+        .buyer-btn:focus,
+        .buyer-form-input:focus,
+        .buyer-form-textarea:focus {
+            outline: 2px solid var(--primary-blue);
+            outline-offset: 2px;
+        }
     </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Django Messages -->
+{% endblock %}
+
+{% block content %}
+<div class="buyer-profile-container">
+    <div class="buyer-profile-page">
+        <!-- Alert Messages -->
         {% if messages %}
-        <div class="messages">
             {% for message in messages %}
-            <div class="message {{ message.tags }}">
-                {{ message }}
-            </div>
+                <div class="buyer-alert buyer-alert-{{ message.tags }}">
+                    <svg class="buyer-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {% if message.tags == 'success' %}
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        {% else %}
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        {% endif %}
+                    </svg>
+                    {{ message }}
+                </div>
             {% endfor %}
-        </div>
         {% endif %}
 
-        <div class="header">
-            <h1>Buyer Profile</h1>
-            <div class="nav-links">
-                <button onclick="openUpdateModal()">Update Profile</button>
-                <button onclick="openDeleteModal()" style="background: #e74c3c;">Delete Account</button>
-                <a href="{% url 'sellers:logout' %}">Logout</a>
-            </div>
-        </div>
-
-        <div class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    {% if image_base64 %}
-                        <img src="data:image/jpeg;base64,{{ image_base64 }}" alt="Profile Image">
-                    {% else %}
-                        {{ buyer.name|first|upper }}
-                    {% endif %}
-                </div>
-                <div class="profile-name">{{ buyer.name }}</div>
-                <div class="profile-email">{{ buyer.email }}</div>
-            </div>
-
-            <div class="profile-details">
-                <div class="detail-row">
-                    <div class="detail-item">
-                        <div class="detail-label">Phone</div>
-                        <div class="detail-value">{{ buyer.phone }}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Address</div>
-                        <div class="detail-value">{{ buyer.address }}</div>
+        <!-- Profile Header -->
+        <header class="buyer-profile-header">
+            <div class="buyer-profile-header-content">
+                <div class="buyer-profile-avatar">
+                    <div class="buyer-avatar-container">
+                        {% if image_base64 %}
+                            <img src="data:image/jpeg;base64,{{ image_base64 }}" alt="Profile" class="buyer-avatar-image">
+                        {% else %}
+                            <div class="buyer-avatar-placeholder">👤</div>
+                        {% endif %}
                     </div>
                 </div>
-
-                <div class="detail-row">
-                    <div class="detail-item">
-                        <div class="detail-label">Member Since</div>
-                        <div class="detail-value">{{ buyer.created_at|date:"F j, Y" }}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Account Type</div>
-                        <div class="detail-value">Buyer</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Update Modal -->
-    <div id="updateModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Update Buyer Profile</h3>
-                <span class="close" onclick="closeUpdateModal()">&times;</span>
-            </div>
-            <form method="POST" action="{% url 'buyer:buyer_update' %}" enctype="multipart/form-data" id="updateForm">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="id_name">Full Name:</label>
-                        <input type="text" id="id_name" name="name" value="{{ buyer.name }}" required>
-                    </div>
+                
+                <div class="buyer-profile-info">
+                    <h1>{{ buyer.name }}</h1>
+                    <p class="subtitle">Valued Customer</p>
                     
-                    <div class="form-group">
-                        <label for="id_email">Email Address (Read-only):</label>
-                        <input type="email" id="id_email" name="email" value="{{ buyer.email }}" disabled>
-                        <small style="color: #666; font-size: 0.9rem;">Email address cannot be changed for security reasons.</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="id_phone">Phone:</label>
-                        <input type="text" id="id_phone" name="phone" value="{{ buyer.phone }}">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="id_address">Address:</label>
-                        <textarea id="id_address" name="address" rows="3">{{ buyer.address }}</textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="id_image">Profile Image:</label>
-                        <input type="file" id="id_image" name="image" accept="image/*" onchange="previewImage(this)">
-                    </div>
-                    
-                    <div class="image-container">
-                        <div class="image-section">
-                            <h4>Current Image:</h4>
-                            {% if image_base64 %}
-                                <img id="currentImage" src="data:image/jpeg;base64,{{ image_base64 }}" alt="Current Image" class="image-preview">
-                            {% else %}
-                                <div class="no-image">No image uploaded</div>
-                            {% endif %}
+                    <div class="buyer-profile-meta">
+                        <div class="buyer-meta-item">
+                            <svg class="buyer-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>{{ buyer.email }}</span>
                         </div>
                         
-                        <div class="image-section">
-                            <h4>New Image Preview:</h4>
-                            <img id="imagePreview" style="display: none;" class="image-preview">
-                            <div id="noNewImage" class="no-image">No new image selected</div>
+                        <div class="buyer-meta-item">
+                            <svg class="buyer-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>{{ buyer.phone|default:"Not provided" }}</span>
+                        </div>
+                        
+                        <div class="buyer-meta-item">
+                            <svg class="buyer-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6l1 12H7L8 7z"></path>
+                            </svg>
+                            <span>{{ total_orders }} Orders</span>
+                        </div>
+                        
+                        <div class="buyer-meta-item">
+                            <svg class="buyer-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Member since {{ buyer.created_at|date:"M Y" }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                
+                <div class="buyer-profile-actions">
+                    
+                    <a href="#" class="buyer-btn buyer-btn-secondary" style="width: 190px; height: 60px;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        View Orders
+                    </a>
+                    <button onclick="openDeleteModal()" class="buyer-btn buyer-btn-danger">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Delete Account
+                    </button>
                 </div>
-            </form>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="buyer-main-content">
+            <!-- Profile Form -->
+            <section class="buyer-profile-form-section">
+                <div class="buyer-form-section-header">
+                    <h2>Profile Information</h2>
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data" class="buyer-profile-form" id="profileForm">
+                    {% csrf_token %}
+                    <div class="buyer-form-section-body">
+                        <!-- Image Upload Section -->
+                        <div class="buyer-image-upload-section" id="imageUploadZone">
+                            <div class="buyer-upload-content">
+                                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 1rem; color: var(--text-muted);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <h3 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Upload Profile Picture</h3>
+                                <p style="margin: 0 0 1rem 0; color: var(--text-secondary); font-size: 0.875rem;">
+                                    Drag and drop an image here, or click to select
+                                </p>
+                                <input type="file" name="image" id="imageInput" accept="image/*" style="display: none;" form="profileForm">
+                                <button type="button" class="buyer-btn buyer-btn-secondary" onclick="document.getElementById('imageInput').click()">
+                                    Choose File
+                                </button>
+                            </div>
+                            
+                            <div class="buyer-upload-preview" id="imagePreview" style="display: none;">
+                                <div class="buyer-preview-container">
+                                    <img id="previewImage" class="buyer-preview-image" alt="Preview">
+                                    <button type="button" class="buyer-remove-preview" onclick="removeImagePreview()">×</button>
+                                </div>
+                                <div>
+                                    <p style="margin: 0; font-weight: 500; color: var(--text-primary);">New profile picture</p>
+                                    <p style="margin: 0; font-size: 0.875rem; color: var(--text-secondary);">This will replace your current image</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Fields -->
+                        <div class="buyer-form-grid">
+                            
+                            <div class="buyer-form-group">
+                                <label for="{{ form.name.id_for_label }}" class="buyer-form-label">Full Name *</label>
+                                {{ form.name }}
+
+                                {% if form.name.errors %}
+                                    <div class="buyer-form-error">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="buyer-form-group">
+                                <label for="{{ form.email.id_for_label }}" class="buyer-form-label">Email Address</label>
+                                {{ form.email }}
+                                <small style="color: var(--text-secondary); margin-top: 0.25rem; display: block;">Email cannot be changed for security reasons</small>
+                                {% if form.email.errors %}
+                                    <div class="buyer-form-error">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="buyer-form-group">
+                                <label for="{{ form.phone.id_for_label }}" class="buyer-form-label">Phone Number</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="buyer-form-error">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="buyer-form-group">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="buyer-form-label">Date of Birth</label>
+                                {{ form.date_of_birth }}
+                                {% if form.date_of_birth.errors %}
+                                    <div class="buyer-form-error">{{ form.date_of_birth.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="buyer-form-group full-width">
+                                <label for="{{ form.address.id_for_label }}" class="buyer-form-label">Primary Address</label>
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                    <div class="buyer-form-error">{{ form.address.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="buyer-form-actions">
+                            <button type="button" class="buyer-btn buyer-btn-secondary" onclick="resetForm()">Reset Changes</button>
+                            <button type="submit" class="buyer-btn buyer-btn-primary" id="saveButton">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Sidebar -->
+            <aside class="buyer-sidebar">
+                <!-- Account Statistics -->
+                <div class="buyer-sidebar-card">
+                    <div class="buyer-sidebar-card-header">
+                        <h3>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2-2z"></path>
+                            </svg>
+                            Account Statistics
+                        </h3>
+                    </div>
+                    <div class="buyer-sidebar-card-body">
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Total Orders</span>
+                            <span class="buyer-stat-value">{{ total_orders }}</span>
+                        </div>
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Wishlist Items</span>
+                            <span class="buyer-stat-value">{{ wishlist_count }}</span>
+                        </div>
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Account Created</span>
+                            <span class="buyer-stat-value">{{ buyer.created_at|date:"M j, Y" }}</span>
+                        </div>
+                        <div class="buyer-stat-item">
+                            <span class="stat-label">Last Updated</span>
+                            <span class="buyer-stat-value">{{ buyer.updated_at|date:"M j, Y"|default:"Never" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="buyer-sidebar-card">
+                    <div class="buyer-sidebar-card-header">
+                        <h3>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Quick Actions
+                        </h3>
+                    </div>
+                    <div class="buyer-sidebar-card-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <a href="{% url 'buyer:buyer_order_list' %}" class="buyer-btn buyer-btn-primary" style="text-align: center;">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                            View Orders
+                        </a>
+                        
+                                                                          <a href="{% url 'buyer:cart_page' %}" class="buyer-btn buyer-btn-secondary" style="text-align: center;">
+                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                             </svg>
+                             Wishlist / <i class="fas fa-shopping-cart"></i> Cart
+                         </a>
+                         
+                         <a href="#" class="buyer-btn buyer-btn-secondary" style="text-align: center;">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Manage Addresses
+                        </a>
+
+                        <a href="{% url 'sellers:logout' %}" class="buyer-btn buyer-btn-ghost" style="text-align: center;">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                {% if recent_orders or recent_giftbox_orders or notifications %}
+                <div class="buyer-sidebar-card">
+                    <div class="buyer-sidebar-card-header">
+                        <h3>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Recent Activity
+                        </h3>
+                    </div>
+                    <div class="buyer-sidebar-card-body">
+                        {% if notifications %}
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Unread Notifications</span>
+                            <span class="buyer-stat-value" style="color: var(--warning-yellow);">{{ notifications.count }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if recent_orders %}
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Recent Orders</span>
+                            <span class="buyer-stat-value">{{ recent_orders.count }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if recent_giftbox_orders %}
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Gift Box Orders</span>
+                            <span class="buyer-stat-value">{{ recent_giftbox_orders.count }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Cart Items</span>
+                            <span class="buyer-stat-value">{{ cart_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Account Settings -->
+                <div class="buyer-sidebar-card">
+                    <div class="buyer-sidebar-card-header">
+                        <h3>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Account Settings
+                        </h3>
+                    </div>
+                    <div class="buyer-sidebar-card-body">
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Account Type</span>
+                            <span class="buyer-stat-value">Buyer</span>
+                        </div>
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Email Verified</span>
+                            <span class="buyer-stat-value" style="color: var(--success-green);">✓ Verified</span>
+                        </div>
+                        <div class="buyer-stat-item">
+                            <span class="buyer-stat-label">Privacy Settings</span>
+                            <a href="#" class="buyer-btn buyer-btn-ghost" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; min-height: auto;">Manage</a>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+</div>
+
+    <!-- Update Modal -->
+    <div id="updateModal" class="buyer-modal">
+        <div class="buyer-modal-content">
+            <div class="buyer-modal-header">
+                <h3>Update Profile</h3>
+                <span class="buyer-close" onclick="closeUpdateModal()">&times;</span>
+            </div>
+            <div class="buyer-modal-body">
+                <p>Use the form above to update your profile information. Changes will be saved automatically when you click "Save Changes".</p>
+            </div>
+            <div class="buyer-modal-footer">
+                <button type="button" class="buyer-btn buyer-btn-secondary" onclick="closeUpdateModal()">Close</button>
+            </div>
         </div>
     </div>
 
     <!-- Delete Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Delete Buyer Account</h3>
-                <span class="close" onclick="closeDeleteModal()">&times;</span>
+    <div id="deleteModal" class="buyer-modal">
+        <div class="buyer-modal-content">
+            <div class="buyer-modal-header">
+                <h3>Delete Account</h3>
+                <span class="buyer-close" onclick="closeDeleteModal()">&times;</span>
             </div>
             <form method="POST" action="{% url 'buyer:buyer_delete' %}" id="deleteForm">
                 {% csrf_token %}
-                <div class="modal-body">
-                    <div class="warning-box">
+                <div class="buyer-modal-body">
+                    <div class="buyer-warning-box">
                         <h4>⚠️ Warning</h4>
                         <ul>
                             <li>This action will permanently delete your buyer account</li>
                             <li>All your profile information will be lost</li>
+                            <li>Your order history will be archived but no longer accessible</li>
                             <li>You will need to register again if you want to use the platform</li>
                             <li>This action cannot be undone</li>
                         </ul>
                     </div>
-                    <p>Are you sure you want to delete your buyer account?</p>
+                    <p>Are you sure you want to delete your account? Type "DELETE" below to confirm:</p>
+                    <div class="buyer-form-group" style="margin-top: 1rem;">
+                        <input type="text" id="deleteConfirmation" class="buyer-form-input" placeholder="Type DELETE to confirm" required>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Yes, Delete My Account</button>
+                <div class="buyer-modal-footer">
+                    <button type="button" class="buyer-btn buyer-btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                    <button type="submit" class="buyer-btn buyer-btn-danger" id="confirmDeleteBtn" disabled>Yes, Delete My Account</button>
                 </div>
             </form>
         </div>
     </div>
+{% endblock %}
 
+{% block extra_js %}
     <script>
+        // Profile Management Class
+        class BuyerProfileManager {
+            constructor() {
+                this.form = document.getElementById('profileForm');
+                this.imageInput = document.getElementById('imageInput');
+                this.imageUploadZone = document.getElementById('imageUploadZone');
+                this.imagePreview = document.getElementById('imagePreview');
+                this.previewImage = document.getElementById('previewImage');
+                this.saveButton = document.getElementById('saveButton');
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupImageUpload();
+                this.setupFormValidation();
+                this.setupDragAndDrop();
+                this.trackFormChanges();
+                this.setupDeleteConfirmation();
+            }
+            
+            setupImageUpload() {
+                this.imageInput.addEventListener('change', (e) => {
+                    this.handleImageSelect(e.target.files[0]);
+                });
+            }
+            
+            setupDragAndDrop() {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    this.imageUploadZone.addEventListener(eventName, this.preventDefaults);
+                });
+                
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    this.imageUploadZone.addEventListener(eventName, () => {
+                        this.imageUploadZone.classList.add('drag-over');
+                    });
+                });
+                
+                ['dragleave', 'drop'].forEach(eventName => {
+                    this.imageUploadZone.addEventListener(eventName, () => {
+                        this.imageUploadZone.classList.remove('drag-over');
+                    });
+                });
+                
+                this.imageUploadZone.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        this.handleImageSelect(files[0]);
+                    }
+                });
+            }
+            
+            preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            handleImageSelect(file) {
+                if (!file) return;
+                
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    this.showAlert('Please select a valid image file.', 'error');
+                    return;
+                }
+                
+                // Validate file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    this.showAlert('Image size must be less than 5MB.', 'error');
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.previewImage.src = e.target.result;
+                    this.imagePreview.style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+                
+                // Update the file input for form submission
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                this.imageInput.files = dataTransfer.files;
+            }
+            
+            setupFormValidation() {
+                const requiredFields = this.form.querySelectorAll('input[required]');
+                
+                requiredFields.forEach(field => {
+                    field.addEventListener('blur', () => this.validateField(field));
+                    field.addEventListener('input', this.debounce(() => this.validateField(field), 300));
+                });
+                
+                this.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleSubmit();
+                });
+            }
+            
+            validateField(field) {
+                const value = field.value.trim();
+                let isValid = true;
+                let message = '';
+                
+                if (field.hasAttribute('required') && !value) {
+                    isValid = false;
+                    message = 'This field is required.';
+                } else if (field.type === 'email' && value && !this.isValidEmail(value)) {
+                    isValid = false;
+                    message = 'Please enter a valid email address.';
+                } else if (field.type === 'tel' && value && !this.isValidPhone(value)) {
+                    isValid = false;
+                    message = 'Please enter a valid phone number.';
+                }
+                
+                this.updateFieldState(field, isValid, message);
+                return isValid;
+            }
+            
+            isValidEmail(email) {
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailPattern.test(email);
+            }
+            
+            isValidPhone(phone) {
+                const phonePattern = /^[\+]?[1-9][\d]{0,15}$/;
+                return phonePattern.test(phone.replace(/[\s\-\(\)]/g, ''));
+            }
+            
+            updateFieldState(field, isValid, message) {
+                const existingError = field.parentElement.querySelector('.buyer-form-error');
+                
+                if (isValid) {
+                    field.classList.remove('invalid');
+                    if (existingError) existingError.remove();
+                } else {
+                    field.classList.add('invalid');
+                    if (!existingError) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'buyer-form-error';
+                        errorDiv.textContent = message;
+                        field.parentElement.appendChild(errorDiv);
+                    } else {
+                        existingError.textContent = message;
+                    }
+                }
+            }
+            
+            trackFormChanges() {
+                const formElements = this.form.querySelectorAll('input, textarea, select');
+                const originalValues = new Map();
+                
+                // Store original values
+                formElements.forEach(element => {
+                    originalValues.set(element.name, element.value);
+                });
+                
+                // Track changes
+                formElements.forEach(element => {
+                    element.addEventListener('input', () => {
+                        const hasChanges = Array.from(formElements).some(el => 
+                            originalValues.get(el.name) !== el.value
+                        );
+                        
+                        if (hasChanges) {
+                            this.saveButton.classList.add('buyer-btn-primary');
+                            this.saveButton.classList.remove('buyer-btn-secondary');
+                        } else {
+                            this.saveButton.classList.add('buyer-btn-secondary');
+                            this.saveButton.classList.remove('buyer-btn-primary');
+                        }
+                    });
+                });
+            }
+            
+            async handleSubmit() {
+                // Validate all required fields
+                const requiredFields = this.form.querySelectorAll('input[required]');
+                let isFormValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!this.validateField(field)) {
+                        isFormValid = false;
+                    }
+                });
+                
+                if (!isFormValid) {
+                    this.showAlert('Please fix the errors before submitting.', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                this.setLoadingState(true);
+                
+                try {
+                    // Create FormData for file upload
+                    const formData = new FormData(this.form);
+                    
+                    // Submit form
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        this.showAlert('Profile updated successfully!', 'success');
+                        // Reload page to show updated data
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        throw new Error('Failed to update profile');
+                    }
+                } catch (error) {
+                    this.showAlert('An error occurred while updating your profile. Please try again.', 'error');
+                } finally {
+                    this.setLoadingState(false);
+                }
+            }
+            
+            setLoadingState(loading) {
+                if (loading) {
+                    this.saveButton.classList.add('loading');
+                    this.saveButton.disabled = true;
+                } else {
+                    this.saveButton.classList.remove('loading');
+                    this.saveButton.disabled = false;
+                }
+            }
+            
+            showAlert(message, type) {
+                // Remove existing alerts
+                const existingAlerts = document.querySelectorAll('.buyer-alert');
+                existingAlerts.forEach(alert => alert.remove());
+                
+                // Create new alert
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `buyer-alert buyer-alert-${type}`;
+                
+                const icon = type === 'success' 
+                    ? '<svg class="buyer-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                    : '<svg class="buyer-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                
+                alertDiv.innerHTML = `${icon} ${message}`;
+                
+                // Insert at top of container
+                const container = document.querySelector('.buyer-profile-page');
+                container.insertBefore(alertDiv, container.firstChild);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => alertDiv.remove(), 5000);
+                
+                // Smooth scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            setupDeleteConfirmation() {
+                const deleteInput = document.getElementById('deleteConfirmation');
+                const deleteBtn = document.getElementById('confirmDeleteBtn');
+                
+                if (deleteInput && deleteBtn) {
+                    deleteInput.addEventListener('input', (e) => {
+                        deleteBtn.disabled = e.target.value !== 'DELETE';
+                    });
+                }
+            }
+            
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+        }
+
+        // Global functions for template usage
+        function removeImagePreview() {
+            const imagePreview = document.getElementById('imagePreview');
+            const imageInput = document.getElementById('imageInput');
+            
+            imagePreview.style.display = 'none';
+            imageInput.value = '';
+        }
+
+        function resetForm() {
+            const form = document.getElementById('profileForm');
+            
+            // Show confirmation dialog
+            if (confirm('Are you sure you want to reset all changes? This will undo any unsaved modifications.')) {
+                form.reset();
+                removeImagePreview();
+                
+                // Remove any error states
+                const errorElements = form.querySelectorAll('.buyer-form-error');
+                errorElements.forEach(error => error.remove());
+                
+                const invalidFields = form.querySelectorAll('.invalid');
+                invalidFields.forEach(field => field.classList.remove('invalid'));
+                
+                // Reset save button state
+                const saveButton = document.getElementById('saveButton');
+                saveButton.classList.add('buyer-btn-secondary');
+                saveButton.classList.remove('buyer-btn-primary');
+            }
+        }
+
         // Modal functions
         function openUpdateModal() {
             document.getElementById('updateModal').style.display = 'block';
@@ -700,47 +1827,145 @@
 
         function closeDeleteModal() {
             document.getElementById('deleteModal').style.display = 'none';
+            // Reset delete confirmation
+            const deleteInput = document.getElementById('deleteConfirmation');
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            if (deleteInput) deleteInput.value = '';
+            if (deleteBtn) deleteBtn.disabled = true;
         }
 
-        // Image preview function
-        function previewImage(input) {
-            const preview = document.getElementById('imagePreview');
-            const noNewImage = document.getElementById('noNewImage');
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize profile manager
+            window.buyerProfileManager = new BuyerProfileManager();
             
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    noNewImage.style.display = 'none';
-                };
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                preview.style.display = 'none';
-                noNewImage.style.display = 'flex';
+            // Setup modal close on outside click
+            window.onclick = function(event) {
+                const updateModal = document.getElementById('updateModal');
+                const deleteModal = document.getElementById('deleteModal');
+                
+                if (event.target === updateModal) {
+                    closeUpdateModal();
+                }
+                if (event.target === deleteModal) {
+                    closeDeleteModal();
+                }
             }
-        }
-
-        // Close modals when clicking outside
-        window.onclick = function(event) {
-            const updateModal = document.getElementById('updateModal');
-            const deleteModal = document.getElementById('deleteModal');
             
-            if (event.target === updateModal) {
-                closeUpdateModal();
+            // Setup keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + S to save form
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    const profileForm = document.getElementById('profileForm');
+                    if (profileForm) {
+                        window.buyerProfileManager.handleSubmit();
+                    }
+                }
+                
+                // Escape to close modals
+                if (e.key === 'Escape') {
+                    closeUpdateModal();
+                    closeDeleteModal();
+                }
+            });
+            
+            // Auto-save draft functionality (optional)
+            const autoSaveInterval = setInterval(() => {
+                const form = document.getElementById('profileForm');
+                if (form) {
+                    const formData = new FormData(form);
+                    const draftData = {};
+                    
+                    for (let [key, value] of formData.entries()) {
+                        if (key !== 'csrfmiddlewaretoken' && key !== 'image') {
+                            draftData[key] = value;
+                        }
+                    }
+                    
+                    // Save to localStorage as draft
+                    localStorage.setItem('buyerProfileDraft', JSON.stringify(draftData));
+                }
+            }, 30000); // Auto-save every 30 seconds
+            
+            // Load draft on page load
+            const savedDraft = localStorage.getItem('buyerProfileDraft');
+            if (savedDraft) {
+                try {
+                    const draftData = JSON.parse(savedDraft);
+                    let hasUnsavedChanges = false;
+                    
+                    Object.entries(draftData).forEach(([key, value]) => {
+                        const field = document.querySelector(`[name="${key}"]`);
+                        if (field && field.value !== value) {
+                            hasUnsavedChanges = true;
+                        }
+                    });
+                    
+                    if (hasUnsavedChanges) {
+                        const restoreDraft = confirm('We found unsaved changes from a previous session. Would you like to restore them?');
+                        if (restoreDraft) {
+                            Object.entries(draftData).forEach(([key, value]) => {
+                                const field = document.querySelector(`[name="${key}"]`);
+                                if (field) {
+                                    field.value = value;
+                                }
+                            });
+                        }
+                    }
+                } catch (e) {
+                    // Invalid draft data, remove it
+                    localStorage.removeItem('buyerProfileDraft');
+                }
             }
-            if (event.target === deleteModal) {
-                closeDeleteModal();
-            }
-        }
-
-        // Close modals with Escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeUpdateModal();
-                closeDeleteModal();
-            }
+            
+            // Clear draft when form is successfully submitted
+            window.addEventListener('beforeunload', () => {
+                localStorage.removeItem('buyerProfileDraft');
+            });
         });
+
+        // Lazy loading for images
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                }
+            });
+        });
+
+        // Observe all lazy images
+        document.querySelectorAll('img.lazy').forEach(img => {
+            imageObserver.observe(img);
+        });
+
+        // Performance monitoring
+        if ('performance' in window) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    console.log('Page load time:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
+                }, 0);
+            });
+        }
+
+        // Service Worker registration for offline support (optional)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
     </script>
 </body>
-</html> 
+{% endblock %}

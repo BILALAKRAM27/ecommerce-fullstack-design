@@ -23,15 +23,21 @@ class BuyerRegistrationForm(forms.ModelForm):
 class BuyerUpdateForm(forms.ModelForm):
     image = forms.FileField(required=False)
     email = forms.EmailField(disabled=True, required=False)  # Make email read-only
+    date_of_birth = forms.DateField(
+        required=False,
+        input_formats=['%Y-%m-%d', '%d-%m-%Y', '%d/%m/%Y'],
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
 
     class Meta:
         model = Buyer
-        fields = ['name', 'email', 'phone']
+        fields = ['name', 'email', 'phone', 'date_of_birth', 'address']
 
     def save(self, commit=True):
         buyer = super().save(commit=False)
         # Don't update the email field
         buyer.email = self.instance.email  # Keep the original email
+        # Handle image upload for BLOB storage
         if self.cleaned_data.get('image'):
             image_file = self.cleaned_data['image']
             buyer.set_image(image_file.read())

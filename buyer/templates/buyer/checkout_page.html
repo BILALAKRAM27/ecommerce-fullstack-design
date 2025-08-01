@@ -500,8 +500,10 @@
                                 Gift Box Order
                             {% elif is_promotion_checkout %}
                                 Promotion Order
-                            {% else %}
+                            {% elif is_regular_checkout %}
                                 Your Items
+                            {% else %}
+                                Checkout
                             {% endif %}
                         </h2>
                     </div>
@@ -515,8 +517,10 @@
                                         <p class="text-sm text-muted">Gift Box • ${{ group.subtotal|floatformat:2 }}</p>
                                     {% elif is_promotion_checkout %}
                                         <p class="text-sm text-muted">Promotion • ${{ group.subtotal|floatformat:2 }}</p>
+                                    {% elif is_regular_checkout %}
+                                        <p class="text-sm text-muted">{{ group.products|length }} item{{ group.products|length|pluralize }} • ${{ group.subtotal|floatformat:2 }}</p>
                                     {% else %}
-                                    <p class="text-sm text-muted">{{ group.products|length }} item{{ group.products|length|pluralize }} • ${{ group.subtotal|floatformat:2 }}</p>
+                                        <p class="text-sm text-muted">Items • ${{ group.subtotal|floatformat:2 }}</p>
                                     {% endif %}
                                 </div>
                                 <div class="chevron" id="chevron-seller{{ forloop.counter }}">
@@ -535,16 +539,31 @@
                                         </div>
                                     {% elif is_promotion_checkout %}
                                         <!-- Promotion Display -->
-                                        <div class="item-image" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
-                                            🎯
-                                        </div>
-                                    {% else %}
-                                        <!-- Regular Product Display -->
-                                    {% if product.image_url %}
-                                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="item-image">
-                                    {% else %}
-                                        <img src="/static/images/placeholder.png" alt="No image" class="item-image">
+                                        {% if group.promotion and group.promotion.products.first %}
+                                            {% if group.promotion.products.first.thumbnail_image %}
+                                                <img src="data:image/jpeg;base64,{{ group.promotion.products.first.thumbnail_image.image|b64encode }}" alt="{{ group.promotion.name }}" class="item-image">
+                                            {% else %}
+                                                <div class="item-image" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                                    🎯
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="item-image" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                                🎯
+                                            </div>
                                         {% endif %}
+                                    {% elif is_regular_checkout %}
+                                        <!-- Regular Product Display -->
+                                        {% if product.image_url %}
+                                            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="item-image">
+                                        {% else %}
+                                            <img src="/static/images/placeholder.png" alt="No image" class="item-image">
+                                        {% endif %}
+                                    {% else %}
+                                        <!-- Fallback Display -->
+                                        <div class="item-image" style="background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                            📦
+                                        </div>
                                     {% endif %}
                                     <div class="item-details">
                                         <h4 class="font-medium">{{ product.name }}</h4>
@@ -1534,7 +1553,7 @@
                                 <div style="padding: 1rem;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
                                         <div>
-                                            <div style="font-weight: 500;">🎯 Promotion</div>
+                                            <div style="font-weight: 500;"> Promotion</div>
                                             <div style="font-size: 0.85em; color: #6c757d;">Special discounted offer</div>
                                         </div>
                                         <div style="font-weight: 600; color: #495057;">$${parseFloat('{{ order_summary.subtotal|default:0 }}').toFixed(2)}</div>

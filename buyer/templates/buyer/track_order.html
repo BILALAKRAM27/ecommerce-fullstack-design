@@ -1,0 +1,384 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block title %}Track Order - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.track-order-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.track-order-header {
+  background: linear-gradient(135deg, #4285F4 0%, #3367D6 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.track-order-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.track-order-subtitle {
+  opacity: 0.9;
+  font-size: 1.125rem;
+}
+
+.track-order-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #E0E0E0;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.track-order-card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #F5F5F5;
+  background: #FAFAFA;
+}
+
+.track-order-card-body {
+  padding: 1.5rem;
+}
+
+.tracking-timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.tracking-timeline::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #E0E0E0;
+}
+
+.tracking-step {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.tracking-step::before {
+  content: '';
+  position: absolute;
+  left: -1.25rem;
+  top: 0.25rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #E0E0E0;
+  border: 3px solid white;
+  box-shadow: 0 0 0 2px #E0E0E0;
+}
+
+.tracking-step.active::before {
+  background: #4285F4;
+  box-shadow: 0 0 0 2px #4285F4;
+}
+
+.tracking-step.completed::before {
+  background: #10B981;
+  box-shadow: 0 0 0 2px #10B981;
+}
+
+.tracking-step-content {
+  margin-left: 1rem;
+}
+
+.tracking-step-title {
+  font-weight: 600;
+  color: #212121;
+  margin-bottom: 0.25rem;
+}
+
+.tracking-step-date {
+  font-size: 0.875rem;
+  color: #757575;
+}
+
+.tracking-step-description {
+  margin-top: 0.5rem;
+  color: #616161;
+  font-size: 0.875rem;
+}
+
+.tracking-info {
+  background: #E3F2FD;
+  border: 1px solid #BBDEFB;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tracking-info-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1976D2;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-bottom: 0.25rem;
+}
+
+.tracking-info-value {
+  color: #0D47A1;
+  font-weight: 600;
+  font-family: monospace;
+  font-size: 1.125rem;
+}
+
+.order-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  gap: 0.375rem;
+  margin: 0.25rem;
+}
+
+.order-btn-primary {
+  background: #4285F4;
+  color: white;
+  border-color: #4285F4;
+}
+
+.order-btn-primary:hover {
+  background: #3367D6;
+  border-color: #3367D6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+}
+
+.order-btn-secondary {
+  background: transparent;
+  color: #4285F4;
+  border-color: #4285F4;
+}
+
+.order-btn-secondary:hover {
+  background: #E3F2FD;
+  color: #3367D6;
+}
+
+@media (max-width: 640px) {
+  .track-order-container {
+    padding: 1rem;
+  }
+  
+  .track-order-title {
+    font-size: 1.5rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="track-order-container">
+  <header class="track-order-header">
+    <h1 class="track-order-title">Track Your Order</h1>
+    <p class="track-order-subtitle">{{ order.order_number }}</p>
+  </header>
+
+  <div class="track-order-card">
+    <div class="track-order-card-header">
+      <h2>Order Status & Payment</h2>
+    </div>
+    <div class="track-order-card-body">
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+        <div class="tracking-info" style="flex: 1; min-width: 200px;">
+          <div class="tracking-info-label">Order Status</div>
+          <div class="tracking-info-value">{{ order.get_status_display }}</div>
+        </div>
+        <div class="tracking-info" style="flex: 1; min-width: 200px;">
+          <div class="tracking-info-label">Payment Status</div>
+          <div class="tracking-info-value">{{ order.get_payment_status_display }}</div>
+        </div>
+        <div class="tracking-info" style="flex: 1; min-width: 200px;">
+          <div class="tracking-info-label">Payment Method</div>
+          <div class="tracking-info-value">{{ order.get_order_type_display }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if order.tracking_number %}
+    <div class="track-order-card">
+      <div class="track-order-card-header">
+        <h2>Tracking Information</h2>
+      </div>
+      <div class="track-order-card-body">
+        <div class="tracking-info">
+          <div class="tracking-info-label">Tracking Number</div>
+          <div class="tracking-info-value">{{ order.tracking_number }}</div>
+        </div>
+        
+        <div class="tracking-timeline">
+          {% if order.status == 'pending' %}
+            <div class="tracking-step active">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Order Placed</div>
+                <div class="tracking-step-date">{{ order.created_at|date:"F j, Y" }}</div>
+                <div class="tracking-step-description">Your order has been received and is being processed.</div>
+              </div>
+            </div>
+            <div class="tracking-step">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Processing</div>
+                <div class="tracking-step-description">Your order is being prepared for shipping.</div>
+              </div>
+            </div>
+            <div class="tracking-step">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Shipped</div>
+                <div class="tracking-step-description">Your order is on its way to you.</div>
+              </div>
+            </div>
+            <div class="tracking-step">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Delivered</div>
+                <div class="tracking-step-description">Your order has been delivered.</div>
+              </div>
+            </div>
+          {% elif order.status == 'processing' %}
+            <div class="tracking-step completed">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Order Placed</div>
+                <div class="tracking-step-date">{{ order.created_at|date:"F j, Y" }}</div>
+                <div class="tracking-step-description">Your order has been received and is being processed.</div>
+              </div>
+            </div>
+            <div class="tracking-step active">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Processing</div>
+                <div class="tracking-step-description">Your order is being prepared for shipping.</div>
+              </div>
+            </div>
+            <div class="tracking-step">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Shipped</div>
+                <div class="tracking-step-description">Your order is on its way to you.</div>
+              </div>
+            </div>
+            <div class="tracking-step">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Delivered</div>
+                <div class="tracking-step-description">Your order has been delivered.</div>
+              </div>
+            </div>
+          {% elif order.status == 'shipped' %}
+            <div class="tracking-step completed">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Order Placed</div>
+                <div class="tracking-step-date">{{ order.created_at|date:"F j, Y" }}</div>
+                <div class="tracking-step-description">Your order has been received and is being processed.</div>
+              </div>
+            </div>
+            <div class="tracking-step completed">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Processing</div>
+                <div class="tracking-step-description">Your order is being prepared for shipping.</div>
+              </div>
+            </div>
+            <div class="tracking-step active">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Shipped</div>
+                <div class="tracking-step-description">Your order is on its way to you.</div>
+              </div>
+            </div>
+            <div class="tracking-step">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Delivered</div>
+                <div class="tracking-step-description">Your order has been delivered.</div>
+              </div>
+            </div>
+          {% elif order.status == 'delivered' %}
+            <div class="tracking-step completed">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Order Placed</div>
+                <div class="tracking-step-date">{{ order.created_at|date:"F j, Y" }}</div>
+                <div class="tracking-step-description">Your order has been received and is being processed.</div>
+              </div>
+            </div>
+            <div class="tracking-step completed">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Processing</div>
+                <div class="tracking-step-description">Your order is being prepared for shipping.</div>
+              </div>
+            </div>
+            <div class="tracking-step completed">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Shipped</div>
+                <div class="tracking-step-description">Your order is on its way to you.</div>
+              </div>
+            </div>
+            <div class="tracking-step completed">
+              <div class="tracking-step-content">
+                <div class="tracking-step-title">Delivered</div>
+                <div class="tracking-step-description">Your order has been delivered.</div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="track-order-card">
+      <div class="track-order-card-header">
+        <h2>Tracking Information</h2>
+      </div>
+      <div class="track-order-card-body">
+        <p>Tracking information is not available for this order yet. Please check back later or contact support for updates.</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="track-order-card">
+    <div class="track-order-card-header">
+      <h2>Actions</h2>
+    </div>
+    <div class="track-order-card-body">
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{% url 'buyer:order_details' order.id %}" class="order-btn order-btn-secondary">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+          </svg>
+          View Order Details
+        </a>
+        
+        <a href="{% url 'buyer:buyer_order_list' %}" class="order-btn order-btn-secondary">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+          </svg>
+          Back to Orders
+        </a>
+        
+        <a href="{% url 'buyer:contact_support' %}?order={{ order.order_number }}" class="order-btn order-btn-secondary">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+          </svg>
+          Contact Support
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

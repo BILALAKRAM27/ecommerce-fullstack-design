@@ -630,7 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             
             <div class="seller-footer">
-              <a href="{% url 'buyer:buy_giftbox' seller.id %}" class="btn btn-primary">
+              <a href="{% url 'buyer:buy_giftbox' seller.id campaign_data.campaign.id %}" class="btn btn-primary">
                 Buy Gift Box - ${{ campaign_data.campaign.price }}
               </a>
             </div>

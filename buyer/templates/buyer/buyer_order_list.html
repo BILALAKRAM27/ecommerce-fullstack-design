@@ -1,0 +1,542 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block title %}Your Orders - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Scoped styles with buyerorder- prefix to prevent conflicts */
+.buyerorder-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.buyerorder-header {
+  background: linear-gradient(135deg, #4285F4 0%, #3367D6 100%);
+  color: white;
+  padding: 3rem 0 2rem;
+  margin-bottom: 2rem;
+  border-radius: 0 0 1rem 1rem;
+}
+
+.buyerorder-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.buyerorder-subtitle {
+  font-size: 1.125rem;
+  opacity: 0.9;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.buyerorder-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+.buyerorder-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #E0E0E0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.buyerorder-card:hover {
+  border-color: #4285F4;
+  box-shadow: 0 8px 25px rgba(66, 133, 244, 0.15);
+  transform: translateY(-2px);
+}
+
+.buyerorder-card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #F5F5F5;
+  background: #FAFAFA;
+}
+
+.buyerorder-card-body {
+  padding: 1.5rem;
+}
+
+.buyerorder-card-footer {
+  padding: 1rem 1.5rem;
+  background: #FAFAFA;
+  border-top: 1px solid #F5F5F5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buyerorder-order-id {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #212121;
+  margin-bottom: 0.25rem;
+}
+
+.buyerorder-order-date {
+  font-size: 0.875rem;
+  color: #757575;
+}
+
+.buyerorder-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.buyerorder-status-pending {
+  background: #FFF3CD;
+  color: #856404;
+  border: 1px solid #FFEAA7;
+}
+
+.buyerorder-status-processing {
+  background: #D4EDDA;
+  color: #155724;
+  border: 1px solid #C3E6CB;
+}
+
+.buyerorder-status-shipped {
+  background: #CCE5FF;
+  color: #004085;
+  border: 1px solid #99CCFF;
+}
+
+ .buyerorder-status-delivered {
+   background: #D1ECF1;
+   color: #0C5460;
+   border: 1px solid #BEE5EB;
+ }
+ 
+ .buyerorder-status-paid {
+   background: #D4EDDA;
+   color: #155724;
+   border: 1px solid #C3E6CB;
+ }
+ 
+ .buyerorder-status-pending {
+   background: #FFF3CD;
+   color: #856404;
+   border: 1px solid #FFEAA7;
+ }
+ 
+ .buyerorder-status-failed {
+   background: #F8D7DA;
+   color: #721C24;
+   border: 1px solid #F5C6CB;
+ }
+ 
+ .buyerorder-status-cod {
+   background: #E2E3E5;
+   color: #383D41;
+   border: 1px solid #D6D8DB;
+ }
+ 
+ .buyerorder-status-online {
+   background: #CCE5FF;
+   color: #004085;
+   border: 1px solid #99CCFF;
+ }
+
+.buyerorder-details-grid {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.buyerorder-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #F5F5F5;
+}
+
+.buyerorder-detail-label {
+  font-weight: 500;
+  color: #616161;
+  font-size: 0.875rem;
+}
+
+.buyerorder-detail-value {
+  font-weight: 600;
+  color: #212121;
+  text-align: right;
+}
+
+.buyerorder-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  gap: 0.375rem;
+}
+
+.buyerorder-btn-primary {
+  background: #4285F4;
+  color: white;
+  border-color: #4285F4;
+}
+
+.buyerorder-btn-primary:hover {
+  background: #3367D6;
+  border-color: #3367D6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+}
+
+.buyerorder-btn-secondary {
+  background: transparent;
+  color: #4285F4;
+  border-color: #4285F4;
+}
+
+.buyerorder-btn-secondary:hover {
+  background: #E3F2FD;
+  color: #3367D6;
+}
+
+.buyerorder-btn-ghost {
+  background: transparent;
+  color: #757575;
+  border-color: transparent;
+}
+
+.buyerorder-btn-ghost:hover {
+  background: #F5F5F5;
+  color: #424242;
+}
+
+.buyerorder-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 0.75rem;
+  border: 2px dashed #E0E0E0;
+}
+
+.buyerorder-empty-icon {
+  font-size: 4rem;
+  color: #BDBDBD;
+  margin-bottom: 1rem;
+}
+
+.buyerorder-empty-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #424242;
+  margin-bottom: 0.5rem;
+}
+
+.buyerorder-empty-text {
+  color: #757575;
+  margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.buyerorder-icon {
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+}
+
+.buyerorder-tracking-info {
+  background: #E3F2FD;
+  border: 1px solid #BBDEFB;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.buyerorder-tracking-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1976D2;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-bottom: 0.25rem;
+}
+
+.buyerorder-tracking-number {
+  color: #0D47A1;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .buyerorder-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .buyerorder-title {
+    font-size: 3rem;
+  }
+  
+  .buyerorder-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .buyerorder-card-footer {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (min-width: 1024px) {
+  .buyerorder-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .buyerorder-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .buyerorder-title {
+    font-size: 1.875rem;
+  }
+  
+  .buyerorder-subtitle {
+    font-size: 1rem;
+  }
+  
+  .buyerorder-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .buyerorder-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Loading Animation */
+@keyframes buyerorder-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.buyerorder-loading {
+  animation: buyerorder-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="buyerorder-container">
+  <header class="buyerorder-header">
+    <h1 class="buyerorder-title">Your Orders</h1>
+    <p class="buyerorder-subtitle">Track and manage all your orders - regular products and gift boxes</p>
+  </header>
+
+  {% if orders %}
+    <section class="buyerorder-grid">
+      {% for order in orders %}
+        {% if not order.is_expired %}
+          <article class="buyerorder-card">
+                         <div class="buyerorder-card-header">
+               <div class="buyerorder-order-id">Order #{{ order.order_number }}</div>
+               <div class="buyerorder-order-date">Placed on {{ order.created_at|date:"F j, Y" }}</div>
+                               <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                  <div style="display: flex; align-items: center; gap: 0.25rem;">
+                    <span style="font-size: 0.7rem; color: #666; font-weight: 500;">Status:</span>
+                    <span class="buyerorder-status buyerorder-status-{{ order.status|lower }}">
+                      {{ order.get_status_display }}
+                    </span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.25rem;">
+                    <span style="font-size: 0.7rem; color: #666; font-weight: 500;">Payment:</span>
+                    <span class="buyerorder-status buyerorder-status-{{ order.payment_status|lower }}">
+                      {{ order.get_payment_status_display }}
+                    </span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.25rem;">
+                    <span style="font-size: 0.7rem; color: #666; font-weight: 500;">Method:</span>
+                    <span class="buyerorder-status buyerorder-status-{{ order.order_type|lower }}">
+                      {{ order.get_order_type_display }}
+                    </span>
+                  </div>
+                </div>
+             </div>
+
+            <div class="buyerorder-card-body">
+                             <div class="buyerorder-details-grid">
+                 {% if order.campaign %}
+                   <div class="buyerorder-detail-item">
+                     <span class="buyerorder-detail-label">Gift Box Type</span>
+                     <span class="buyerorder-detail-value">{{ order.campaign.name|default:"Unknown Campaign" }}</span>
+                   </div>
+                   
+                   <div class="buyerorder-detail-item">
+                     <span class="buyerorder-detail-label">Seller</span>
+                     <span class="buyerorder-detail-value">{{ order.seller.shop_name|default:"Unknown Seller" }}</span>
+                   </div>
+                 {% else %}
+                   <div class="buyerorder-detail-item">
+                     <span class="buyerorder-detail-label">Order Type</span>
+                     <span class="buyerorder-detail-value">Regular Product</span>
+                   </div>
+                   
+                   <div class="buyerorder-detail-item">
+                     <span class="buyerorder-detail-label">Seller</span>
+                     <span class="buyerorder-detail-value">{{ order.seller.shop_name|default:"Unknown Seller" }}</span>
+                   </div>
+                 {% endif %}
+                
+                {% if order.promotion %}
+                  <div class="buyerorder-detail-item">
+                    <span class="buyerorder-detail-label">Promotion Applied</span>
+                    <span class="buyerorder-detail-value">{{ order.promotion.name }}</span>
+                  </div>
+                {% endif %}
+                
+                <div class="buyerorder-detail-item">
+                  <span class="buyerorder-detail-label">Total Amount</span>
+                  <span class="buyerorder-detail-value">${{ order.total_amount|floatformat:2 }}</span>
+                </div>
+                
+                <div class="buyerorder-detail-item">
+                  <span class="buyerorder-detail-label">Delivery Address</span>
+                  <span class="buyerorder-detail-value">{{ order.delivery_address|truncatechars:30 }}</span>
+                </div>
+              </div>
+
+              {% if order.tracking_number %}
+                <div class="buyerorder-tracking-info">
+                  <div class="buyerorder-tracking-label">Tracking Number</div>
+                  <div class="buyerorder-tracking-number">{{ order.tracking_number }}</div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="buyerorder-card-footer">
+              <div>
+                {% if order.expected_delivery_date %}
+                  <small class="buyerorder-detail-label">
+                    Expected: {{ order.expected_delivery_date|date:"M j, Y" }}
+                  </small>
+                {% endif %}
+              </div>
+              
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% if order.tracking_number %}
+                  <a href="{% url 'buyer:track_order' order.id %}" class="buyerorder-btn buyerorder-btn-primary">
+                    <svg class="buyerorder-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Track Order
+                  </a>
+                {% endif %}
+                
+                <a href="{% url 'buyer:order_details' order.id %}" class="buyerorder-btn buyerorder-btn-secondary">
+                  <svg class="buyerorder-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                  </svg>
+                  View Details
+                </a>
+                
+                {% if order.status != 'delivered' %}
+                  <a href="{% url 'buyer:contact_support' %}?order={{ order.order_number }}" class="buyerorder-btn buyerorder-btn-ghost">
+                    <svg class="buyerorder-icon" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
+                    </svg>
+                    Support
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% endif %}
+      {% endfor %}
+    </section>
+  {% else %}
+    <section class="buyerorder-empty-state">
+      <div class="buyerorder-empty-icon">📦</div>
+      <h2 class="buyerorder-empty-title">No Orders Yet</h2>
+      <p class="buyerorder-empty-text">
+        You haven't placed any gift box orders yet. Start browsing our collection to find the perfect gift!
+      </p>
+      <a href="{% url 'buyer:giftbox_marketplace' %}" class="buyerorder-btn buyerorder-btn-primary">
+        <svg class="buyerorder-icon" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+        </svg>
+        Browse Gift Boxes
+      </a>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add loading states to buttons
+  const buttons = document.querySelectorAll('.buyerorder-btn');
+  
+  buttons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Only add loading state for non-ghost buttons that navigate away
+      if (!this.classList.contains('buyerorder-btn-ghost')) {
+        const originalText = this.innerHTML;
+        this.style.pointerEvents = 'none';
+        this.innerHTML = `
+          <svg class="buyerorder-icon buyerorder-loading" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"/>
+          </svg>
+          Loading...
+        `;
+        
+        // Reset after a short delay if still on page
+        setTimeout(() => {
+          this.style.pointerEvents = 'auto';
+          this.innerHTML = originalText;
+        }, 3000);
+      }
+    });
+  });
+
+  // Add smooth scroll for any anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

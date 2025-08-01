@@ -32,7 +32,10 @@ class Buyer(models.Model):
     email = models.EmailField(unique=True)
     image = models.BinaryField(blank=True, null=True)  # Storing image as binary data (BLOB)
     phone = models.CharField(max_length=20, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    address = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -188,10 +191,24 @@ class Order(models.Model):
     total_amount = models.FloatField()
     payment_status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
     order_type = models.CharField(max_length=20, choices=[('cod', 'Cash on Delivery'), ('stripe', 'Stripe')], default='cod')
+    promotion = models.ForeignKey("seller.Promotion", on_delete=models.SET_NULL, null=True, blank=True)
     delivery_address = models.TextField()
     tracking_number = models.CharField(max_length=100, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    expected_delivery_date = models.DateField(blank=True, null=True)
+    
+    @property
+    def order_number(self):
+        return f"ORD-{self.id:06d}"
+    
+    @property
+    def is_expired(self):
+        if self.expected_delivery_date:
+            from django.utils import timezone
+            return timezone.now().date() > self.expected_delivery_date
+        return False
     
     def __str__(self):
         return f"Order #{self.id} - {self.buyer.display_name}"
@@ -213,7 +230,7 @@ class Payment(models.Model):
     payment_time = models.DateTimeField()
 
 class Address(models.Model):
-    buyer = models.OneToOneField('Buyer', on_delete=models.CASCADE, related_name='address')
+    buyer = models.OneToOneField('Buyer', on_delete=models.CASCADE, related_name='detailed_address')
     street = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=20)
@@ -255,12 +272,33 @@ class GiftBoxOrder(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='giftbox_orders')
     campaign = models.ForeignKey(GiftBoxCampaign, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
+    order_type = models.CharField(max_length=20, choices=[('cod', 'Cash on Delivery'), ('stripe', 'Stripe')], default='cod')
+    promotion = models.ForeignKey("seller.Promotion", on_delete=models.SET_NULL, null=True, blank=True)
     buyer_message = models.CharField(max_length=255, blank=True, null=True)
     delivery_address = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     selected_products = models.ManyToManyField(Product, blank=True, related_name='giftbox_orders')
     reveal_contents = models.BooleanField(default=False)
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    expected_delivery_date = models.DateField(blank=True, null=True)
+    total_amount = models.FloatField(default=0.0)
+    
+    @property
+    def order_number(self):
+        return f"GB-{self.id:06d}"
+    
+    @property
+    def is_expired(self):
+        if self.expected_delivery_date:
+            from django.utils import timezone
+            return timezone.now().date() > self.expected_delivery_date
+        return False
+    
+    @property
+    def gift_box(self):
+        return self.campaign
 
     def __str__(self):
         return f"GiftBoxOrder #{self.id} - {self.buyer} -> {self.seller}"

@@ -1,0 +1,259 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block title %}Contact Support - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.support-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.support-header {
+  background: linear-gradient(135deg, #4285F4 0%, #3367D6 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.support-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.support-subtitle {
+  opacity: 0.9;
+  font-size: 1.125rem;
+}
+
+.support-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #E0E0E0;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.support-card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #F5F5F5;
+  background: #FAFAFA;
+}
+
+.support-card-body {
+  padding: 1.5rem;
+}
+
+.support-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  padding: 0.75rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #4285F4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.support-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  gap: 0.375rem;
+  background: #4285F4;
+  color: white;
+  border-color: #4285F4;
+}
+
+.support-btn:hover {
+  background: #3367D6;
+  border-color: #3367D6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+}
+
+.support-btn-secondary {
+  background: transparent;
+  color: #4285F4;
+  border-color: #4285F4;
+}
+
+.support-btn-secondary:hover {
+  background: #E3F2FD;
+  color: #3367D6;
+}
+
+.contact-info {
+  background: #F3F4F6;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.contact-info-title {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.contact-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  color: #6B7280;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .support-container {
+    padding: 1rem;
+  }
+  
+  .support-title {
+    font-size: 1.5rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="support-container">
+  <header class="support-header">
+    <h1 class="support-title">Contact Support</h1>
+    <p class="support-subtitle">We're here to help with your order</p>
+  </header>
+
+  <div class="support-card">
+    <div class="support-card-header">
+      <h2>Contact Information</h2>
+    </div>
+    <div class="support-card-body">
+      <div class="contact-info">
+        <div class="contact-info-title">Get in touch with us:</div>
+        <div class="contact-info-item">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+          </svg>
+          Email: support@marketvibe.com
+        </div>
+        <div class="contact-info-item">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+          </svg>
+          Phone: +1 (555) 123-4567
+        </div>
+        <div class="contact-info-item">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          </svg>
+          Hours: Monday - Friday, 9 AM - 6 PM EST
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="support-card">
+    <div class="support-card-header">
+      <h2>Send us a message</h2>
+    </div>
+    <div class="support-card-body">
+      <form class="support-form" method="POST">
+        {% csrf_token %}
+        
+        {% if order_number %}
+          <div class="form-group">
+            <label for="order_number" class="form-label">Order Number</label>
+            <input type="text" id="order_number" name="order_number" class="form-input" value="{{ order_number }}" readonly>
+          </div>
+        {% endif %}
+        
+        <div class="form-group">
+          <label for="subject" class="form-label">Subject *</label>
+          <select id="subject" name="subject" class="form-select" required>
+            <option value="">Select a subject</option>
+            <option value="order_status">Order Status Inquiry</option>
+            <option value="tracking">Tracking Information</option>
+            <option value="delivery">Delivery Issues</option>
+            <option value="refund">Refund Request</option>
+            <option value="product_issue">Product Issue</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="message" class="form-label">Message *</label>
+          <textarea id="message" name="message" class="form-textarea" placeholder="Please describe your issue in detail..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="email" class="form-label">Your Email *</label>
+          <input type="email" id="email" name="email" class="form-input" placeholder="your.email@example.com" required>
+        </div>
+        
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="submit" class="support-btn">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+            </svg>
+            Send Message
+          </button>
+          
+          <a href="{% url 'buyer:buyer_order_list' %}" class="support-btn support-btn-secondary">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+            </svg>
+            Back to Orders
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

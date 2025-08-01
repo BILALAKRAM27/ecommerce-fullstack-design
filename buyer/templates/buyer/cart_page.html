@@ -733,8 +733,8 @@
                             </div>
                         </div>
                         <div class="item-controls">
-                                    <div class="item-price" data-unit-price="{{ item.product.final_price }}">
-                                        ${{ item.product.final_price|floatformat:2 }}
+                                    <div class="item-price" data-unit-price="{{ item.product.calculated_final_price|default:0 }}">
+                                        ${{ item.product.calculated_final_price|default:0|floatformat:2 }}
                                     </div>
                             <div class="quantity-control">
                                         <label for="quantity-{{ item.product.id }}">Qty:</label>
@@ -746,7 +746,7 @@
                                             value="{{ item.quantity }}"
                                             min="1"
                                             data-product-id="{{ item.product.id }}"
-                                            data-unit-price="{{ item.product.final_price }}"
+                                            data-unit-price="{{ item.product.calculated_final_price|default:0 }}"
                                             style="width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"
                                         >
                             </div>
@@ -858,7 +858,7 @@
                                 {{ item.product.name }}
                             </a>
                         </h3>
-                        <p class="price">${{ item.product.final_price }}</p>
+                        <p class="price">${{ item.product.calculated_final_price|default:0 }}</p>
                     </div>
                     <!-- Update the saved item actions div -->
                     <div class="saved-item-actions">
@@ -1012,13 +1012,25 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Function to safely parse numbers and handle invalid values
             function safeParseFloat(value, defaultValue = 0) {
+                if (value === null || value === undefined || value === '') {
+                    return defaultValue;
+                }
                 const parsed = parseFloat(value);
                 return isNaN(parsed) ? defaultValue : Number(parsed.toFixed(2));
             }
 
             // Function to format currency
             function formatCurrency(amount) {
+                // Handle null, undefined, NaN, or empty values
+                if (amount === null || amount === undefined || amount === '' || isNaN(amount)) {
+                    return '$0.00';
+                }
+                
                 const roundedAmount = Number(Number(amount).toFixed(2));
+                if (isNaN(roundedAmount)) {
+                    return '$0.00';
+                }
+                
                 return new Intl.NumberFormat('en-US', {
                     style: 'currency',
                     currency: 'USD',
@@ -1053,7 +1065,10 @@
                 const summaryRows = document.querySelectorAll('.summary-row');
                 if (summaryRows.length >= 4) {  // Make sure we have all summary rows
                     // Update subtotal
-                    summaryRows[0].querySelector('.summary-value').textContent = formatCurrency(data.subtotal);
+                    const subtotalElement = summaryRows[0].querySelector('.summary-value');
+                    if (subtotalElement) {
+                        subtotalElement.textContent = formatCurrency(data.subtotal);
+                    }
                     
                     // Update discount
                     const discountRow = document.querySelector('.summary-row.discount .summary-value');
@@ -1077,13 +1092,13 @@
                 // Update cart count
                 const cartCountElement = document.querySelector('.cart-count');
                 if (cartCountElement) {
-                    cartCountElement.textContent = data.cart_count || '';
+                    cartCountElement.textContent = data.cart_count || 0;
                 }
 
                 // Update cart title
                 const cartTitleElement = document.querySelector('.cart-title');
                 if (cartTitleElement) {
-                    cartTitleElement.textContent = `My cart (${data.cart_count})`;
+                    cartTitleElement.textContent = `My cart (${data.cart_count || 0})`;
                 }
 
                 // Update discount percentage if available
@@ -1380,12 +1395,12 @@
 
             // Initialize cart UI with current values
             updateCartUI({
-                subtotal: parseFloat('{{ subtotal|floatformat:2 }}'),
-                tax: parseFloat('{{ tax|floatformat:2 }}'),
-                discount: parseFloat('{{ discount|floatformat:2 }}'),
-                total: parseFloat('{{ total|floatformat:2 }}'),
-                cart_count: parseInt('{{ cart_items|length }}'),
-                discount_percentage: parseFloat('{{ discount_percentage|default:10 }}')
+                subtotal: safeParseFloat('{{ subtotal|floatformat:2 }}'),
+                tax: safeParseFloat('{{ tax|floatformat:2 }}'),
+                discount: safeParseFloat('{{ discount|floatformat:2 }}'),
+                total: safeParseFloat('{{ total|floatformat:2 }}'),
+                cart_count: parseInt('{{ cart_items|length }}') || 0,
+                discount_percentage: safeParseFloat('{{ discount_percentage|default:10 }}')
             });
 
             // Handle "Move to cart" button clicks

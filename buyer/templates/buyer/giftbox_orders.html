@@ -1,110 +1,424 @@
 {% extends 'index.html' %}
-{% block title %}My Gift Box Orders{% endblock %}
-{% block extra_css %}
-<style>
-:root {
-  --primary-blue: #3B82F6;
-  --primary-blue-dark: #2563EB;
-  --primary-blue-light: #DBEAFE;
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
-  --shadow-lg: 0 10px 15px -3px rgba(59,130,246,0.10), 0 4px 6px -2px rgba(59,130,246,0.05);
-  --radius-xl: 1rem;
-}
-body { background: linear-gradient(135deg, #dcdbff 0%, #ffffff   100%); }
-.container {
-  padding: 2.5rem 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.card {
-  background: rgba(255,255,255,0.97);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  border: 1.5px solid #e5e7eb;
-  overflow: hidden;
-  margin-bottom: 2rem;
-  transition: box-shadow 0.2s, transform 0.2s;
-  backdrop-filter: blur(8px);
-}
-.card-header {
-  padding: 2rem 2rem 1rem 2rem;
-  border-bottom: 1px solid #f3f4f6;
-  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
-}
-.card-body {
-  padding: 2rem;
-}
-.text-warning { color: #F59E0B; }
-.text-success { color: #10B981; }
-.text-muted { color: #9CA3AF; }
-ul.list-disc { margin-left: 1.5rem; }
-.grid { display: grid; gap: 2rem; }
-.grid-cols-1 { grid-template-columns: 1fr; }
-@media (min-width: 768px) {
-  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-}
-@media (min-width: 1024px) {
-  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 600px) {
-  .container { padding: 0.5rem; }
-  .card-header, .card-body { padding-left: 1rem; padding-right: 1rem; }
-}
-.col-span-full { grid-column: 1 / -1; }
-</style>
-{% endblock %}
+{% load static %}
+{% block title %}Gift Box Orders{% endblock %}
+{% block content %} 
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_css %}
+    <style>
+        :root {
+            /* Primary Brand Colors */
+            --primary-blue: #4285F4;
+            --primary-blue-dark: #3367D6;
+            --primary-blue-light: #E3F2FD;
+            
+            /* Neutral Foundation */
+            --neutral-50: #FAFAFA;
+            --neutral-100: #F5F5F5;
+            --neutral-200: #EEEEEE;
+            --neutral-300: #E0E0E0;
+            --neutral-400: #BDBDBD;
+            --neutral-500: #9E9E9E;
+            --neutral-600: #757575;
+            --neutral-700: #616161;
+            --neutral-800: #424242;
+            --neutral-900: #212121;
+            
+            /* Semantic Colors */
+            --success: #2ECC71;
+            --warning: #F39C12;
+            --error: #E74C3C;
+            --info: #3498DB;
+            
+            /* Text Colors */
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-muted: #9E9E9E;
+            --text-inverse: #FFFFFF;
+            
+            /* Background Colors */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #FAFAFA;
+            --bg-tertiary: #F5F5F5;
+            --bg-overlay: rgba(0, 0, 0, 0.5);
+        }
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.card').forEach((card, i) => {
-    card.style.opacity = 0;
-    card.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-      card.style.transition = 'all 0.5s cubic-bezier(.4,0,.2,1)';
-      card.style.opacity = 1;
-      card.style.transform = 'translateY(0)';
-    }, 100 + i * 80);
-  });
-});
-</script>
-{% endblock %}
-{% block content %}
-<div class="container py-8">
-    <h1 class="text-2xl font-bold mb-6">My Gift Box Orders</h1>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for order in orders %}
-        <div class="card">
-            <div class="card-header">
-                <h2 class="text-lg font-semibold">{{ order.campaign.name }}</h2>
-            </div>
-            <div class="card-body">
-                <p><strong>Seller:</strong> {{ order.seller.shop_name }}</p>
-                <p><strong>Status:</strong> {{ order.get_status_display }}</p>
-                <p><strong>Placed:</strong> {{ order.created_at|date:'Y-m-d H:i' }}</p>
-                <p><strong>Message:</strong> {{ order.buyer_message|default:'-' }}</p>
-                {% if order.status == 'delivered' or order.reveal_contents %}
-                    <div class="mt-4">
-                        <strong>Box Contents:</strong>
-                        {% if order.selected_products.all %}
-                            <ul class="list-disc ml-6">
-                                {% for product in order.selected_products.all %}
-                                    <li>{{ product.name }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <span class="text-muted">(No products selected)</span>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <div class="mt-4 text-warning">Contents will be revealed after delivery!</div>
-                {% endif %}
+        .giftbox-orders-body {
+            font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--bg-primary) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .giftbox-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .giftbox-status-pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        .giftbox-status-confirmed {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .giftbox-status-processing {
+            background-color: #E0E7FF;
+            color: #3730A3;
+        }
+
+        .giftbox-status-packed {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        .giftbox-status-shipped {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+
+        .giftbox-status-delivered {
+            background-color: #D1FAE5;
+            color: #047857;
+        }
+
+        .giftbox-status-cancelled {
+            background-color: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .giftbox-order-card {
+            background: var(--bg-primary);
+            border-radius: 0.75rem;
+            border: 1px solid var(--neutral-200);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .giftbox-order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: var(--neutral-300);
+        }
+
+        .giftbox-order-header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--neutral-100) 100%);
+            border-bottom: 1px solid var(--neutral-200);
+            padding: 1.5rem;
+        }
+
+        .giftbox-order-body {
+            padding: 1.5rem;
+        }
+
+        .giftbox-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .giftbox-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .giftbox-info-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .giftbox-info-value {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .giftbox-contents-section {
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid var(--neutral-200);
+        }
+
+        .giftbox-contents-list {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .giftbox-contents-list li {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .giftbox-contents-list li:last-child {
+            border-bottom: none;
+        }
+
+        .giftbox-contents-list li::before {
+            content: "🎁";
+            margin-right: 0.5rem;
+        }
+
+        .giftbox-surprise-message {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            border: 1px solid #F59E0B;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            color: #92400E;
+            font-weight: 500;
+        }
+
+        .giftbox-empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .giftbox-empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .giftbox-page-title-card {
+            background: var(--bg-primary);
+            border-radius: 1rem;
+            border: 1px solid var(--neutral-200);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .giftbox-page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .giftbox-page-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .giftbox-order-count-badge {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: var(--text-inverse);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        @keyframes giftboxFadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .giftbox-animate-fade-in-up {
+            animation: giftboxFadeInUp 0.6s ease-out forwards;
+        }
+
+        @media (max-width: 768px) {
+            .giftbox-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .giftbox-order-header,
+            .giftbox-order-body {
+                padding: 1rem;
+            }
+            
+            .giftbox-page-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+    {% endblock %}
+
+<div class="giftbox-orders-body">
+    <div class="min-h-screen">
+        <!-- Page Title Card -->
+        <div class="giftbox-page-title-card">
+            <h1 class="giftbox-page-title">My Gift Box Orders</h1>
+            <p class="giftbox-page-subtitle">Track and manage your gift box purchases</p>
+            <div class="giftbox-order-count-badge">
+                {{ orders.count }} Order{{ orders.count|pluralize }}
             </div>
         </div>
-        {% empty %}
-        <div class="col-span-full text-center text-muted">You have not placed any gift box orders yet.</div>
-        {% endfor %}
-    </div>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            
+            <!-- Orders Grid -->
+            <section class="space-y-6">
+                
+                {% if orders %}
+                    {% for order in orders %}
+                    <article class="giftbox-order-card giftbox-animate-fade-in-up">
+                        <div class="giftbox-order-header">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h2 class="text-xl font-semibold text-gray-900 mb-1">{{ order.campaign.name }}</h2>
+                                    <p class="text-sm text-gray-600">Order #{{ order.order_number }}</p>
+                                </div>
+                                <span class="giftbox-status-badge giftbox-status-{{ order.status }}">{{ order.get_status_display }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="giftbox-order-body">
+                            <div class="giftbox-info-grid">
+                                <div class="giftbox-info-item">
+                                    <span class="giftbox-info-label">Seller</span>
+                                    <span class="giftbox-info-value">{{ order.seller.shop_name }}</span>
+                                </div>
+                                <div class="giftbox-info-item">
+                                    <span class="giftbox-info-label">Order Date</span>
+                                    <span class="giftbox-info-value">{{ order.created_at|date:"M d, Y H:i" }}</span>
+                                </div>
+                                <div class="giftbox-info-item">
+                                    <span class="giftbox-info-label">Expected Delivery</span>
+                                    <span class="giftbox-info-value">
+                                        {% if order.expected_delivery_date %}
+                                            {{ order.expected_delivery_date|date:"M d, Y" }}
+                                        {% else %}
+                                            TBD
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="giftbox-info-item">
+                                    <span class="giftbox-info-label">Total Value</span>
+                                    <span class="giftbox-info-value">${{ order.total_amount|floatformat:2 }}</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="giftbox-info-item">
+                                    <span class="giftbox-info-label">Your Message</span>
+                                    <span class="giftbox-info-value">
+                                        {% if order.buyer_message %}
+                                            "{{ order.buyer_message }}"
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if order.status == 'delivered' and order.reveal_contents %}
+                                <div class="giftbox-contents-section">
+                                    <h3 class="font-semibold text-gray-900 mb-2">Box Contents Revealed</h3>
+                                    <ul class="giftbox-contents-list">
+                                        {% for product in order.selected_products.all %}
+                                            <li>{{ product.name }}</li>
+                                        {% empty %}
+                                            <li>Contents not specified</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% else %}
+                                <div class="giftbox-surprise-message">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <span>🎁</span>
+                                        <span>Contents will be revealed after delivery!</span>
+                                    </div>
+                                    <p class="text-xs mt-2">
+                                        {% if order.status == 'delivered' %}
+                                            Your gift box has been delivered!
+                                        {% else %}
+                                            The surprise element is part of the gift box experience
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="giftbox-empty-state">
+                        <div class="giftbox-empty-state-icon">📦</div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Gift Box Orders Yet</h3>
+                        <p class="text-gray-600 mb-6">You haven't placed any gift box orders yet. Start exploring our amazing sellers and surprise your loved ones!</p>
+                        <a href="{% url 'buyer:giftbox_marketplace' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                            Browse Gift Boxes
+                        </a>
+                    </div>
+                {% endif %}
+
+            </section>
+
+            <!-- Order Summary Footer -->
+            <footer class="mt-12 bg-white rounded-lg border border-gray-200 p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                    <div>
+                        <h3 class="font-semibold text-gray-900">Order Summary</h3>
+                        <p class="text-sm text-gray-600">
+                            Total orders: {{ orders.count }} • 
+                            Total spent: ${{ total_spent|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <a href="{% url 'buyer:giftbox_marketplace' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                            Order New Gift Box
+                        </a>
+                    </div>
+                </div>
+            </footer>
+
+                 </main>
+     </div>
+ 
+         <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate cards on load
+            const cards = document.querySelectorAll('.giftbox-order-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100 + (index * 100));
+            });
+
+            // Add hover effects
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
 </div>
-{% endblock %} 
+ {% endblock %}

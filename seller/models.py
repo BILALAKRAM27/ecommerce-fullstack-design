@@ -104,6 +104,21 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def calculated_final_price(self):
+        """Calculate final price based on base price and discount"""
+        if self.final_price is not None:
+            return self.final_price or 0
+        
+        # Ensure base_price is not None
+        base_price = self.base_price or 0
+        
+        # Calculate final price if not set
+        if self.discount_percentage and self.discount_percentage > 0:
+            discount_amount = base_price * (self.discount_percentage / 100)
+            return max(0, base_price - discount_amount)
+        
+        return base_price
 
     def set_image(self, data):
         """Set the image field as raw binary data"""

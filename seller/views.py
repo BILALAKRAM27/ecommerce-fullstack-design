@@ -18,7 +18,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from .models import Seller
 from django.views.decorators.http import require_POST, require_GET
-from django.db.models import Sum, Count, Q, Min, Max
+from django.db.models import Sum, Count, Q, Min, Max, F
 from datetime import datetime, timedelta
 import csv
 from io import StringIO
@@ -60,20 +60,44 @@ def index_view(request):
                 user_type = 'buyer'
             except Buyer.DoesNotExist:
                 pass
-    # Get categories for sections
+    # Get categories for sections with improved logic
     electronics = Category.objects.filter(name__icontains='electronic')
     electronics_subs = Category.objects.filter(parent__in=electronics)
     clothing = Category.objects.filter(name__icontains='clothing')
     clothing_subs = Category.objects.filter(parent__in=clothing)
     furniture = Category.objects.filter(name__icontains='furniture')
     furniture_subs = Category.objects.filter(parent__in=furniture)
+    sports = Category.objects.filter(name__icontains='sport')
+    sports_subs = Category.objects.filter(parent__in=sports)
     electronics_cats = list(electronics) + list(electronics_subs)
     clothing_cats = list(clothing) + list(clothing_subs)
     furniture_cats = list(furniture) + list(furniture_subs)
-    # Fetch products for each section
-    electronics_products = Product.objects.filter(category__in=electronics_cats)
-    clothing_products = Product.objects.filter(category__in=clothing_cats)
-    furniture_products = Product.objects.filter(category__in=furniture_cats)
+    sports_cats = list(sports) + list(sports_subs)
+    
+    # Fetch top 6 trending products for each section based on order_count and rating
+    electronics_products = Product.objects.filter(
+        category__in=electronics_cats
+    ).annotate(
+        popularity_score=F('order_count') + (F('rating_avg') * 10)
+    ).order_by('-popularity_score', '-order_count', '-rating_avg')[:6]
+    
+    clothing_products = Product.objects.filter(
+        category__in=clothing_cats
+    ).annotate(
+        popularity_score=F('order_count') + (F('rating_avg') * 10)
+    ).order_by('-popularity_score', '-order_count', '-rating_avg')[:6]
+    
+    furniture_products = Product.objects.filter(
+        category__in=furniture_cats
+    ).annotate(
+        popularity_score=F('order_count') + (F('rating_avg') * 10)
+    ).order_by('-popularity_score', '-order_count', '-rating_avg')[:6]
+    
+    sports_products = Product.objects.filter(
+        category__in=sports_cats
+    ).annotate(
+        popularity_score=F('order_count') + (F('rating_avg') * 10)
+    ).order_by('-popularity_score', '-order_count', '-rating_avg')[:6]
     
     # Get active promotions for homepage
     active_promotions = get_active_promotions_for_homepage()
@@ -83,18 +107,31 @@ def index_view(request):
     if active_promotions:
         soonest_expiring_promotion = active_promotions.first()
     
+    # Get all parent categories for sidebar
+    parent_categories = Category.objects.filter(parent__isnull=True).order_by('name')
+    
+    # Get recommended items based on highest order count and rating
+    recommended_items = Product.objects.annotate(
+        recommendation_score=F('order_count') + (F('rating_avg') * 10)
+    ).filter(
+        order_count__gt=0  # Only products that have been ordered
+    ).order_by('-recommendation_score', '-order_count', '-rating_avg')[:10]
+    
     context = {
         'user': user,
         'seller': seller,
         'buyer': buyer,
         'image_base64': image_base64,
         'user_type': user_type,
+        'parent_categories': parent_categories,
         'electronics_categories': electronics_cats,
         'clothing_categories': clothing_cats,
         'furniture_categories': furniture_cats,
         'electronics_products': electronics_products,
         'clothing_products': clothing_products,
         'furniture_products': furniture_products,
+        'sports_products': sports_products,
+        'recommended_items': recommended_items,
         'active_promotions': active_promotions,
         'soonest_expiring_promotion': soonest_expiring_promotion,
     }
@@ -266,6 +303,19 @@ def create_product_view(request):
         if form.is_valid():
             product = form.save(commit=False)
             product.seller = seller
+            
+            # Auto-calculate final price based on discount
+            base_price = product.base_price or 0
+            discount_percentage = product.discount_percentage or 0
+            
+            if discount_percentage > 0:
+                # Calculate final price with discount
+                discount_amount = base_price * (discount_percentage / 100)
+                product.final_price = max(0, base_price - discount_amount)
+            else:
+                # If no discount, final price equals base price
+                product.final_price = base_price
+            
             product.save()
             
             # Handle dynamic attributes (this will be called by the form's save method)
@@ -350,7 +400,21 @@ def update_product_view(request, product_id):
             # Use form validation for all requests (like the working repo code)
             form = DynamicProductForm(request.POST, request.FILES, instance=product)
             if form.is_valid():
-                product = form.save()
+                product = form.save(commit=False)
+                
+                # Auto-calculate final price based on discount
+                base_price = product.base_price or 0
+                discount_percentage = product.discount_percentage or 0
+                
+                if discount_percentage > 0:
+                    # Calculate final price with discount
+                    discount_amount = base_price * (discount_percentage / 100)
+                    product.final_price = max(0, base_price - discount_amount)
+                else:
+                    # If no discount, final price equals base price
+                    product.final_price = base_price
+                
+                product.save()
             else:
                 if is_ajax:
                     return JsonResponse({'success': False, 'error': 'Form validation failed'})
@@ -2142,8 +2206,12 @@ def hot_offers_view(request):
     from django.db.models import Q
     from django.utils import timezone
     
-    # Get all promotions (not just active ones)
-    promotions = Promotion.objects.all().select_related('seller').prefetch_related('products', 'categories').order_by('-created_at')
+    # Get only non-expired promotions
+    now = timezone.now()
+    promotions = Promotion.objects.filter(
+        valid_until__gt=now,  # Only promotions that haven't expired
+        is_active=True  # Only active promotions
+    ).select_related('seller').prefetch_related('products', 'categories').order_by('-created_at')
     
     # Get all categories for filtering
     categories = Category.objects.all()
@@ -2287,17 +2355,21 @@ def search_promotions_ajax(request):
     return JsonResponse({'promotions': promotions_data})
 
 def get_active_promotions_for_homepage():
-    """Get active promotions for homepage display - 5 trending promotions ordered by expiration"""
+    """Get active promotions for homepage display - 5 most ordered promotions"""
     from django.utils import timezone
+    from django.db import models
     
-    # Get 5 active promotions ordered by expiration date (soonest first)
-    promotions = Promotion.objects.filter(
+    # Get active promotions that are not expired
+    active_promotions = Promotion.objects.filter(
         is_active=True,
         valid_from__lte=timezone.now(),
         valid_until__gte=timezone.now()
-    ).select_related('seller').prefetch_related('products').order_by('valid_until')[:5]
+    ).select_related('seller').prefetch_related('products')
     
-    return promotions
+    # Get top 5 most ordered promotions
+    most_ordered_promotions = active_promotions.order_by('-used_count', 'valid_until')[:5]
+    
+    return most_ordered_promotions
 
 @login_required
 def seller_export_data(request):
@@ -2404,13 +2476,23 @@ def product_update(request, product_id):
         product.stock = int(request.POST.get('stock', product.stock))
         product.condition = request.POST.get('condition', product.condition)
         
-        # Update final price if discount is provided
+        # Auto-calculate final price based on discount
         discount = request.POST.get('discount_percentage')
         if discount:
             product.discount_percentage = float(discount)
-            product.final_price = product.base_price * (1 - float(discount) / 100)
         else:
-            product.final_price = product.base_price
+            product.discount_percentage = 0
+        
+        base_price = product.base_price or 0
+        discount_percentage = product.discount_percentage or 0
+        
+        if discount_percentage > 0:
+            # Calculate final price with discount
+            discount_amount = base_price * (discount_percentage / 100)
+            product.final_price = max(0, base_price - discount_amount)
+        else:
+            # If no discount, final price equals base price
+            product.final_price = base_price
         
         product.save()
         

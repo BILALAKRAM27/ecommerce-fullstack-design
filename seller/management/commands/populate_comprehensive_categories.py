@@ -3,7 +3,7 @@ from seller.models import Category, CategoryAttribute, AttributeOption
 
 
 class Command(BaseCommand):
-    help = 'Populate database with comprehensive categories, subcategories, and attributes (main script)'
+    help = 'Populate database with comprehensive categories, subcategories, and attributes'
 
     def handle(self, *args, **options):
         self.stdout.write('Creating comprehensive categories and attributes...')

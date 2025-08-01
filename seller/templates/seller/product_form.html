@@ -610,7 +610,7 @@
                         <div class="form-group">
                             <label for="{{ form.discount_percentage.id_for_label }}">Discount Percentage</label>
                             {{ form.discount_percentage }}
-                            <div class="help-text">Enter discount as percentage (e.g., 10 for 10%)</div>
+                            <div class="help-text">Enter discount as a percentage (e.g., 10 for 10%). Leave empty or enter 0 to set final price equal to base price.</div>
                             {% if form.discount_percentage.errors %}
                             <ul class="errorlist">
                                 {% for error in form.discount_percentage.errors %}
@@ -625,7 +625,7 @@
                         <div class="form-group">
                             <label for="{{ form.final_price.id_for_label }}">Final Price</label>
                             {{ form.final_price }}
-                            <div class="help-text">Will be calculated automatically if discount is provided</div>
+                            <div class="help-text">Automatically calculated based on base price and discount. If no discount, equals base price.</div>
                             {% if form.final_price.errors %}
                             <ul class="errorlist">
                                 {% for error in form.final_price.errors %}
@@ -919,12 +919,26 @@
                 const basePrice = parseFloat(basePriceField.value) || 0;
                 const discount = parseFloat(discountField.value) || 0;
                 
-                if (basePrice > 0 && discount > 0) {
-                    const finalPrice = basePrice * (1 - discount / 100);
-                    finalPriceField.value = finalPrice.toFixed(2);
+                if (basePrice > 0) {
+                    if (discount > 0) {
+                        // Calculate final price with discount
+                        const discountAmount = basePrice * (discount / 100);
+                        const finalPrice = Math.max(0, basePrice - discountAmount);
+                        finalPriceField.value = finalPrice.toFixed(2);
+                    } else {
+                        // If no discount, final price equals base price
+                        finalPriceField.value = basePrice.toFixed(2);
+                    }
+                } else {
+                    // If no base price, clear final price
+                    finalPriceField.value = '';
                 }
             }
 
+            // Calculate on page load
+            calculateFinalPrice();
+            
+            // Calculate when fields change
             basePriceField.addEventListener('input', calculateFinalPrice);
             discountField.addEventListener('input', calculateFinalPrice);
         });

@@ -218,53 +218,187 @@
             text-decoration: underline;
         }
 
+        .see-all-container {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .brand-hidden {
+            display: none;
+        }
+
+        .brand-hidden.show {
+            display: flex !important;
+        }
+
         .price-range {
             margin: 15px 0;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
         }
 
-        .price-inputs {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-        }
-
-        .price-inputs input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .price-range h4 {
+            margin: 0 0 15px 0;
             font-size: 14px;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .price-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .price-slider-container {
+            position: relative;
+            margin: 20px 0 15px 0;
         }
 
         .price-slider {
             width: 100%;
-            height: 4px;
-            background: #ddd;
-            border-radius: 2px;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
             position: relative;
-            margin: 15px 0;
+            cursor: pointer;
+        }
+
+        .price-slider-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            border-radius: 3px;
         }
 
         .price-slider-fill {
+            position: absolute;
+            top: 0;
             height: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 2px;
-            width: 60%;
-            margin-left: 20%;
+            border-radius: 3px;
+            transition: width 0.2s ease;
+        }
+
+        .price-slider-handle {
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .price-slider-handle:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .price-slider-handle:active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .price-inputs {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .price-inputs input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            transition: border-color 0.2s ease;
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .price-inputs input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .price-inputs input::placeholder {
+            color: #adb5bd;
         }
 
         .apply-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 8px 20px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
         }
 
         .apply-btn:hover {
             transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .apply-btn:active {
+            transform: translateY(0);
+        }
+
+        .price-clear-btn {
+            background: transparent;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .price-clear-btn:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+        }
+
+        /* Responsive adjustments for price range */
+        @media (max-width: 768px) {
+            .price-inputs {
+                gap: 6px;
+            }
+            
+            .price-inputs input {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+            
+            .price-range {
+                padding: 10px;
+            }
+            
+            .price-display {
+                font-size: 11px;
+            }
         }
 
         .radio-item {
@@ -892,13 +1026,15 @@
                 <div class="sidebar-section">
                     <h3>Category</h3>
                     <div class="sidebar-content">
-                        {% for category in parent_categories %}
-                        <div class="checkbox-item parent-category">
-                            <input type="checkbox" id="parent_cat_{{ category.id }}" value="{{ category.id }}" 
-                                   class="parent-category-checkbox" name="parent_category">
-                            <label for="parent_cat_{{ category.id }}">{{ category.name }}</label>
+                        <div id="categories-container">
+                            {% for category in parent_categories %}
+                            <div class="checkbox-item parent-category">
+                                <input type="checkbox" id="parent_cat_{{ category.id }}" value="{{ category.id }}" 
+                                       class="parent-category-checkbox" name="parent_category">
+                                <label for="parent_cat_{{ category.id }}">{{ category.name }}</label>
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
 
@@ -922,12 +1058,19 @@
                 <div class="sidebar-section">
                     <h3>Brands</h3>
                     <div class="sidebar-content">
-                        {% for brand in brands %}
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="brand_{{ brand.id }}" name="brand" value="{{ brand.id }}">
-                            <label for="brand_{{ brand.id }}">{{ brand.name }}</label>
+                        <div id="brands-container">
+                            {% for brand in brands %}
+                            <div class="checkbox-item {% if forloop.counter > 5 %}brand-hidden{% endif %}">
+                                <input type="checkbox" id="brand_{{ brand.id }}" name="brand" value="{{ brand.id }}">
+                                <label for="brand_{{ brand.id }}">{{ brand.name }}</label>
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
+                        {% if brands|length > 5 %}
+                        <div class="see-all-container">
+                            <a href="#" class="see-all" id="see-all-brands">See All Brands</a>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -936,14 +1079,25 @@
                     <h3>Price range</h3>
                     <div class="sidebar-content">
                         <div class="price-range">
-                            <div class="price-slider">
-                                <div class="price-slider-fill"></div>
+                            <h4>Select price range</h4>
+                            <div class="price-display">
+                                <span id="min-price-display">$0</span>
+                                <span id="max-price-display">$1000</span>
+                            </div>
+                            <div class="price-slider-container">
+                                <div class="price-slider" id="price-slider">
+                                    <div class="price-slider-track"></div>
+                                    <div class="price-slider-fill" id="price-slider-fill"></div>
+                                    <div class="price-slider-handle" id="min-handle"></div>
+                                    <div class="price-slider-handle" id="max-handle"></div>
+                                </div>
                             </div>
                             <div class="price-inputs">
-                                <input type="number" name="min_price" placeholder="Min" min="0">
-                                <input type="number" name="max_price" placeholder="Max" min="0">
+                                <input type="number" name="min_price" id="min-price-input" placeholder="Min" min="0" step="1">
+                                <input type="number" name="max_price" id="max-price-input" placeholder="Max" min="0" step="1">
                             </div>
-                            <button type="button" class="apply-btn" onclick="applyFilters()">Apply</button>
+                            <button type="button" class="apply-btn" onclick="applyPriceFilter()">Apply Price Filter</button>
+                            <button type="button" class="price-clear-btn" onclick="clearPriceFilter()">Clear Price</button>
                         </div>
                     </div>
                 </div>
@@ -1056,8 +1210,8 @@
                             </div>
                                 <h3 class="product-title">{{ product.name }}</h3>
                             <div class="product-price">
-                                    ${{ product.final_price|floatformat:2 }}
-                                    {% if product.discount_percentage %}
+                                                                         ${{ product.calculated_final_price|default:0|floatformat:2 }}
+                                    {% if product.discount_percentage and product.base_price %}
                                         <span class="product-original-price">${{ product.base_price|floatformat:2 }}</span>
                                     {% endif %}
                             </div>
@@ -1147,7 +1301,47 @@
             
             // Restore filter states from URL parameters
             restoreFilterStates();
+            
+            // Initialize see all functionality AFTER everything else
+            setTimeout(() => {
+                initializeSeeAllFunctionality();
+            }, 100);
         });
+
+        // Initialize see all functionality
+        function initializeSeeAllFunctionality() {
+            console.log('Initializing see all functionality...');
+            
+            // Brands see all functionality
+            const seeAllBrands = document.getElementById('see-all-brands');
+            if (seeAllBrands) {
+                seeAllBrands.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const seeAllLink = this;
+                    const currentState = seeAllLink.getAttribute('data-state') || 'collapsed';
+                    
+                    if (currentState === 'collapsed') {
+                        // Show all brands
+                        const hiddenBrands = document.querySelectorAll('.brand-hidden');
+                        hiddenBrands.forEach(brand => {
+                            brand.classList.add('show');
+                        });
+                        seeAllLink.textContent = 'Show Less';
+                        seeAllLink.setAttribute('data-state', 'expanded');
+                    } else {
+                        // Hide brands beyond first 5
+                        const allBrands = document.querySelectorAll('#brands-container .checkbox-item');
+                        allBrands.forEach((brand, index) => {
+                            if (index >= 5) {
+                                brand.classList.remove('show');
+                            }
+                        });
+                        seeAllLink.textContent = 'See All Brands';
+                        seeAllLink.setAttribute('data-state', 'collapsed');
+                    }
+                });
+            }
+        }
 
         // Restore filter states from URL parameters
         function restoreFilterStates() {
@@ -1167,6 +1361,16 @@
                     // Load child categories for this parent
                     loadChildCategories(parentCategory);
                 }
+            } else {
+                // Clear any existing category selections
+                document.querySelectorAll('.parent-category-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.closest('.checkbox-item').classList.remove('parent-category-selected');
+                });
+                
+                // Hide child categories and attributes
+                hideChildCategories();
+                hideCategoryAttributes();
             }
             
             // Restore child category
@@ -1197,19 +1401,28 @@
             }
             
             // Restore price range
-            const minPrice = urlParams.get('min_price');
-            const maxPrice = urlParams.get('max_price');
-            if (minPrice) {
+            const minPriceParam = urlParams.get('min_price');
+            const maxPriceParam = urlParams.get('max_price');
+            if (minPriceParam) {
                 const minPriceInput = document.querySelector('input[name="min_price"]');
                 if (minPriceInput) {
-                    minPriceInput.value = minPrice;
+                    minPriceInput.value = minPriceParam;
+                    minPrice = parseInt(minPriceParam) || 0;
                 }
             }
-            if (maxPrice) {
+            if (maxPriceParam) {
                 const maxPriceInput = document.querySelector('input[name="max_price"]');
                 if (maxPriceInput) {
-                    maxPriceInput.value = maxPrice;
+                    maxPriceInput.value = maxPriceParam;
+                    maxPrice = parseInt(maxPriceParam) || 1000;
                 }
+            }
+            
+            // Update slider handles if price range was restored
+            if (minPriceParam || maxPriceParam) {
+                setTimeout(() => {
+                    updateSliderHandles();
+                }, 100);
             }
             
             // Restore search query
@@ -1233,11 +1446,27 @@
             // Restore view type
             const viewType = urlParams.get('view');
             if (viewType) {
+                console.log('Restoring view from URL parameter:', viewType);
                 currentView = viewType;
-                updateViewButtons();
+                // Delay the view restoration to ensure DOM is ready
+                setTimeout(() => {
+                    restoreViewState(viewType);
+                }, 100);
+            } else {
+                // Set default view if none specified
+                console.log('No view parameter found, setting default to grid');
+                currentView = 'grid';
+                setTimeout(() => {
+                    restoreViewState('grid');
+                }, 100);
             }
             
             console.log('Filter states restored from URL parameters');
+            
+            // Update view buttons after a delay to ensure they're properly set
+            setTimeout(() => {
+                updateViewButtons();
+            }, 200);
         }
         
         // Restore attribute filters after attributes are loaded
@@ -1636,6 +1865,10 @@
              console.log('Applying filters...');
              isLoading = true;
             
+            // Store current view state before loading
+            const currentViewState = currentView;
+            console.log('Current view state before filter:', currentViewState);
+            
             // Show loading state
             const productsGrid = document.getElementById('products-grid');
             const productsCount = document.querySelector('.products-count');
@@ -1748,11 +1981,30 @@
                         productsCount.innerHTML = `Showing ${data.total_products} products`;
                     }
                     
-                    // Update URL without page reload
-                    const newUrl = `${window.location.pathname}?${params.toString()}`;
-                    window.history.replaceState({}, '', newUrl);
+                                // Update URL without page reload, preserving view parameter
+            const newUrl = new URL(window.location);
+            
+            // Clear existing parameters and add new ones
+            newUrl.search = '';
+            for (let [key, value] of params) {
+                newUrl.searchParams.set(key, value);
+            }
+            
+            // Preserve view parameter if it exists
+            const currentView = new URLSearchParams(window.location.search).get('view');
+            if (currentView) {
+                newUrl.searchParams.set('view', currentView);
+            }
+            
+            window.history.replaceState({}, '', newUrl.toString());
                     
                     console.log('Filters applied successfully');
+                    
+                    // Ensure view state is maintained after AJAX update
+                    setTimeout(() => {
+                        console.log('Final view state check:', currentViewState);
+                        restoreViewState(currentViewState);
+                    }, 100);
                 } else {
                     console.error('Error applying filters:', data.error);
                     if (productsGrid) {
@@ -1776,6 +2028,9 @@
             const productsGrid = document.getElementById('products-grid');
             if (!productsGrid) return;
             
+            // Store current view state before updating
+            const currentViewState = currentView;
+            
             if (products.length === 0) {
                 productsGrid.innerHTML = `
                     <div class="no-products">
@@ -1784,13 +2039,18 @@
                         <button class="clear-filters-btn" onclick="clearAllFilters()">Clear All Filters</button>
                     </div>
                 `;
+                
+                // Restore view state even for empty results
+                setTimeout(() => {
+                    restoreViewState(currentViewState);
+                }, 50);
                 return;
             }
             
             let productsHTML = '';
             
             products.forEach(product => {
-                const originalPriceHTML = product.original_price ? 
+                const originalPriceHTML = (product.original_price && product.original_price > 0) ? 
                     `<span class="product-original-price">$${product.original_price.toFixed(2)}</span>` : '';
                 
                 const ratingStars = generateRatingStars(product.rating_avg);
@@ -1817,7 +2077,7 @@
                             </div>
                             <h3 class="product-title">${product.name}</h3>
                             <div class="product-price">
-                                $${product.current_price.toFixed(2)}
+                                                                 $${(product.current_price || product.calculated_final_price || product.base_price || 0).toFixed(2)}
                                 ${originalPriceHTML}
                             </div>
                             <div class="product-rating">
@@ -1836,6 +2096,11 @@
             });
             
             productsGrid.innerHTML = productsHTML;
+            
+            // Restore the view state after updating products with a small delay
+            setTimeout(() => {
+                restoreViewState(currentViewState);
+            }, 50);
             
             // Re-initialize wishlist state for new products
             initializeWishlistState();
@@ -1988,7 +2253,7 @@
                 // Handle errors silently
             }
             
-            // Update URL parameter without page reload
+            // Update URL parameter without page reload, preserving existing parameters
             const url = new URL(window.location);
             url.searchParams.set('view', view);
             window.history.replaceState({}, '', url);
@@ -2041,6 +2306,88 @@
                     viewIndicator.textContent = '(Grid View)';
                 }
             }
+        }
+
+        // Update view buttons state
+        function updateViewButtons() {
+            const viewBtns = document.querySelectorAll('.view-btn');
+            const viewIndicator = document.getElementById('view-indicator');
+            
+            // Remove active class from all buttons
+            viewBtns.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to current view button
+            const currentViewBtn = document.querySelector(`[data-view="${currentView}"]`);
+            if (currentViewBtn) {
+                currentViewBtn.classList.add('active');
+            }
+            
+            // Update view indicator
+            if (viewIndicator) {
+                if (currentView === 'list') {
+                    viewIndicator.textContent = '(List View)';
+                } else {
+                    viewIndicator.textContent = '(Grid View)';
+                }
+            }
+        }
+
+        // Restore view state after AJAX updates
+        function restoreViewState(viewType) {
+            console.log('Restoring view state to:', viewType);
+            
+            const gridContainer = document.getElementById('products-grid');
+            const viewBtns = document.querySelectorAll('.view-btn');
+            const viewIndicator = document.getElementById('view-indicator');
+            
+            if (!gridContainer) {
+                console.log('Grid container not found');
+                return;
+            }
+            
+            // Update current view variable
+            currentView = viewType;
+            
+            if (viewType === 'list') {
+                gridContainer.classList.remove('grid-view');
+                gridContainer.classList.add('list-view');
+                console.log('Applied list-view class');
+                
+                // Update button states
+                viewBtns.forEach(btn => btn.classList.remove('active'));
+                const listBtn = document.querySelector('[data-view="list"]');
+                if (listBtn) {
+                    listBtn.classList.add('active');
+                    console.log('Activated list button');
+                }
+                
+                if (viewIndicator) {
+                    viewIndicator.textContent = '(List View)';
+                }
+            } else {
+                gridContainer.classList.remove('list-view');
+                gridContainer.classList.add('grid-view');
+                console.log('Applied grid-view class');
+                
+                // Update button states
+                viewBtns.forEach(btn => btn.classList.remove('active'));
+                const gridBtn = document.querySelector('[data-view="grid"]');
+                if (gridBtn) {
+                    gridBtn.classList.add('active');
+                    console.log('Activated grid button');
+                }
+                
+                if (viewIndicator) {
+                    viewIndicator.textContent = '(Grid View)';
+                }
+            }
+            
+            // Update URL parameter to reflect current view, preserving existing parameters
+            const url = new URL(window.location);
+            url.searchParams.set('view', viewType);
+            window.history.replaceState({}, '', url);
+            
+            console.log('View state restored successfully');
         }
 
         // Wishlist functionality with cart interaction
@@ -2199,47 +2546,181 @@
         }
 
         // Price range slider functionality
-        function initializePriceSlider() {
-        const priceSlider = document.querySelector('.price-slider');
-        const priceSliderFill = document.querySelector('.price-slider-fill');
+        let minPrice = 0;
+        let maxPrice = 1000;
         let isDragging = false;
+        let activeHandle = null;
 
-            if (!priceSlider) return;
+        function initializePriceSlider() {
+            const priceSlider = document.getElementById('price-slider');
+            const minHandle = document.getElementById('min-handle');
+            const maxHandle = document.getElementById('max-handle');
+            const priceSliderFill = document.getElementById('price-slider-fill');
+            const minPriceInput = document.getElementById('min-price-input');
+            const maxPriceInput = document.getElementById('max-price-input');
+            const minPriceDisplay = document.getElementById('min-price-display');
+            const maxPriceDisplay = document.getElementById('max-price-display');
 
-        priceSlider.addEventListener('mousedown', function(e) {
-            isDragging = true;
-            updateSlider(e);
-        });
+            if (!priceSlider || !minHandle || !maxHandle) return;
 
-        document.addEventListener('mousemove', function(e) {
-            if (isDragging) {
-                updateSlider(e);
+            // Set initial positions
+            updateSliderHandles();
+
+            // Mouse events for handles
+            [minHandle, maxHandle].forEach(handle => {
+                handle.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    isDragging = true;
+                    activeHandle = handle;
+                    handle.style.cursor = 'grabbing';
+                });
+            });
+
+                         // Mouse events for slider background
+             priceSlider.addEventListener('mousedown', function(e) {
+                 if (e.target === priceSlider || e.target.classList.contains('price-slider-track')) {
+                     e.preventDefault();
+                     const rect = priceSlider.getBoundingClientRect();
+                     const percentage = ((e.clientX - rect.left) / rect.width) * 100;
+                     const sliderMax = 1000;
+                     const price = Math.round((percentage / 100) * sliderMax);
+                     
+                     // Determine which handle to move
+                     const minPercentage = (minPrice / sliderMax) * 100;
+                     const maxPercentage = (maxPrice / sliderMax) * 100;
+                     
+                     if (Math.abs(percentage - minPercentage) < Math.abs(percentage - maxPercentage)) {
+                         activeHandle = minHandle;
+                         minPrice = Math.max(0, Math.min(price, maxPrice - 10));
+                     } else {
+                         activeHandle = maxHandle;
+                         maxPrice = Math.max(price, minPrice + 10);
+                     }
+                     
+                     isDragging = true;
+                     activeHandle.style.cursor = 'grabbing';
+                     updateSliderHandles();
+                 }
+             });
+
+                         // Global mouse events
+             document.addEventListener('mousemove', function(e) {
+                 if (isDragging && activeHandle) {
+                     e.preventDefault();
+                     const rect = priceSlider.getBoundingClientRect();
+                     let percentage = ((e.clientX - rect.left) / rect.width) * 100;
+                     percentage = Math.max(0, Math.min(100, percentage));
+                     
+                     const sliderMax = 1000;
+                     const price = Math.round((percentage / 100) * sliderMax);
+                     
+                     if (activeHandle === minHandle) {
+                         minPrice = Math.max(0, Math.min(price, maxPrice - 10));
+                     } else {
+                         maxPrice = Math.max(price, minPrice + 10);
+                     }
+                     
+                     updateSliderHandles();
+                 }
+             });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    if (activeHandle) {
+                        activeHandle.style.cursor = 'grab';
+                        activeHandle = null;
+                    }
+                }
+            });
+
+                         // Input field events
+             minPriceInput.addEventListener('input', function() {
+                 const value = parseInt(this.value) || 0;
+                 minPrice = Math.max(0, Math.min(value, maxPrice - 10));
+                 updateSliderHandles();
+             });
+
+             maxPriceInput.addEventListener('input', function() {
+                 const value = parseInt(this.value) || 1000;
+                 maxPrice = Math.max(value, minPrice + 10);
+                 updateSliderHandles();
+             });
+
+                         function updateSliderHandles() {
+                 const sliderMax = 1000; // Maximum value for the slider
+                 const minPercentage = (minPrice / sliderMax) * 100;
+                 const maxPercentage = (maxPrice / sliderMax) * 100;
+                 
+                 minHandle.style.left = minPercentage + '%';
+                 maxHandle.style.left = maxPercentage + '%';
+                 
+                 priceSliderFill.style.left = minPercentage + '%';
+                 priceSliderFill.style.width = (maxPercentage - minPercentage) + '%';
+                 
+                 // Update displays
+                 minPriceDisplay.textContent = '$' + minPrice;
+                 maxPriceDisplay.textContent = '$' + maxPrice;
+                 
+                 // Update input fields
+                 minPriceInput.value = minPrice;
+                 maxPriceInput.value = maxPrice;
+             }
+             
+             // Make updateSliderHandles globally accessible
+             window.updateSliderHandles = updateSliderHandles;
+        }
+
+        // Apply price filter
+        function applyPriceFilter() {
+            const minPriceInput = document.getElementById('min-price-input');
+            const maxPriceInput = document.getElementById('max-price-input');
+            
+            if (minPriceInput && maxPriceInput) {
+                minPriceInput.value = minPrice;
+                maxPriceInput.value = maxPrice;
             }
-        });
+            
+            applyFilters();
+        }
 
-        document.addEventListener('mouseup', function() {
-            isDragging = false;
-        });
-
-        function updateSlider(e) {
-            const rect = priceSlider.getBoundingClientRect();
-            const percentage = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-            priceSliderFill.style.width = percentage + '%';
-            }
+        // Clear price filter
+        function clearPriceFilter() {
+            minPrice = 0;
+            maxPrice = 1000;
+            
+            const minPriceInput = document.getElementById('min-price-input');
+            const maxPriceInput = document.getElementById('max-price-input');
+            
+            if (minPriceInput) minPriceInput.value = '';
+            if (maxPriceInput) maxPriceInput.value = '';
+            
+            updateSliderHandles();
+            applyFilters();
         }
 
         // Clear all filters
         function clearAllFilters() {
             console.log('Clearing all filters...');
             
+            // Store current view state
+            const currentViewState = currentView;
+            
             // Reset all form inputs
-        document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => {
+            document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => {
                 input.checked = false;
             });
             
             document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
                 input.value = '';
             });
+            
+            // Clear price range slider
+            minPrice = 0;
+            maxPrice = 1000;
+            if (typeof updateSliderHandles === 'function') {
+                updateSliderHandles();
+            }
             
             document.querySelectorAll('select').forEach(select => {
                 select.selectedIndex = 0;
@@ -2256,6 +2737,11 @@
             
             // Apply filters to reload all products
             applyFilters();
+            
+            // Restore view state after clearing filters
+            setTimeout(() => {
+                restoreViewState(currentViewState);
+            }, 100);
         }
 
         // Responsive sidebar toggle for mobile

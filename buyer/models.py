@@ -143,19 +143,26 @@ class Cart(models.Model):
 
     @property
     def subtotal(self):
-        return round(sum(item.get_total_price() for item in self.items.all()), 2)
+        total = sum(item.get_total_price() for item in self.items.all())
+        return round(total, 2) if total is not None else 0.0
 
     @property
     def discount_amount(self):
-        return round(self.subtotal * self.get_discount_percentage(), 2)
+        subtotal = self.subtotal or 0
+        return round(subtotal * self.get_discount_percentage(), 2)
 
     @property
     def tax(self):
-        return round((self.subtotal - self.discount_amount) * 0.10, 2)  # 10% tax after discount
+        subtotal = self.subtotal or 0
+        discount_amount = self.discount_amount or 0
+        return round((subtotal - discount_amount) * 0.10, 2)  # 10% tax after discount
 
     @property
     def total(self):
-        return round(self.subtotal - self.discount_amount + self.tax, 2)
+        subtotal = self.subtotal or 0
+        discount_amount = self.discount_amount or 0
+        tax = self.tax or 0
+        return round(subtotal - discount_amount + tax, 2)
 
     def get_cart_data(self):
         """Get all cart data in a dictionary format"""
@@ -177,7 +184,8 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     def get_total_price(self):
-        return self.product.final_price * self.quantity
+        price = getattr(self.product, 'calculated_final_price', 0) or 0
+        return price * self.quantity
 
     def save(self, *args, **kwargs):
         if self.quantity < 1:

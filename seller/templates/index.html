@@ -173,6 +173,14 @@
             color: #4285f4;
         }
 
+        .category-hidden {
+            display: none;
+        }
+
+        .category-hidden.show {
+            display: block;
+        }
+
         /* Content */
         .content {
             flex: 1;
@@ -1232,15 +1240,28 @@
                 <!-- Sidebar -->
                 <aside class="sidebar">
                     <div class="category-list">
-                        <a href="#" class="category-item">Automobiles</a>
-                        <a href="#" class="category-item">Clothes and wear</a>
-                        <a href="#" class="category-item">Home interiors</a>
-                        <a href="#" class="category-item">Computer and tech</a>
-                        <a href="#" class="category-item">Tools, equipments</a>
-                        <a href="#" class="category-item">Sports and outdoor</a>
-                        <a href="#" class="category-item">Animal and pets</a>
-                        <a href="#" class="category-item">Machinery tools</a>
-                        <a href="#" class="category-item">More category</a>
+                        <div id="categories-container">
+                            {% if parent_categories %}
+                                {% for category in parent_categories %}
+                                    <a href="{% url 'seller:product_listing' %}?parent_category={{ category.id }}" class="category-item {% if forloop.counter > 8 %}category-hidden{% endif %}">{{ category.name }}</a>
+                                {% endfor %}
+                                {% if parent_categories|length > 8 %}
+                                    <div class="see-all-container" style="text-align: center; margin-top: 10px;">
+                                        <a href="#" id="see-all-categories" style="color: #4285f4; text-decoration: none; font-size: 14px; font-weight: 500;">See All Categories</a>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <a href="#" class="category-item">Automobiles</a>
+                                <a href="#" class="category-item">Clothes and wear</a>
+                                <a href="#" class="category-item">Home interiors</a>
+                                <a href="#" class="category-item">Computer and tech</a>
+                                <a href="#" class="category-item">Tools, equipments</a>
+                                <a href="#" class="category-item">Sports and outdoor</a>
+                                <a href="#" class="category-item">Animal and pets</a>
+                                <a href="#" class="category-item">Machinery tools</a>
+                                <a href="#" class="category-item">More category</a>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <!-- User Welcome -->
@@ -1283,7 +1304,7 @@
                         <div class="deals-header">
                             <h3 class="deals-title">🔥 Hot Offers</h3>
                             <div style="display: flex; align-items: center; gap: 15px;">
-                                {% if soonest_expiring_promotion %}
+                                {% if soonest_expiring_promotion and soonest_expiring_promotion.is_valid %}
                                 <div class="deal-timer">
                                     <span style="font-size: 12px; color: #666;">Expires in:</span>
                                     <div class="countdown-display" data-valid-until="{{ soonest_expiring_promotion.valid_until|date:'Y-m-d H:i:s' }}">
@@ -1311,8 +1332,9 @@
                         </div>
                         <div class="deals-grid">
                             {% if active_promotions %}
-                                {% for promotion in active_promotions %}
-                                    <div class="deal-item" style="position: relative; cursor: pointer;" onclick="window.location.href='{% url 'seller:promotion_detail' promotion.id %}'">
+                                {% for promotion in active_promotions|slice:":5" %}
+                                    {% if promotion.is_valid %}
+                                    <div class="deal-item" style="position: relative; cursor: pointer;" data-promotion-url="{% url 'seller:promotion_detail' promotion.id %}">
                                         <div class="hot-badge" style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: 600; z-index: 10;">
                                             <i class="fas fa-fire"></i> HOT
                                         </div>
@@ -1344,8 +1366,11 @@
                                             <span class="countdown-text">Expires in: <span class="countdown-display">Loading...</span></span>
                                         </div>
                                     </div>
+                                    {% endif %}
                                 {% endfor %}
-                            {% else %}
+                            {% endif %}
+                            
+                            {% if not active_promotions or not active_promotions|length %}
                                 <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
                                     <i class="fas fa-fire" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;"></i>
                                     <h3>No Hot Offers Available</h3>
@@ -1355,32 +1380,38 @@
                         </div>
                     </section>
 
-                    <!-- Category Sections -->
+                    <!-- Sports and Outdoor Section (dynamic) -->
+                    {% if sports_products %}
                     <section class="category-section">
                         <div class="category-header">
-                            <h3 class="category-title">Home and outdoor</h3>
+                            <h3 class="category-title">Sports and Outdoor</h3>
                             <button class="source-btn">Source now</button>
                         </div>
                         <div class="category-grid">
+                            {% for product in sports_products %}
+                            <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
-                                <div class="item-image">Home appliance</div>
-                                <div class="item-title">Home appliance</div>
-                                <div class="item-price">From USD 19</div>
+                                <div class="item-image">
+                                    {% if product.thumbnail_image %}
+                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
+                                    {% else %}
+                                        <div class="item-image">No Image</div>
+                                    {% endif %}
+                                </div>
+                                <div class="item-title">{{ product.name }}</div>
+                                <div class="item-price">${{ product.calculated_final_price|default:0 }}</div>
+                                {% if user.is_authenticated and user_type == 'buyer' %}
+                                    <button class="add-to-cart-btn" data-product-id="{{ product.id }}" style="margin-top:10px; width:100%; background:#28a745; color:white; border:none; border-radius:6px; padding:8px 0; font-size:15px; font-weight:600; cursor:pointer;">Add to Cart</button>
+                                {% endif %}
                             </div>
-                            <div class="category-item-card">
-                                <div class="item-image">Coffee maker</div>
-                                <div class="item-title">Coffee maker</div>
-                                <div class="item-price">From USD 10</div>
-                            </div>
-                            <div class="category-item-card">
-                                <div class="item-image">Green plant</div>
-                                <div class="item-title">Green plant</div>
-                                <div class="item-price">From USD 10</div>
-                            </div>
+                            </a>
+                            {% endfor %}
                         </div>
                     </section>
+                    {% endif %}
 
                     <!-- Electronics and Gadgets Section (dynamic) -->
+                    {% if electronics_products %}
                     <section class="category-section">
                         <div class="category-header">
                             <h3 class="category-title">Consumer electronics and gadgets</h3>
@@ -1398,22 +1429,22 @@
                                     {% endif %}
                                 </div>
                                 <div class="item-title">{{ product.name }}</div>
-                                <div class="item-price">${{ product.final_price|default:product.base_price }}</div>
+                                <div class="item-price">${{ product.calculated_final_price|default:0 }}</div>
                                 {% if user.is_authenticated and user_type == 'buyer' %}
                                     <button class="add-to-cart-btn" data-product-id="{{ product.id }}" style="margin-top:10px; width:100%; background:#28a745; color:white; border:none; border-radius:6px; padding:8px 0; font-size:15px; font-weight:600; cursor:pointer;">Add to Cart</button>
                                 {% endif %}
                             </div>
                             </a>
-                            {% empty %}
-                            <div>No electronics products found.</div>
                             {% endfor %}
                         </div>
                     </section>
+                    {% endif %}
 
-                    <!-- Furniture and Clothing Section (dynamic) -->
+                    <!-- Furniture Section (dynamic) -->
+                    {% if furniture_products %}
                     <section class="category-section">
                         <div class="category-header">
-                            <h3 class="category-title">Furniture and Clothing</h3>
+                            <h3 class="category-title">Furniture and Home</h3>
                             <button class="source-btn">Source now</button>
                         </div>
                         <div class="category-grid">
@@ -1428,15 +1459,25 @@
                                     {% endif %}
                                 </div>
                                 <div class="item-title">{{ product.name }}</div>
-                                <div class="item-price">${{ product.final_price|default:product.base_price }}</div>
+                                <div class="item-price">${{ product.calculated_final_price|default:0 }}</div>
                                 {% if user.is_authenticated and user_type == 'buyer' %}
                                     <button class="add-to-cart-btn" data-product-id="{{ product.id }}" style="margin-top:10px; width:100%; background:#28a745; color:white; border:none; border-radius:6px; padding:8px 0; font-size:15px; font-weight:600; cursor:pointer;">Add to Cart</button>
                                 {% endif %}
                             </div>
                             </a>
-                            {% empty %}
-                            <div>No furniture products found.</div>
                             {% endfor %}
+                        </div>
+                    </section>
+                    {% endif %}
+                    
+                    <!-- Clothing Section (dynamic) -->
+                    {% if clothing_products %}
+                    <section class="category-section">
+                        <div class="category-header">
+                            <h3 class="category-title">Fashion and Clothing</h3>
+                            <button class="source-btn">Source now</button>
+                        </div>
+                        <div class="category-grid">
                             {% for product in clothing_products %}
                             <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
@@ -1448,17 +1489,16 @@
                                     {% endif %}
                                 </div>
                                 <div class="item-title">{{ product.name }}</div>
-                                <div class="item-price">${{ product.final_price|default:product.base_price }}</div>
+                                <div class="item-price">${{ product.calculated_final_price|default:0 }}</div>
                                 {% if user.is_authenticated and user_type == 'buyer' %}
                                     <button class="add-to-cart-btn" data-product-id="{{ product.id }}" style="margin-top:10px; width:100%; background:#28a745; color:white; border:none; border-radius:6px; padding:8px 0; font-size:15px; font-weight:600; cursor:pointer;">Add to Cart</button>
                                 {% endif %}
                             </div>
                             </a>
-                            {% empty %}
-                            <div>No clothing products found.</div>
                             {% endfor %}
                         </div>
                     </section>
+                    {% endif %}
 
                     <!-- Quote Section -->
                     <section class="quote-section">
@@ -1491,64 +1531,48 @@
                     </section>
 
                     <!-- Recommended Items -->
+                    {% if recommended_items %}
                     <section class="recommended-section">
                         <h3 class="recommended-header">Recommended items</h3>
                         <div class="recommended-grid">
+                            {% for product in recommended_items|slice:":5" %}
+                            <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="recommended-item">
-                                <div class="recommended-image">T-shirt</div>
-                                <div class="recommended-price">$10.30</div>
-                                <div class="recommended-title">T-shirts with multiple colors, for men</div>
+                                <div class="recommended-image">
+                                    {% if product.thumbnail_image %}
+                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" />
+                                    {% else %}
+                                        {{ product.name|truncatechars:10 }}
+                                    {% endif %}
+                                </div>
+                                <div class="recommended-price">${{ product.calculated_final_price|default:0 }}</div>
+                                <div class="recommended-title">{{ product.name|truncatechars:30 }}</div>
                             </div>
-                            <div class="recommended-item">
-                                <div class="recommended-image">Jacket</div>
-                                <div class="recommended-price">$10.30</div>
-                                <div class="recommended-title">Jeans shorts for men, blue color</div>
-                            </div>
-                            <div class="recommended-item">
-                                <div class="recommended-image">Suit</div>
-                                <div class="recommended-price">$12.50</div>
-                                <div class="recommended-title">Brown winter coat medium size</div>
-                            </div>
-                            <div class="recommended-item">
-                                <div class="recommended-image">Bag</div>
-                                <div class="recommended-price">$34.00</div>
-                                <div class="recommended-title">Jeans bag for travel for men</div>
-                            </div>
-                            <div class="recommended-item">
-                                <div class="recommended-image">Backpack</div>
-                                <div class="recommended-price">$99.00</div>
-                                <div class="recommended-title">Leather wallet</div>
-                            </div>
+                            </a>
+                            {% endfor %}
                         </div>
                         
+                        {% if recommended_items|length > 5 %}
                         <div class="recommended-grid">
+                            {% for product in recommended_items|slice:"5:10" %}
+                            <a href="{% url 'seller:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="recommended-item">
-                                <div class="recommended-image">Jeans</div>
-                                <div class="recommended-price">$9.99</div>
-                                <div class="recommended-title">Canon camera black, 100x zoom</div>
+                                <div class="recommended-image">
+                                    {% if product.thumbnail_image %}
+                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" />
+                                    {% else %}
+                                        {{ product.name|truncatechars:10 }}
+                                    {% endif %}
+                                </div>
+                                <div class="recommended-price">${{ product.calculated_final_price|default:0 }}</div>
+                                <div class="recommended-title">{{ product.name|truncatechars:30 }}</div>
                             </div>
-                            <div class="recommended-item">
-                                <div class="recommended-image">Headset</div>
-                                <div class="recommended-price">$8.99</div>
-                                <div class="recommended-title">Headset for gaming with mic</div>
-                            </div>
-                            <div class="recommended-item">
-                                <div class="recommended-image">Backpack</div>
-                                <div class="recommended-price">$10.30</div>
-                                <div class="recommended-title">Smart backpack, silver color waterproof</div>
-                            </div>
-                            <div class="recommended-item">
-                                <div class="recommended-image">Teapot</div>
-                                <div class="recommended-price">$10.30</div>
-                                <div class="recommended-title">Blue wallet for men, leather material</div>
-                            </div>
-                            <div class="recommended-item">
-                                <div class="recommended-image">Coffee Pot</div>
-                                <div class="recommended-price">$80.95</div>
-                                <div class="recommended-title">Jeans bag for travel for men</div>
-                            </div>
+                            </a>
+                            {% endfor %}
                         </div>
+                        {% endif %}
                     </section>
+                    {% endif %}
 
                     <!-- Services Section -->
                     <section class="services-section">
@@ -1920,6 +1944,54 @@
         // Update countdown every second
         setInterval(updateHotOffersCountdown, 1000);
         updateHotOffersCountdown(); // Initial call
+        
+        // Handle promotion item clicks
+        document.addEventListener('DOMContentLoaded', function() {
+            const promotionItems = document.querySelectorAll('.deal-item[data-promotion-url]');
+            promotionItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const url = this.getAttribute('data-promotion-url');
+                    if (url) {
+                        window.location.href = url;
+                    }
+                });
+            });
+            
+            // Initialize category see all functionality
+            initializeCategorySeeAll();
+        });
+        
+        // Category see all functionality
+        function initializeCategorySeeAll() {
+            const seeAllCategories = document.getElementById('see-all-categories');
+            if (seeAllCategories) {
+                seeAllCategories.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const seeAllLink = this;
+                    const currentState = seeAllLink.getAttribute('data-state') || 'collapsed';
+                    
+                    if (currentState === 'collapsed') {
+                        // Show all categories
+                        const hiddenCategories = document.querySelectorAll('.category-hidden');
+                        hiddenCategories.forEach(category => {
+                            category.classList.add('show');
+                        });
+                        seeAllLink.textContent = 'Show Less';
+                        seeAllLink.setAttribute('data-state', 'expanded');
+                    } else {
+                        // Hide categories beyond first 8
+                        const allCategories = document.querySelectorAll('.category-item');
+                        allCategories.forEach((category, index) => {
+                            if (index >= 8) {
+                                category.classList.remove('show');
+                            }
+                        });
+                        seeAllLink.textContent = 'See All Categories';
+                        seeAllLink.setAttribute('data-state', 'collapsed');
+                    }
+                });
+            }
+        }
     </script>
     {% endblock %}
     {% block extra_js %}{% endblock %}

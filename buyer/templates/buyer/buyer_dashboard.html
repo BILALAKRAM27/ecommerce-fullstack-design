@@ -5508,14 +5508,7 @@ body.modal-open {
             </h3>
             <div class="activity-subtitle">Track your latest business activities</div>
           </div>
-          <div class="activity-actions">
-            <button class="clear-activity-btn" onclick="clearAllActivity()" title="Clear All Activity">
-              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-              </svg>
-              Clear All
-            </button>
-          </div>
+         
         </div>
         
         <div class="activity-content">
@@ -5570,20 +5563,7 @@ body.modal-open {
             </h3>
             <div class="notifications-subtitle">Stay updated with important alerts</div>
           </div>
-          <div class="notifications-actions">
-            <button class="mark-all-read-btn" onclick="markAllNotificationsAsRead()" title="Mark All as Read">
-              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              Mark All Read
-            </button>
-            <button class="clear-notifications-btn" onclick="clearAllNotifications()" title="Clear All Notifications">
-              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-              </svg>
-              Clear All
-            </button>
-          </div>
+          
         </div>
         
         <div class="notifications-content">
@@ -6394,7 +6374,7 @@ async function markActivityAsRead(activityId) {
 async function clearAllActivity() {
   try {
     // Make AJAX call to backend
-    const response = await fetch('{% url "sellers:clear_all_activity" %}', {
+    const response = await fetch('{% url "buyer:clear_all_buyer_activity" %}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -6446,7 +6426,7 @@ async function clearAllActivity() {
 async function markNotificationAsRead(notificationId) {
   try {
     // Make AJAX call to backend
-    const response = await fetch('{% url "sellers:mark_notification_as_read" %}', {
+    const response = await fetch('{% url "buyer:mark_buyer_notification_as_read" %}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -6489,7 +6469,7 @@ async function markNotificationAsRead(notificationId) {
 async function markAllNotificationsAsRead() {
   try {
     // Make AJAX call to backend
-    const response = await fetch('{% url "sellers:mark_all_notifications_as_read" %}', {
+    const response = await fetch('{% url "buyer:mark_all_buyer_notifications_as_read" %}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -6541,7 +6521,7 @@ async function markAllNotificationsAsRead() {
 async function clearAllNotifications() {
   try {
     // Make AJAX call to backend
-    const response = await fetch('{% url "sellers:clear_all_notifications" %}', {
+    const response = await fetch('{% url "buyer:clear_all_buyer_notifications" %}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

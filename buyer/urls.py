@@ -34,6 +34,7 @@ urlpatterns += [
     path('notification/mark-read/', views.mark_buyer_notification_as_read, name='mark_buyer_notification_as_read'),
     path('notification/mark-all-read/', views.mark_all_buyer_notifications_as_read, name='mark_all_buyer_notifications_as_read'),
     path('notification/clear-all/', views.clear_all_buyer_notifications, name='clear_all_buyer_notifications'),
+    path('activity/clear-all/', views.clear_all_buyer_activity, name='clear_all_buyer_activity'),
 ]
 
 urlpatterns += [

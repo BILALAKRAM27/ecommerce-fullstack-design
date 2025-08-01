@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     Seller, Category, CategoryAttribute, AttributeOption, Brand, 
-    Product, ProductImage, ProductAttributeValue, ProductReview, GiftBoxCampaign, SellerGiftBoxParticipation
+    Product, ProductImage, ProductAttributeValue, ProductReview, GiftBoxCampaign, SellerGiftBoxParticipation,
+    SellerReview, ProductReviewLike, SellerReviewLike
 )
 
 # ========== SELLER ADMIN ==========
@@ -146,6 +147,49 @@ class ProductReviewAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('buyer', 'product')
+
+# ========== SELLER REVIEW ADMIN ==========
+
+@admin.register(SellerReview)
+class SellerReviewAdmin(admin.ModelAdmin):
+    list_display = ('buyer', 'seller', 'rating', 'created_at')
+    list_filter = ('rating', 'created_at', 'seller')
+    search_fields = ('buyer__name', 'seller__shop_name', 'comment')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        ('Review Information', {
+            'fields': ('buyer', 'seller', 'rating', 'comment')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('buyer', 'seller')
+
+# ========== REVIEW LIKE ADMIN ==========
+
+@admin.register(ProductReviewLike)
+class ProductReviewLikeAdmin(admin.ModelAdmin):
+    list_display = ('buyer', 'review', 'is_like', 'created_at')
+    list_filter = ('is_like', 'created_at')
+    search_fields = ('buyer__name', 'review__product__name')
+    readonly_fields = ('created_at',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('buyer', 'review__product')
+
+@admin.register(SellerReviewLike)
+class SellerReviewLikeAdmin(admin.ModelAdmin):
+    list_display = ('buyer', 'review', 'is_like', 'created_at')
+    list_filter = ('is_like', 'created_at')
+    search_fields = ('buyer__name', 'review__seller__shop_name')
+    readonly_fields = ('created_at',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('buyer', 'review__seller')
 
 admin.site.register(GiftBoxCampaign)
 admin.site.register(SellerGiftBoxParticipation)

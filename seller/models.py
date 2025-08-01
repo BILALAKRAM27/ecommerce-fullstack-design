@@ -35,6 +35,16 @@ class Seller(models.Model):
     def __str__(self):
         return self.shop_name
 
+    def update_rating_avg(self):
+        """Update the average rating based on reviews"""
+        reviews = self.reviews.filter(rating__isnull=False)
+        if reviews.exists():
+            total_rating = sum(review.rating for review in reviews)
+            self.rating = total_rating / reviews.count()
+        else:
+            self.rating = None
+        self.save(update_fields=['rating'])
+
     def set_image(self, data):
         """Set the image field as raw binary data"""
         self.image = data
@@ -104,6 +114,16 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    def update_rating_avg(self):
+        """Update the average rating based on reviews"""
+        reviews = self.reviews.all()
+        if reviews.exists():
+            total_rating = sum(review.rating for review in reviews)
+            self.rating_avg = total_rating / reviews.count()
+        else:
+            self.rating_avg = None
+        self.save(update_fields=['rating_avg'])
+
     @property
     def calculated_final_price(self):
         """Calculate final price based on base price and discount"""
@@ -151,6 +171,22 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"{self.product.name} - Image"
 
+    def set_image(self, data):
+        """Set the image field as raw binary data"""
+        self.image = data
+
+    def get_image(self):
+        """Get the raw binary image data"""
+        return self.image
+
+    def get_image_base64(self):
+        """Returns the base64 string to display in templates"""
+        if self.image:
+            return base64.b64encode(self.image).decode('utf-8')
+        return None
+
+    image_data = property(get_image_base64)
+
 class ProductAttributeValue(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='attribute_values')
     attribute = models.ForeignKey(CategoryAttribute, on_delete=models.CASCADE)
@@ -159,15 +195,86 @@ class ProductAttributeValue(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.attribute.name}: {self.value}"
 
+# ========== REVIEW MODELS ==========
+
 class ProductReview(models.Model):
     buyer = models.ForeignKey("buyer.Buyer", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
-    rating = models.PositiveIntegerField()
+    rating = models.FloatField(choices=[(i, i) for i in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]])
     comment = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('buyer', 'product')
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.buyer.name} - {self.product.name} ({self.rating}/5)"
+
+    @property
+    def likes_count(self):
+        return self.likes.filter(is_like=True).count()
+
+    @property
+    def dislikes_count(self):
+        return self.likes.filter(is_like=False).count()
+
+class SellerReview(models.Model):
+    buyer = models.ForeignKey("buyer.Buyer", on_delete=models.CASCADE)
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.FloatField(choices=[(i, i) for i in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]], null=True, blank=True)
+    comment = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('buyer', 'seller')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.buyer.name} - {self.seller.shop_name} ({self.rating}/5)"
+
+    @property
+    def likes_count(self):
+        return self.likes.filter(is_like=True).count()
+
+    @property
+    def dislikes_count(self):
+        return self.likes.filter(is_like=False).count()
+
+class ReviewLike(models.Model):
+    LIKE_CHOICES = [
+        (True, 'Like'),
+        (False, 'Dislike'),
+    ]
+    
+    buyer = models.ForeignKey("buyer.Buyer", on_delete=models.CASCADE)
+    is_like = models.BooleanField(choices=LIKE_CHOICES)
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        abstract = True
+
+class ProductReviewLike(ReviewLike):
+    review = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name='likes')
+    
+    class Meta:
+        unique_together = ('buyer', 'review')
+
+    def __str__(self):
+        action = "liked" if self.is_like else "disliked"
+        return f"{self.buyer.name} {action} {self.review}"
+
+class SellerReviewLike(ReviewLike):
+    review = models.ForeignKey(SellerReview, on_delete=models.CASCADE, related_name='likes')
+    
+    class Meta:
+        unique_together = ('buyer', 'review')
+
+    def __str__(self):
+        action = "liked" if self.is_like else "disliked"
+        return f"{self.buyer.name} {action} {self.review}"
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = [

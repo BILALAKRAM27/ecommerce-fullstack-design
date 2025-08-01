@@ -35,6 +35,7 @@ from django.urls import reverse
 from buyer.models import GiftBoxOrder
 from django.forms import ModelMultipleChoiceField
 from django.http import JsonResponse
+from .models import ProductReview, ProductReviewLike, SellerReview, SellerReviewLike
 
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY") or settings.STRIPE_SECRET_KEY
@@ -3301,69 +3302,266 @@ def get_filtered_products(request):
 
 @login_required
 def get_buyer_info(request, buyer_id):
-    """Fetch buyer information for modal display"""
+    """Get buyer information for seller dashboard"""
+    seller = get_object_or_404(Seller, user=request.user)
+    
     try:
-        buyer = get_object_or_404(Buyer, id=buyer_id)
+        from buyer.models import Buyer
+        buyer = Buyer.objects.get(id=buyer_id)
         
-        # Get buyer's address if available
-        address = None
-        try:
-            address = buyer.address
-        except Exception as addr_error:
-            print(f"Address error: {addr_error}")
-            pass
-        
-        # Get buyer's recent orders
-        recent_orders = Order.objects.filter(buyer=buyer).order_by('-created_at')[:5]
-        
-        # Get buyer's gift box orders
-        giftbox_orders = GiftBoxOrder.objects.filter(buyer=buyer).order_by('-created_at')[:5]
-        
-        buyer_data = {
-            'id': buyer.id,
-            'name': buyer.name,
-            'email': buyer.email,
-            'phone': buyer.phone or 'Not provided',
-            'created_at': buyer.created_at.strftime('%B %d, %Y'),
-            'image': buyer.get_image_base64(),
-            'address': {
-                'street': address.street if address else 'Not provided',
-                'city': address.city if address else 'Not provided',
-                'zip_code': address.zip_code if address else 'Not provided',
-                'country': address.country if address else 'Not provided',
-            } if address else None,
-            'recent_orders': [
-                {
-                    'id': order.id,
-                    'status': order.status,
-                    'total_amount': float(order.total_amount),
-                    'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
-                    'seller_name': order.seller.shop_name or order.seller.user.username,
-                } for order in recent_orders
-            ],
-            'giftbox_orders': [
-                {
-                    'id': order.id,
-                    'status': order.status,
-                    'campaign_name': order.campaign.name,
-                    'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
-                    'seller_name': order.seller.shop_name or order.seller.user.username,
-                } for order in giftbox_orders
-            ],
-            'total_orders': Order.objects.filter(buyer=buyer).count(),
-            'total_giftbox_orders': GiftBoxOrder.objects.filter(buyer=buyer).count(),
-        }
+        # Get buyer's orders from this seller
+        from buyer.models import Order
+        orders = Order.objects.filter(buyer=buyer, items__product__seller=seller).distinct()
         
         return JsonResponse({
             'success': True,
-            'buyer': buyer_data
+            'buyer': {
+                'id': buyer.id,
+                'name': buyer.name,
+                'email': buyer.email,
+                'phone': buyer.phone,
+                'address': buyer.address,
+                'total_orders': orders.count(),
+                'total_spent': sum(order.total for order in orders),
+                'last_order_date': orders.order_by('-created_at').first().created_at if orders.exists() else None
+            }
+        })
+    except Buyer.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Buyer not found'})
+
+# ========== REVIEW VIEWS ==========
+
+@login_required
+def submit_product_review(request, product_id):
+    """Submit a product review"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    try:
+        # Get buyer
+        from buyer.models import Buyer
+        buyer = Buyer.objects.get(email=request.user.email)
+        
+        # Get product
+        product = get_object_or_404(Product, id=product_id)
+        
+        # Check if buyer already reviewed this product
+        existing_review = ProductReview.objects.filter(buyer=buyer, product=product).first()
+        
+        if existing_review:
+            return JsonResponse({'success': False, 'error': 'You have already reviewed this product'})
+        
+        # Create review
+        rating = float(request.POST.get('rating', 0))
+        comment = request.POST.get('comment', '').strip()
+        
+        if not comment:
+            return JsonResponse({'success': False, 'error': 'Comment is required'})
+        
+        if rating < 0 or rating > 5:
+            return JsonResponse({'success': False, 'error': 'Rating must be between 0 and 5'})
+        
+        review = ProductReview.objects.create(
+            buyer=buyer,
+            product=product,
+            rating=rating,
+            comment=comment
+        )
+        
+        # Update product's average rating
+        product.update_rating_avg()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Review submitted successfully',
+            'review': {
+                'id': review.id,
+                'rating': review.rating,
+                'comment': review.comment,
+                'buyer_name': review.buyer.name,
+                'created_at': review.created_at.strftime('%B %d, %Y'),
+                'likes_count': 0,
+                'dislikes_count': 0
+            }
+        })
+        
+    except Buyer.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Buyer not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def submit_seller_review(request, seller_id):
+    """Submit a seller review"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    try:
+        # Get buyer
+        from buyer.models import Buyer
+        buyer = Buyer.objects.get(email=request.user.email)
+        
+        # Get seller
+        seller = get_object_or_404(Seller, id=seller_id)
+        
+        # Check if buyer already reviewed this seller
+        existing_review = SellerReview.objects.filter(buyer=buyer, seller=seller).first()
+        
+        if existing_review:
+            return JsonResponse({'success': False, 'error': 'You have already reviewed this seller'})
+        
+        # Get form data
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment', '').strip()
+        
+        if not rating:
+            return JsonResponse({'success': False, 'error': 'Rating is required'})
+        
+        if not comment:
+            return JsonResponse({'success': False, 'error': 'Comment is required'})
+        
+        # Validate rating
+        try:
+            rating = float(rating)
+            if rating < 0.0 or rating > 5.0:
+                raise ValueError("Rating must be between 0.0 and 5.0")
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Invalid rating value'})
+        
+        review = SellerReview.objects.create(
+            buyer=buyer,
+            seller=seller,
+            rating=rating,
+            comment=comment
+        )
+        
+        # Update seller's average rating
+        seller.update_rating_avg()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Review submitted successfully',
+            'review': {
+                'id': review.id,
+                'comment': review.comment,
+                'buyer_name': review.buyer.name,
+                'created_at': review.created_at.strftime('%B %d, %Y'),
+                'likes_count': 0,
+                'dislikes_count': 0
+            }
+        })
+        
+    except Buyer.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Buyer not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def like_review(request, review_type, review_id):
+    """Like or dislike a review"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    try:
+        # Get buyer
+        from buyer.models import Buyer
+        buyer = Buyer.objects.get(email=request.user.email)
+        
+        is_like = request.POST.get('is_like', 'true').lower() == 'true'
+        
+        if review_type == 'product':
+            review = get_object_or_404(ProductReview, id=review_id)
+            like_model = ProductReviewLike
+        elif review_type == 'seller':
+            review = get_object_or_404(SellerReview, id=review_id)
+            like_model = SellerReviewLike
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid review type'})
+        
+        # Check if buyer already liked/disliked this review
+        existing_like = like_model.objects.filter(buyer=buyer, review=review).first()
+        
+        if existing_like:
+            if existing_like.is_like == is_like:
+                # Remove like/dislike
+                existing_like.delete()
+                action = 'removed'
+            else:
+                # Change like/dislike
+                existing_like.is_like = is_like
+                existing_like.save()
+                action = 'changed'
+        else:
+            # Create new like/dislike
+            like_model.objects.create(buyer=buyer, review=review, is_like=is_like)
+            action = 'added'
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'{action.title()} successfully',
+            'likes_count': review.likes_count,
+            'dislikes_count': review.dislikes_count
+        })
+        
+    except Buyer.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Buyer not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def get_product_reviews(request, product_id):
+    """Get product reviews for AJAX loading"""
+    try:
+        product = get_object_or_404(Product, id=product_id)
+        reviews = ProductReview.objects.filter(product=product).select_related('buyer')
+        
+        reviews_data = []
+        for review in reviews:
+            reviews_data.append({
+                'id': review.id,
+                'rating': review.rating,
+                'comment': review.comment,
+                'buyer_name': review.buyer.name,
+                'created_at': review.created_at.strftime('%B %d, %Y'),
+                'likes_count': review.likes_count,
+                'dislikes_count': review.dislikes_count
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'reviews': reviews_data,
+            'average_rating': product.rating_avg or 0,
+            'total_reviews': reviews.count()
         })
         
     except Exception as e:
-        import traceback
-        print(f"Error in get_buyer_info: {str(e)}")
-        print(f"Traceback: {traceback.format_exc()}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def get_seller_reviews(request, seller_id):
+    """Get seller reviews for AJAX loading"""
+    try:
+        seller = get_object_or_404(Seller, id=seller_id)
+        reviews = SellerReview.objects.filter(seller=seller).select_related('buyer')
+        
+        reviews_data = []
+        for review in reviews:
+            reviews_data.append({
+                'id': review.id,
+                'rating': review.rating,
+                'comment': review.comment,
+                'buyer_name': review.buyer.name,
+                'created_at': review.created_at.strftime('%B %d, %Y'),
+                'likes_count': review.likes_count,
+                'dislikes_count': review.dislikes_count
+            })
+        
         return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+            'success': True,
+            'reviews': reviews_data,
+            'average_rating': seller.rating or 0,
+            'total_reviews': reviews.count()
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

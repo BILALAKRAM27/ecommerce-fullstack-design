@@ -81,4 +81,11 @@ urlpatterns += [
     path('promotions/<int:promotion_id>/update/form/', views.promotion_update_form_view, name='promotion_update_form'),
     path('promotions/<int:promotion_id>/update/', views.promotion_update_view, name='promotion_update'),
     path('marketplace/', views.product_listing_view, name='product_listing'),
+    
+    # Review System URLs
+    path('products/<int:product_id>/review/', views.submit_product_review, name='submit_product_review'),
+    path('seller/<int:seller_id>/review/', views.submit_seller_review, name='submit_seller_review'),
+    path('reviews/<str:review_type>/<int:review_id>/like/', views.like_review, name='like_review'),
+    path('products/<int:product_id>/reviews/', views.get_product_reviews, name='get_product_reviews'),
+    path('seller/<int:seller_id>/reviews/', views.get_seller_reviews, name='get_seller_reviews'),
 ]

@@ -36,6 +36,13 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 import os
 import django
+from django.db.models import Count, Avg, Q
+from django.utils import timezone
+from datetime import timedelta
+import json
+from .models import Buyer, Cart, CartItem, Wishlist, Order, OrderItem, Address, BuyerNotification, GiftBoxOrder
+from seller.models import Seller, Product, ProductReview, SellerReview, Category, Brand
+from .forms import BuyerRegistrationForm, BuyerUpdateForm, AddressForm
 
 # Setup Django for potential external script usage
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'MarketVibe.settings')
@@ -2693,3 +2700,104 @@ def buyer_export_data(request):
     except Exception as e:
         print(f"Export error: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
+
+def buyer_seller_profile_view(request, seller_id):
+    """Display seller profile for buyers"""
+    print(f"=== Accessing seller profile for seller_id: {seller_id} ===")
+    try:
+        # Get seller with related data
+        seller = get_object_or_404(Seller.objects.select_related(), id=seller_id)
+        
+        # Get seller's products with images and category info
+        products = Product.objects.filter(seller=seller).select_related('category', 'brand').prefetch_related('images')
+        
+        # Get seller reviews with buyer info
+        seller_reviews = SellerReview.objects.filter(seller=seller).select_related('buyer').order_by('-created_at')[:5]
+        
+        # Calculate seller statistics
+        total_products = products.count()
+        total_reviews = SellerReview.objects.filter(seller=seller).count()
+        avg_rating = SellerReview.objects.filter(seller=seller, rating__isnull=False).aggregate(avg=Avg('rating'))['avg'] or 0
+        
+        # Get recent product reviews for products by this seller
+        recent_product_reviews = ProductReview.objects.filter(
+            product__seller=seller
+        ).select_related('buyer', 'product').order_by('-created_at')[:3]
+        
+        # Calculate real response rate based on seller activity and order fulfillment
+        # Get recent orders and their fulfillment status
+        from buyer.models import Order
+        recent_orders = Order.objects.filter(
+            items__product__seller=seller,
+            created_at__gte=timezone.now() - timedelta(days=90)
+        ).distinct()
+        
+        total_recent_orders = recent_orders.count()
+        fulfilled_orders = recent_orders.filter(status__in=['shipped', 'delivered']).count()
+        
+        if total_recent_orders > 0:
+            response_rate = min(98, max(75, int((fulfilled_orders / total_recent_orders) * 100)))
+        else:
+            # If no recent orders, base on seller activity and reviews
+            recent_reviews = SellerReview.objects.filter(
+                seller=seller,
+                created_at__gte=timezone.now() - timedelta(days=30)
+            ).count()
+            response_rate = min(95, max(75, 75 + (recent_reviews * 2)))
+        
+        # Get seller's top categories
+        top_categories = Category.objects.filter(
+            product__seller=seller
+        ).annotate(
+            product_count=Count('product')
+        ).order_by('-product_count')[:5]
+        
+        # Calculate shipping time (simulated based on seller activity)
+        recent_activity = SellerReview.objects.filter(
+            seller=seller,
+            created_at__gte=timezone.now() - timedelta(days=30)
+        ).count()
+        avg_ship_time = "24h" if recent_activity > 5 else "48h"
+        
+        # Get seller level based on rating and activity
+        if avg_rating >= 4.5 and total_reviews >= 50:
+            seller_level = "Gold Seller"
+            level_color = "var(--warning)"
+        elif avg_rating >= 4.0 and total_reviews >= 20:
+            seller_level = "Silver Seller"
+            level_color = "var(--neutral-500)"
+        else:
+            seller_level = "Bronze Seller"
+            level_color = "var(--neutral-600)"
+        
+        # Format seller join date
+        join_date = seller.created_at.strftime("%B %Y")
+        
+        # Get seller location (if available)
+        seller_location = seller.address.split(',')[-1].strip() if seller.address else "Location not specified"
+        
+        context = {
+            'seller': seller,
+            'products': products[:6],  # Show first 6 products
+            'seller_reviews': seller_reviews,
+            'recent_product_reviews': recent_product_reviews,
+            'total_products': total_products,
+            'total_reviews': total_reviews,
+            'avg_rating': round(avg_rating, 1),
+            'response_rate': response_rate,
+            'avg_ship_time': avg_ship_time,
+            'seller_level': seller_level,
+            'level_color': level_color,
+            'join_date': join_date,
+            'seller_location': seller_location,
+            'top_categories': top_categories,
+        }
+        
+        return render(request, 'buyer/buyer_seller_profile_view.html', context)
+        
+    except Exception as e:
+        print(f"=== ERROR in buyer_seller_profile_view: {str(e)} ===")
+        import traceback
+        traceback.print_exc()
+        messages.error(request, f"Error loading seller profile: {str(e)}")
+        return redirect('buyer:buyer_dashboard')

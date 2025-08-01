@@ -9,6 +9,7 @@ urlpatterns = [
     path('buyer/profile/update/', views.update_buyer_view, name='buyer_update'),
     path('buyer/profile/delete/', views.delete_buyer_view, name='buyer_delete'),
     path('buyer/dashboard/', views.buyer_dashboard_view, name='buyer_dashboard'),
+    path('seller/<int:seller_id>/profile/', views.buyer_seller_profile_view, name='buyer_seller_profile'),
     path('wishlist/add/', views.add_to_wishlist, name='add_to_wishlist'),
     path('wishlist/remove/', views.remove_from_wishlist, name='remove_from_wishlist'),
     path('wishlist/check/', views.check_wishlist_status, name='check_wishlist_status'),

@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from .models import Seller, Product, ProductImage, Brand, Category
 from buyer.models import Buyer
 from .models import CategoryAttribute, ProductAttributeValue
+from .models import ProductReview, SellerReview
 
 
 class SellerLoginForm(AuthenticationForm):
@@ -254,3 +255,60 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ['name', 'parent', 'description', 'icon_url']
+
+# ========== REVIEW FORMS ==========
+
+class ProductReviewForm(forms.ModelForm):
+    rating = forms.ChoiceField(
+        choices=[(i, f"{i} stars") for i in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Share your experience with this product...'
+        }),
+        max_length=1000
+    )
+
+    class Meta:
+        model = ProductReview
+        fields = ['rating', 'comment']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['rating'].widget.attrs.update({
+            'class': 'form-control',
+            'required': True
+        })
+
+class SellerReviewForm(forms.ModelForm):
+    rating = forms.ChoiceField(
+        choices=[(i, f"{i} stars") for i in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]],
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=True
+    )
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Share your experience with this seller...'
+        }),
+        max_length=1000
+    )
+
+    class Meta:
+        model = SellerReview
+        fields = ['rating', 'comment']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['rating'].widget.attrs.update({
+            'class': 'form-control',
+            'required': True
+        })
+        self.fields['comment'].widget.attrs.update({
+            'class': 'form-control',
+            'required': True
+        })

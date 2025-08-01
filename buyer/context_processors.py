@@ -10,7 +10,8 @@ def user_sidebar_data(request):
         'image_base64': None
     }
     
-    if request.user.is_authenticated:
+    # Check if request has user attribute
+    if hasattr(request, 'user') and request.user.is_authenticated:
         try:
             # Try to get buyer profile
             buyer = Buyer.objects.filter(email=request.user.email).first()

@@ -503,91 +503,178 @@
 
         /* Review System Styles */
         .reviews-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #e9ecef;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 35px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reviews-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" patternUnits="userSpaceOnUse" width="20" height="20"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .reviews-header h3 {
+            margin: 0 0 20px 0;
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
         }
 
         .reviews-summary {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 25px;
+            position: relative;
+            z-index: 1;
         }
 
         .rating-display {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            background: rgba(255,255,255,0.2);
+            padding: 12px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .average-rating {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
+            font-size: 32px;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .stars {
             display: flex;
-            gap: 2px;
+            gap: 5px;
         }
 
         .star {
-            font-size: 18px;
-            color: #ddd;
+            font-size: 22px;
+            color: rgba(255,255,255,0.6);
+            transition: all 0.3s ease;
         }
 
         .star.filled {
-            color: #ffc107;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255,215,0,0.6);
+            animation: starGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes starGlow {
+            from { text-shadow: 0 0 10px rgba(255,215,0,0.6); }
+            to { text-shadow: 0 0 15px rgba(255,215,0,0.8); }
         }
 
         .total-reviews {
-            color: #6c757d;
-            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+            font-weight: 500;
+            background: rgba(255,255,255,0.15);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .review-form-section {
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 30px;
             margin-bottom: 40px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .review-form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .review-form-section h4 {
-            margin-bottom: 20px;
-            color: #333;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 700;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .review-form-section h4::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
         }
 
         .review-form {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
         }
 
         .form-group label {
             font-weight: 600;
-            color: #333;
+            color: #34495e;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
 
         .form-control {
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
             font-size: 14px;
-            transition: border-color 0.2s;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .form-control:focus {
             outline: none;
-            border-color: #007bff;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-control:focus::placeholder {
+            color: #667eea;
         }
 
         .btn {
@@ -754,6 +841,11 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        .mobile-nav span {
+            font-weight: 600;
+            color: #333;
+        }
+
         .mobile-nav .nav-left {
             display: flex;
             align-items: center;
@@ -795,7 +887,7 @@
         }
 
         /* Enhanced mobile navigation responsiveness */
-        @media (max-width: 576px) {
+        @media (max-width: 768px) {
             .mobile-nav {
                 padding: 12px 15px;
             }
@@ -839,6 +931,11 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .mobile-product-card a {
+            text-decoration: none;
+            color: inherit;
         }
 
         .mobile-product-image {
@@ -951,6 +1048,210 @@
             .mobile-save-btn {
                 padding: 10px;
                 font-size: 13px;
+            }
+
+            .mobile-tab-btn {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .mobile-tab-content {
+                padding: 15px;
+            }
+
+            .mobile-specs-table {
+                font-size: 13px;
+            }
+
+            .mobile-specs-table th,
+            .mobile-specs-table td {
+                padding: 10px 12px;
+            }
+
+            .mobile-similar-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .mobile-similar-title {
+                font-size: 18px;
+                margin-bottom: 15px;
+            }
+
+            .mobile-similar-image {
+                height: 100px;
+            }
+
+            .mobile-similar-name {
+                font-size: 12px;
+            }
+
+            .mobile-similar-price {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mobile-similar-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .mobile-similar-title {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+
+            .mobile-similar-image {
+                height: 80px;
+            }
+
+            .mobile-similar-name {
+                font-size: 11px;
+            }
+
+            .mobile-similar-price {
+                font-size: 12px;
+            }
+
+            .mobile-review-form-section,
+            .mobile-seller-review-section {
+                padding: 20px;
+            }
+
+            .mobile-reviews-header {
+                padding: 15px;
+            }
+
+            .mobile-average-rating {
+                font-size: 20px;
+            }
+
+            .mobile-star {
+                font-size: 16px;
+            }
+
+            .shipping-info {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .shipping-card {
+                padding: 15px;
+            }
+
+            .shipping-card h4 {
+                font-size: 16px;
+            }
+
+            .shipping-card p {
+                font-size: 13px;
+            }
+
+            #shipping, #mobile-shipping {
+                padding: 20px;
+            }
+
+            #shipping h3, #mobile-shipping h3 {
+                font-size: 20px;
+            }
+
+            #shipping p, #mobile-shipping p {
+                font-size: 14px;
+            }
+
+            #description, #mobile-description {
+                padding: 20px;
+            }
+
+            #description h3, #mobile-description h3 {
+                font-size: 20px;
+            }
+
+            #description p, #mobile-description p {
+                font-size: 14px;
+            }
+
+            .specs-table, .mobile-specs-table {
+                font-size: 13px;
+            }
+
+            .specs-table th, .specs-table td,
+            .mobile-specs-table th, .mobile-specs-table td {
+                padding: 12px 15px;
+            }
+
+            .reviews-table-container,
+            .mobile-reviews-table-container {
+                overflow-x: auto;
+            }
+
+            .reviews-table th,
+            .mobile-reviews-table th,
+            .seller-reviews-table th,
+            .mobile-seller-reviews-table th {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .reviews-table td,
+            .mobile-reviews-table td,
+            .seller-reviews-table td,
+            .mobile-seller-reviews-table td {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .review-comment {
+                max-width: 200px;
+            }
+
+            .mobile-review-comment {
+                max-width: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reviews-table-container,
+            .mobile-reviews-table-container {
+                margin: 0 -10px;
+            }
+
+            .reviews-table,
+            .mobile-reviews-table,
+            .seller-reviews-table,
+            .mobile-seller-reviews-table {
+                font-size: 12px;
+            }
+
+            .reviews-table th,
+            .mobile-reviews-table th,
+            .seller-reviews-table th,
+            .mobile-seller-reviews-table th {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .reviews-table td,
+            .mobile-reviews-table td,
+            .seller-reviews-table td,
+            .mobile-seller-reviews-table td {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .review-comment {
+                max-width: 120px;
+            }
+
+            .mobile-review-comment {
+                max-width: 100px;
+            }
+
+            .see-all-btn,
+            .mobile-see-all-btn {
+                padding: 6px 12px;
+                font-size: 11px;
             }
         }
 
@@ -1088,67 +1389,1315 @@
         }
 
         .mobile-similar-products {
+            display: none;
             padding: 20px;
             background: white;
+            margin-top: 10px;
         }
 
-        .mobile-similar-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 15px;
+        /* Mobile Tabs Section */
+        .mobile-tabs-section {
+            display: none;
+            background: white;
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .mobile-similar-grid {
+        .mobile-tab-nav {
             display: flex;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .mobile-tab-btn {
+            padding: 12px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #6c757d;
+            position: relative;
+            flex: 1;
+        }
+
+        .mobile-tab-btn.active {
+            color: #007bff;
+        }
+
+        .mobile-tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #007bff;
+        }
+
+        .mobile-tab-content {
+            padding: 20px;
+        }
+
+        .mobile-tab-pane {
+            display: none;
+        }
+
+        .mobile-tab-pane.active {
+            display: block;
+        }
+
+        .mobile-specs-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .mobile-specs-table th, 
+        .mobile-specs-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .mobile-specs-table th {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .mobile-specs-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .mobile-reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .mobile-reviews-summary {
+            display: flex;
+            align-items: center;
             gap: 15px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            scrollbar-width: thin;
-            scrollbar-color: #ccc transparent;
         }
 
-        .mobile-similar-grid::-webkit-scrollbar {
-            height: 4px;
+        .mobile-rating-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .mobile-similar-grid::-webkit-scrollbar-track {
-            background: transparent;
+        .mobile-average-rating {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
         }
 
-        .mobile-similar-grid::-webkit-scrollbar-thumb {
-            background: #ccc;
+        .mobile-stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .mobile-star {
+            font-size: 16px;
+            color: #ddd;
+        }
+
+        .mobile-star.filled {
+            color: #ffc107;
+        }
+
+        .mobile-total-reviews {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .mobile-review-form-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .mobile-review-form-section h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .mobile-review-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mobile-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .mobile-form-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .mobile-form-control {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .mobile-form-control:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .mobile-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .mobile-btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .mobile-btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .mobile-reviews-list {
+            margin-top: 20px;
+        }
+
+        .mobile-seller-review-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .mobile-seller-review-section h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        /* Enhanced Mobile Review Tab Styling */
+        .mobile-reviews-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .mobile-reviews-header h3 {
+            margin: 0 0 15px 0;
+            font-size: 20px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .mobile-reviews-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .mobile-rating-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .mobile-average-rating {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .mobile-stars {
+            display: flex;
+            gap: 3px;
+        }
+
+        .mobile-star {
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-star.filled {
+            color: #ffd700;
+            text-shadow: 0 0 8px rgba(255,215,0,0.6);
+        }
+
+        .mobile-total-reviews {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            font-weight: 500;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        .mobile-review-form-section {
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .mobile-review-form-section h4 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 700;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .mobile-review-form-section h4::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 2px;
         }
 
-        .mobile-similar-item {
-            flex-shrink: 0;
-            width: 120px;
-            text-align: center;
+        .mobile-review-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
         }
 
-        .mobile-similar-image {
-            width: 120px;
-            height: 120px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
+        .mobile-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mobile-form-group label {
+            font-weight: 600;
+            color: #34495e;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .mobile-form-control {
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .mobile-form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .mobile-form-control:focus::placeholder {
+            color: #667eea;
+        }
+
+        .mobile-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mobile-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .mobile-btn:hover::before {
+            left: 100%;
+        }
+
+        .mobile-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .mobile-btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .mobile-btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+        }
+
+        .mobile-reviews-list {
+            margin-top: 25px;
+        }
+
+        .mobile-seller-review-section {
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 2px solid #e9ecef;
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .mobile-seller-review-section h4 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 700;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .mobile-seller-review-section h4::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-radius: 2px;
+        }
+
+        /* Enhanced Shipping Tab Styling */
+        #shipping, #mobile-shipping {
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #shipping::before, #mobile-shipping::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        #shipping h3, #mobile-shipping h3 {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        #shipping h3::before, #mobile-shipping h3::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 2px;
+        }
+
+        #shipping p, #mobile-shipping p {
+            color: #34495e;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Shipping Info Cards */
+        .shipping-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .shipping-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shipping-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .shipping-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .shipping-card h4 {
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .shipping-card h4::before {
+            font-size: 20px;
+        }
+
+        .shipping-card.fee h4::before {
+            content: '💰';
+        }
+
+        .shipping-card.distribution h4::before {
+            content: '📦';
+        }
+
+        .shipping-card.transparency h4::before {
+            content: '🔍';
+        }
+
+        .shipping-card p {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Mobile Shipping Specific */
+        #mobile-shipping {
+            padding: 25px;
+        }
+
+        #mobile-shipping h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        #mobile-shipping p {
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .mobile-shipping-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .mobile-shipping-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.8);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mobile-shipping-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .mobile-shipping-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .mobile-shipping-card h4 {
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 600;
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mobile-shipping-card h4::before {
+            font-size: 18px;
+        }
+
+        .mobile-shipping-card.fee h4::before {
+            content: '💰';
+        }
+
+        .mobile-shipping-card.distribution h4::before {
+            content: '📦';
+        }
+
+        .mobile-shipping-card.transparency h4::before {
+            content: '🔍';
+        }
+
+        .mobile-shipping-card p {
+            color: #6c757d;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        /* Enhanced Description Tab Styling */
+        #description, #mobile-description {
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #description::before, #mobile-description::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+
+        #description p, #mobile-description p {
+            color: #34495e;
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        /* Enhanced Specifications Table */
+        .specs-table, .mobile-specs-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 25px 0;
+            font-size: 14px;
+        }
+
+        .specs-table th, .specs-table td,
+        .mobile-specs-table th, .mobile-specs-table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .specs-table th, .mobile-specs-table th {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .specs-table tr:last-child td,
+        .mobile-specs-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .specs-table tr:hover,
+        .mobile-specs-table tr:hover {
+            background: rgba(0, 123, 255, 0.05);
+            transition: background 0.3s ease;
+        }
+
+        .specs-table td,
+        .mobile-specs-table td {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        /* Mobile Description Specific */
+        #mobile-description {
+            padding: 25px;
+        }
+
+        #mobile-description p {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .mobile-specs-table {
+            margin: 20px 0;
+            font-size: 13px;
+        }
+
+        .mobile-specs-table th,
+        .mobile-specs-table td {
+            padding: 12px 15px;
+        }
+
+        .mobile-specs-table th {
+            font-size: 13px;
+        }
+
+        /* Description Content Enhancement */
+        .description-content {
+            position: relative;
+        }
+
+        .description-content::before {
+            position: absolute;
+            top: -10px;
+            left: -15px;
+            font-size: 24px;
+            opacity: 0.3;
+        }
+
+        .mobile-description-content::before {
+            position: absolute;
+            top: -8px;
+            left: -12px;
+            font-size: 20px;
+            opacity: 0.3;
+        }
+
+        /* No Description Styling */
+        .no-description {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-style: italic;
+            position: relative;
+        }
+
+        .no-description::before {
+            content: '⚠️';
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .mobile-no-description {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-style: italic;
+            font-size: 13px;
+            position: relative;
+        }
+
+        .mobile-no-description::before {
+            content: '⚠️';
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        /* Quantity Controls Styling */
+        .quantity-controls, .mobile-quantity-controls {
+            display: flex;
+            align-items: center;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .quantity-btn, .mobile-quantity-btn {
+            background: #f8f9fa;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+            transition: all 0.3s ease;
+            min-width: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .mobile-similar-name {
+        .quantity-btn:hover, .mobile-quantity-btn:hover {
+            background: #e9ecef;
+            color: #212529;
+        }
+
+        .quantity-btn:active, .mobile-quantity-btn:active {
+            background: #dee2e6;
+            transform: scale(0.95);
+        }
+
+        .quantity-input, .mobile-quantity-input {
+            border: none;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            background: white;
+            min-width: 60px;
+            outline: none;
+        }
+
+        .quantity-input:focus, .mobile-quantity-input:focus {
+            background: #f8f9fa;
+        }
+
+        .quantity-input::-webkit-inner-spin-button,
+        .quantity-input::-webkit-outer-spin-button,
+        .mobile-quantity-input::-webkit-inner-spin-button,
+        .mobile-quantity-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .quantity-input[type=number],
+        .mobile-quantity-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* Mobile Quantity Controls */
+        .mobile-quantity-controls {
+            border-radius: 6px;
+        }
+
+        .mobile-quantity-btn {
+            padding: 6px 10px;
+            font-size: 14px;
+            min-width: 35px;
+        }
+
+        .mobile-quantity-input {
+            padding: 6px 10px;
+            font-size: 13px;
+            min-width: 50px;
+        }
+
+        /* Review Tables Styling */
+        .reviews-container, .mobile-reviews-container,
+        .seller-reviews-container, .mobile-seller-reviews-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .reviews-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .reviews-header-section h4 {
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .see-all-btn, .mobile-see-all-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
             font-size: 12px;
-            color: #333;
-            margin-bottom: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .see-all-btn:hover, .mobile-see-all-btn:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-1px);
+        }
+
+        .reviews-table-container, .mobile-reviews-table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .reviews-table, .mobile-reviews-table,
+        .seller-reviews-table, .mobile-seller-reviews-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .reviews-table th, .mobile-reviews-table th,
+        .seller-reviews-table th, .mobile-seller-reviews-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .reviews-table td, .mobile-reviews-table td,
+        .seller-reviews-table td, .mobile-seller-reviews-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .reviews-table tr:last-child td,
+        .mobile-reviews-table tr:last-child td,
+        .seller-reviews-table tr:last-child td,
+        .mobile-seller-reviews-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .reviews-table tr:hover,
+        .mobile-reviews-table tr:hover,
+        .seller-reviews-table tr:hover,
+        .mobile-seller-reviews-table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transition: background 0.3s ease;
+        }
+
+        .review-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .review-stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .review-star {
+            font-size: 14px;
+            color: #ddd;
+        }
+
+        .review-star.filled {
+            color: #ffd700;
+        }
+
+        .review-comment {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .review-date {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        /* Mobile Review Tables */
+        .mobile-reviews-table-container {
+            margin-top: 15px;
+        }
+
+        .mobile-reviews-table th,
+        .mobile-seller-reviews-table th {
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+
+        .mobile-reviews-table td,
+        .mobile-seller-reviews-table td {
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+
+        .mobile-review-comment {
+            max-width: 200px;
+        }
+
+        /* Hidden Reviews (See All/Less Functionality) */
+        .review-hidden {
+            display: none;
+        }
+
+        .review-hidden.show {
+            display: table-row;
+        }
+
+        /* Review Loading State */
+        .reviews-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .mobile-similar-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .mobile-similar-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .mobile-similar-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .mobile-similar-item {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .mobile-similar-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .mobile-similar-item:active {
+            transform: translateY(-2px);
+        }
+
+        .mobile-similar-image {
+            width: 100%;
+            height: 120px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .mobile-similar-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-similar-item:hover .mobile-similar-image img {
+            transform: scale(1.05);
+        }
+
+        .mobile-similar-info {
+            padding: 12px;
+            background: white;
+        }
+
+        .mobile-similar-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
             line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .mobile-similar-price {
+            font-size: 14px;
+            font-weight: 700;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mobile-similar-price::before {
+            content: '💰';
             font-size: 12px;
-            color: #666;
+        }
+
+        /* Mobile Similar Products Badge */
+        .mobile-similar-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Mobile Similar Products Loading State */
+        .mobile-similar-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .mobile-similar-loading::after {
+            content: '🔄 Loading similar products...';
+            color: #6c757d;
+            font-size: 14px;
             font-weight: 500;
+        }
+
+        /* Enhanced Mobile Tab Styling */
+        .mobile-tab-nav {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+        }
+
+        .mobile-tab-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mobile-tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .mobile-tab-btn:hover::before {
+            left: 100%;
+        }
+
+        .mobile-tab-btn.active::before {
+            display: none;
+        }
+
+        /* Enhanced Mobile Form Styling */
+        .mobile-form-control:focus {
+            animation: pulse 0.3s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Enhanced Mobile Button Hover Effects */
+        .mobile-btn:hover {
+            animation: buttonGlow 0.3s ease-in-out;
+        }
+
+        @keyframes buttonGlow {
+            0% { box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+            50% { box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6); }
+            100% { box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+        }
+
+        /* Enhanced Mobile Similar Products Animation */
+        .mobile-similar-item {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mobile-similar-item:nth-child(1) { animation-delay: 0.1s; }
+        .mobile-similar-item:nth-child(2) { animation-delay: 0.2s; }
+        .mobile-similar-item:nth-child(3) { animation-delay: 0.3s; }
+        .mobile-similar-item:nth-child(4) { animation-delay: 0.4s; }
+        .mobile-similar-item:nth-child(5) { animation-delay: 0.5s; }
+        .mobile-similar-item:nth-child(6) { animation-delay: 0.6s; }
+
+        /* Desktop Similar Products Section */
+        .desktop-similar-products {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .similar-products-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .similar-products-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+
+        .similar-product-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .similar-product-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .similar-product-item a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .similar-product-image {
+            width: 100%;
+            height: 150px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .similar-product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .similar-product-info {
+            padding: 12px;
+        }
+
+        .similar-product-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .similar-product-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #007bff;
         }
 
         /* Enhanced mobile similar products responsiveness */
@@ -1236,6 +2785,11 @@
             .thumbnail-images {
                 justify-content: center;
             }
+
+            .similar-products-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1316,6 +2870,23 @@
             .specs-table th,
             .specs-table td {
                 padding: 12px 15px;
+            }
+
+            .similar-products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .similar-product-image {
+                height: 120px;
+            }
+
+            .similar-product-name {
+                font-size: 13px;
+            }
+
+            .similar-product-price {
+                font-size: 14px;
             }
         }
 
@@ -1412,6 +2983,23 @@
                 font-size: 10px;
                 padding: 3px 8px;
             }
+
+            .similar-products-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .similar-product-image {
+                height: 100px;
+            }
+
+            .similar-product-name {
+                font-size: 12px;
+            }
+
+            .similar-product-price {
+                font-size: 13px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1468,6 +3056,23 @@
                 height: 30px;
                 font-size: 14px;
             }
+
+            .similar-products-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .similar-product-image {
+                height: 80px;
+            }
+
+            .similar-product-name {
+                font-size: 11px;
+            }
+
+            .similar-product-price {
+                font-size: 12px;
+            }
         }
 
         /* Mobile-specific optimizations */
@@ -1475,13 +3080,15 @@
             /* Hide desktop layout */
             .breadcrumb,
             .product-section,
-            .tabs-section {
+            .tabs-section,
+            .desktop-similar-products {
                 display: none;
             }
 
             /* Show mobile layout */
             .mobile-nav,
             .mobile-product-card,
+            .mobile-tabs-section,
             .mobile-similar-products {
                 display: block;
             }
@@ -1917,10 +3524,10 @@
             <a href="/">Home</a>
             <span>></span>
             {% if product.category.parent %}
-              <a href="#">{{ product.category.parent.name }}</a>
-            <span>></span>
+              <a href="{% url 'seller:product_listing' %}?parent_category={{ product.category.parent.id }}">{{ product.category.parent.name }}</a>
+              <span>></span>
             {% endif %}
-            <a href="#">{{ product.category.name }}</a>
+            <a href="{% url 'seller:product_listing' %}?parent_category={{ product.category.id }}">{{ product.category.name }}</a>
             <span>></span>
             <span>{{ product.name }}</span>
         </nav>
@@ -1966,7 +3573,7 @@
                 <div class="rating">
                     <div class="stars">
                         {% for i in "12345" %}
-                            <span class="star{% if product.rating_avg and product.rating_avg|floatformat:0 < i|add:'0' %} empty{% endif %}">★</span>
+                            <span class="star{% if product.rating_avg and product.rating_avg|floatformat:0 < i|add:'0' %} empty{% endif %}">⭐</span>
                         {% endfor %}
                     </div>
                     <span class="rating-text">
@@ -2017,7 +3624,11 @@
                         <form id="addToCartForm" method="post" action="{% url 'buyer:add_to_cart' %}" style="display: flex; align-items: center; gap: 10px;">
                             {% csrf_token %}
                             <label for="quantity" style="margin-bottom:0;">Quantity:</label>
-                            <input type="number" id="quantity" name="quantity" value="1" min="1" style="width:60px; padding:4px 8px; border-radius:4px; border:1px solid #ccc;">
+                            <div class="quantity-controls">
+                                <button type="button" class="quantity-btn minus" onclick="decrementQuantity()">-</button>
+                                <input type="number" id="quantity" name="quantity" value="1" min="1" class="quantity-input" onchange="validateQuantity()">
+                                <button type="button" class="quantity-btn plus" onclick="incrementQuantity()">+</button>
+                            </div>
                             <input type="hidden" name="product_id" value="{{ product.id }}">
                             <button type="submit" class="btn btn-primary">Add to Cart</button>
                         </form>
@@ -2069,16 +3680,18 @@
                 <button class="tab-btn active" onclick="showTab(event, 'description')">Description</button>
                 <button class="tab-btn" onclick="showTab(event, 'reviews')">Reviews</button>
                 <button class="tab-btn" onclick="showTab(event, 'shipping')">Shipping</button>
-                <button class="tab-btn" onclick="showTab(event, 'about-seller')">About seller</button>
             </div>
             
             <div class="tab-content">
                 <div id="description" class="tab-pane active">
-                    {% if product.description %}
-                        <p>{{ product.description }}</p>
-                    {% else %}
-                        <p>No Description of the product provided by the supplier</p>
-                    {% endif %}
+                    <div class="description-content">
+                        <span>📋 Description : </span>
+                        {% if product.description %}
+                            <p>{{ product.description }}</p>
+                        {% else %}
+                            <p class="no-description">No Description of the product provided by the supplier</p>
+                        {% endif %}
+                    </div>
                     <table class="specs-table">
                         <tbody>
                             <tr>
@@ -2093,12 +3706,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <ul class="product-features">
-                        <li>Some great feature name here</li>
-                        <li>Lorem ipsum dolor sit amet, consectetur</li>
-                        <li>Duis aute irure dolor in reprehenderit</li>
-                        <li>Some great feature name here</li>
-                    </ul>
+                    
                 </div>
                 
                 <div id="reviews" class="tab-pane">
@@ -2109,7 +3717,7 @@
                                 <span class="average-rating">{{ product.rating_avg|default:0|floatformat:1 }}</span>
                                 <div class="stars">
                                     {% for i in "12345" %}
-                                        <span class="star {% if forloop.counter <= product.rating_avg %}filled{% endif %}">★</span>
+                                        <span class="star {% if forloop.counter <= product.rating_avg|floatformat:0 %}filled{% elif forloop.counter == product.rating_avg|floatformat:0|add:1 and product.rating_avg|floatformat:1|slice:':-1' != product.rating_avg|floatformat:0 %}half{% endif %}">⭐</span>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -2151,7 +3759,27 @@
 
                     <!-- Reviews List -->
                     <div id="reviewsList" class="reviews-list">
-                        <!-- Reviews will be loaded here via AJAX -->
+                        <div class="reviews-container">
+                            <div class="reviews-header-section">
+                                <h4>Product Reviews</h4>
+                                <button class="see-all-btn" onclick="toggleReviews()">See All</button>
+                            </div>
+                            <div class="reviews-table-container">
+                                <table class="reviews-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Reviewer</th>
+                                            <th>Rating</th>
+                                            <th>Comment</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reviewsTableBody">
+                                        <!-- Reviews will be loaded here via AJAX -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Seller Review Section -->
@@ -2188,7 +3816,27 @@
 
                     <!-- Seller Reviews List -->
                     <div id="sellerReviewsList" class="reviews-list">
-                        <!-- Seller reviews will be loaded here via AJAX -->
+                        <div class="seller-reviews-container">
+                            <div class="reviews-header-section">
+                                <h4>Seller Reviews</h4>
+                                <button class="see-all-btn" onclick="toggleSellerReviews()">See All</button>
+                            </div>
+                            <div class="reviews-table-container">
+                                <table class="seller-reviews-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Reviewer</th>
+                                            <th>Rating</th>
+                                            <th>Comment</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sellerReviewsTableBody">
+                                        <!-- Seller reviews will be loaded here via AJAX -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -2197,12 +3845,396 @@
                     The shipping fee is set at $15. <br>If your order includes items from multiple vendors, the cost will be fairly distributed across them to ensure transparency and fairness.
                 </div>
                 
-                <div id="about-seller" class="tab-pane">
-                    <h3>About Guarjoji Trading LLC</h3>
-                    <p>Verified seller based in Germany, Berlin.</p>
-                    <p>Seller information and ratings would go here...</p>
+
+            </div>
+        </div>
+
+        <!-- Desktop Similar Products Section -->
+        <div class="desktop-similar-products">
+            <h3 class="similar-products-title">You may also like</h3>
+            <div class="similar-products-grid">
+                {% for similar_product in product.category.product_set.all|slice:":5" %}
+                    {% if similar_product.id != product.id %}
+                        <div class="similar-product-item">
+                            <a href="{% url 'seller:product_page' similar_product.id %}">
+                                <div class="similar-product-image">
+                                    {% if similar_product.images.first %}
+                                        <img src="data:image/jpeg;base64,{{ similar_product.images.first.image|b64encode }}" alt="{{ similar_product.name }}">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/200x200?text=No+Image" alt="{{ similar_product.name }}">
+                                    {% endif %}
+                                </div>
+                                <div class="similar-product-info">
+                                    <div class="similar-product-name">{{ similar_product.name|truncatechars:30 }}</div>
+                                    <div class="similar-product-price">${{ similar_product.calculated_final_price|default:similar_product.base_price|floatformat:2 }}</div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Layout -->
+    <!-- Mobile Navigation -->
+    <!-- Mobile Navigation -->
+<div class="mobile-nav">
+    <nav class="breadcrumb">
+      <a href="/">Home</a>
+      <span>></span>
+      {% if product.category.parent %}
+        <a href="{% url 'seller:product_listing' %}?parent_category={{ product.category.parent.id }}">{{ product.category.parent.name }}</a>
+        <span>></span>
+      {% endif %}
+      <a href="{% url 'seller:product_listing' %}?parent_category={{ product.category.id }}">{{ product.category.name }}</a>
+      <span>></span>
+      <span>{{ product.name }}</span>
+    </nav>
+  </div>
+
+    <!-- Mobile Product Card -->
+    <div class="mobile-product-card">
+        <div class="mobile-product-image">
+            {% if product.images.all %}
+                {% with thumbnail_image=product.images.filter.is_thumbnail.first %}
+                    {% if thumbnail_image %}
+                        <img src="data:image/jpeg;base64,{{ thumbnail_image.image|b64encode }}" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="data:image/jpeg;base64,{{ product.images.first.image|b64encode }}" alt="{{ product.name }}">
+                    {% endif %}
+                {% endwith %}
+                {% if product.images.all|length > 1 %}
+                    <div class="mobile-image-counter">{{ product.images.all|length }} images</div>
+                {% endif %}
+            {% else %}
+                <img src="https://via.placeholder.com/400x400?text=No+Image" alt="No image">
+            {% endif %}
+        </div>
+        
+        <div class="mobile-product-info">
+            <div class="mobile-rating">
+                <div class="stars">
+                    {% for i in "12345" %}
+                        <span class="star{% if forloop.counter <= product.rating_avg|floatformat:0 %}filled{% elif forloop.counter == product.rating_avg|floatformat:0|add:1 and product.rating_avg|floatformat:1|slice:':-1' != product.rating_avg|floatformat:0 %}half{% endif %}">⭐</span>
+                    {% endfor %}
+                </div>
+                <span class="rating-text">
+                    {% if product.rating_avg %}{{ product.rating_avg|floatformat:1 }}{% else %}N/A{% endif %} · 📝 {{ product.order_count }} orders
+                </span>
+            </div>
+            
+            <h1 class="mobile-product-title">{{ product.name }}</h1>
+            
+            <div class="mobile-price">
+                {% if product.final_price %}
+                    ${{ product.final_price|floatformat:2 }}
+                    {% if product.discount_percentage %}
+                        <span style="text-decoration: line-through; color: #6c757d; font-size: 14px;">${{ product.base_price|floatformat:2 }}</span>
+                        <span style="color: #28a745; font-size: 14px;">{{ product.discount_percentage }}% OFF</span>
+                    {% endif %}
+                {% else %}
+                    ${{ product.base_price|floatformat:2 }}
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 15px; flex-direction: column;">
+                {% if user_type == 'buyer' %}
+                    <form id="mobileAddToCartForm" method="post" action="{% url 'buyer:add_to_cart' %}" style="display: flex; align-items: center; gap: 10px; flex-direction: column;">
+                        {% csrf_token %}
+                        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                            <label for="mobile_quantity" style="margin-bottom:0;">Quantity:</label>
+                            <div class="mobile-quantity-controls">
+                                <button type="button" class="mobile-quantity-btn minus" onclick="decrementMobileQuantity()">-</button>
+                                <input type="number" id="mobile_quantity" name="quantity" value="1" min="1" class="mobile-quantity-input" onchange="validateMobileQuantity()">
+                                <button type="button" class="mobile-quantity-btn plus" onclick="incrementMobileQuantity()">+</button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <button type="submit" class="mobile-send-btn">Add to Cart</button>
+                    </form>
+                {% elif user_type == 'seller' and seller and product.seller_id == seller.id %}
+                    <button class="mobile-send-btn" onclick="openUpdateModal('{{ product.id }}', '{{ product.name|escapejs }}')">Edit Product</button>
+                    <button class="mobile-save-btn" onclick="openDeleteModal('{{ product.id }}', '{{ product.name|escapejs }}')">Delete Product</button>
+                {% else %}
+                    <button class="mobile-send-btn" style="background-color: #6c757d;"><a href="{% url 'seller:login' %}" style="color:inherit;text-decoration:none;">Login</a></button>
+                    <button class="mobile-save-btn" style="background-color: #007bff;"><a href="{% url 'seller:register' %}" style="color:inherit;text-decoration:none;">Signup</a></button>
+                {% endif %}
+            </div>
+            
+            <div class="mobile-specs">
+                <div class="mobile-spec-row">
+                    <span class="mobile-spec-label">Category:</span>
+                    <span class="mobile-spec-value">{{ product.category.name }}</span>
+                </div>
+                {% if product.brand %}
+                <div class="mobile-spec-row">
+                    <span class="mobile-spec-label">Brand:</span>
+                    <span class="mobile-spec-value">{{ product.brand.name }}</span>
+                </div>
+                {% endif %}
+                <div class="mobile-spec-row">
+                    <span class="mobile-spec-label">Stock:</span>
+                    <span class="mobile-spec-value">{{ product.stock }}</span>
+                </div>
+                <div class="mobile-spec-row">
+                    <span class="mobile-spec-label">Condition:</span>
+                    <span class="mobile-spec-value">{{ product.condition|title }}</span>
                 </div>
             </div>
+            
+            <div class="mobile-description">
+                <div class="mobile-description-text">
+                    <span>📋 Description : </span>
+                    {% if product.description %}
+                        {{ product.description|truncatewords:30 }}
+                    {% else %}
+                        No Description of the product provided by the supplier
+                    {% endif %}
+                </div>
+                <a href="#" class="mobile-read-more">Read more</a>
+            </div>
+            
+            <div class="mobile-supplier">
+                <div class="mobile-supplier-header">
+                    <div class="mobile-supplier-info">
+                        {% if product.seller.image %}
+                            <img src="data:image/jpeg;base64,{{ product.seller.image|b64encode }}" alt="{{ product.seller.shop_name }}" class="mobile-supplier-avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                        {% else %}
+                            <div class="mobile-supplier-avatar">{{ product.seller.shop_name|first|default:'S' }}</div>
+                        {% endif %}
+                        <div class="mobile-supplier-details">
+                            <h4>{{ product.seller.shop_name }}</h4>
+                            <p>Verified Seller</p>
+                        </div>
+                    </div>
+                    <div class="mobile-supplier-arrow">›</div>
+                </div>
+                <div class="mobile-supplier-badges">
+                    <div class="mobile-badge">✓ Verified</div>
+                    <div class="mobile-badge">🌐 Worldwide shipping</div>
+                </div>
+                {% if user_type == 'buyer' %}
+                    <div style="margin-top: 15px; display: flex; gap: 10px; flex-direction: column;">
+                        <a href="#" class="btn btn-primary" style="text-decoration: none; text-align: center;">Send inquiry</a>
+                        <a href="{% url 'buyer:buyer_seller_profile' product.seller.id %}" class="btn btn-outline" style="text-decoration: none; text-align: center;">Seller's profile</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Mobile Tabs Section -->
+        <div class="mobile-tabs-section">
+            <div class="mobile-tab-nav">
+                <button class="mobile-tab-btn active" onclick="showMobileTab(event, 'mobile-description')">Description</button>
+                <button class="mobile-tab-btn" onclick="showMobileTab(event, 'mobile-reviews')">Reviews</button>
+                <button class="mobile-tab-btn" onclick="showMobileTab(event, 'mobile-shipping')">Shipping</button>
+            </div>
+            
+            <div class="mobile-tab-content">
+                <div id="mobile-description" class="mobile-tab-pane active">
+                    <div class="mobile-description-content">
+                        <span>📋 Description : </span>
+                        {% if product.description %}
+                            <p>{{ product.description }}</p>
+                        {% else %}
+                            <p class="mobile-no-description">No Description of the product provided by the supplier</p>
+                        {% endif %}
+                    </div>
+                    <table class="mobile-specs-table">
+                        <tbody>
+                            <tr>
+                                <th>Product ID</th>
+                                <td>{{ product.unique_id }}</td>
+                            </tr>
+                            {% for attr_value in product.attribute_values.all %}
+                            <tr>
+                                <th>{{ attr_value.attribute.name }}{% if attr_value.attribute.unit %} ({{ attr_value.attribute.unit }}){% endif %}</th>
+                                <td>{{ attr_value.value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="mobile-reviews" class="mobile-tab-pane">
+                    <div class="mobile-reviews-header">
+                        <h3>Customer Reviews</h3>
+                        <div class="mobile-reviews-summary">
+                            <div class="mobile-rating-display">
+                                <span class="mobile-average-rating">{{ product.rating_avg|default:0|floatformat:1 }}</span>
+                                <div class="mobile-stars">
+                                    {% for i in "12345" %}
+                                        <span class="mobile-star {% if forloop.counter <= product.rating_avg|floatformat:0 %}filled{% elif forloop.counter == product.rating_avg|floatformat:0|add:1 and product.rating_avg|floatformat:1|slice:':-1' != product.rating_avg|floatformat:0 %}half{% endif %}">⭐</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <span class="mobile-total-reviews">{{ product.reviews.count }} reviews</span>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Review Form (for buyers only) -->
+                    {% if user_type == 'buyer' %}
+                    <div class="mobile-review-form-section">
+                        <h4>Write a Review</h4>
+                        <form id="mobileProductReviewForm" class="mobile-review-form">
+                            {% csrf_token %}
+                            <div class="mobile-form-group">
+                                <label for="mobileRating">Rating *</label>
+                                <select name="rating" id="mobileRating" required class="mobile-form-control">
+                                    <option value="">Select rating</option>
+                                    <option value="5.0">5.0 stars - Excellent</option>
+                                    <option value="4.5">4.5 stars - Very Good</option>
+                                    <option value="4.0">4.0 stars - Good</option>
+                                    <option value="3.5">3.5 stars - Above Average</option>
+                                    <option value="3.0">3.0 stars - Average</option>
+                                    <option value="2.5">2.5 stars - Below Average</option>
+                                    <option value="2.0">2.0 stars - Poor</option>
+                                    <option value="1.5">1.5 stars - Very Poor</option>
+                                    <option value="1.0">1.0 stars - Terrible</option>
+                                    <option value="0.5">0.5 stars - Awful</option>
+                                    <option value="0.0">0.0 stars - Worst</option>
+                                </select>
+                            </div>
+                            <div class="mobile-form-group">
+                                <label for="mobileComment">Comment *</label>
+                                <textarea name="comment" id="mobileComment" rows="4" required class="mobile-form-control" placeholder="Share your experience with this product..."></textarea>
+                            </div>
+                            <button type="submit" class="mobile-btn mobile-btn-primary">Submit Review</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <!-- Mobile Reviews List -->
+                    <div id="mobileReviewsList" class="mobile-reviews-list">
+                        <div class="mobile-reviews-container">
+                            <div class="mobile-reviews-header-section">
+                                <h4>Product Reviews</h4>
+                                <button class="mobile-see-all-btn" onclick="toggleMobileReviews()">See All</button>
+                            </div>
+                            <div class="mobile-reviews-table-container">
+                                <table class="mobile-reviews-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Reviewer</th>
+                                            <th>Rating</th>
+                                            <th>Comment</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mobileReviewsTableBody">
+                                        <!-- Reviews will be loaded here via AJAX -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Seller Review Section -->
+                    {% if user_type == 'buyer' %}
+                    <div class="mobile-seller-review-section">
+                        <h4>Review the Seller</h4>
+                        <form id="mobileSellerReviewForm" class="mobile-review-form">
+                            {% csrf_token %}
+                            <div class="mobile-form-group">
+                                <label for="mobileSellerRating">Rating *</label>
+                                <select name="rating" id="mobileSellerRating" required class="mobile-form-control">
+                                    <option value="">Select Rating</option>
+                                    <option value="0.0">0.0 stars</option>
+                                    <option value="0.5">0.5 stars</option>
+                                    <option value="1.0">1.0 stars</option>
+                                    <option value="1.5">1.5 stars</option>
+                                    <option value="2.0">2.0 stars</option>
+                                    <option value="2.5">2.5 stars</option>
+                                    <option value="3.0">3.0 stars</option>
+                                    <option value="3.5">3.5 stars</option>
+                                    <option value="4.0">4.0 stars</option>
+                                    <option value="4.5">4.5 stars</option>
+                                    <option value="5.0">5.0 stars</option>
+                                </select>
+                            </div>
+                            <div class="mobile-form-group">
+                                <label for="mobileSellerComment">Comment *</label>
+                                <textarea name="comment" id="mobileSellerComment" rows="4" required class="mobile-form-control" placeholder="Share your experience with this seller..."></textarea>
+                            </div>
+                            <button type="submit" class="mobile-btn mobile-btn-primary">Submit Seller Review</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <!-- Mobile Seller Reviews List -->
+                    <div id="mobileSellerReviewsList" class="mobile-reviews-list">
+                        <div class="mobile-seller-reviews-container">
+                            <div class="mobile-reviews-header-section">
+                                <h4>Seller Reviews</h4>
+                                <button class="mobile-see-all-btn" onclick="toggleMobileSellerReviews()">See All</button>
+                            </div>
+                            <div class="mobile-reviews-table-container">
+                                <table class="mobile-seller-reviews-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Reviewer</th>
+                                            <th>Rating</th>
+                                            <th>Comment</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mobileSellerReviewsTableBody">
+                                        <!-- Seller reviews will be loaded here via AJAX -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="mobile-shipping" class="mobile-tab-pane">
+                    <h3>Shipping Information</h3>
+                    <p>The shipping fee is set at $15. If your order includes items from multiple vendors, the cost will be fairly distributed across them to ensure transparency and fairness.</p>
+                    
+                    <div class="mobile-shipping-info">
+                        <div class="mobile-shipping-card fee">
+                            <h4>Shipping Fee</h4>
+                            <p>Standard shipping fee of $15 applies to all orders. This covers packaging, handling, and delivery costs.</p>
+                        </div>
+                        <div class="mobile-shipping-card distribution">
+                            <h4>Multi-Vendor Distribution</h4>
+                            <p>When ordering from multiple vendors, shipping costs are fairly distributed to ensure transparency and cost-effectiveness.</p>
+                        </div>
+                        <div class="mobile-shipping-card transparency">
+                            <h4>Transparency & Fairness</h4>
+                            <p>We believe in complete transparency. All shipping costs are clearly displayed and fairly calculated for your peace of mind.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Similar Products -->
+    <div class="mobile-similar-products">
+        <h3 class="mobile-similar-title">You may also like</h3>
+        <div class="mobile-similar-grid">
+            {% for similar_product in product.category.product_set.all|slice:":6" %}
+                {% if similar_product.id != product.id %}
+                    <div class="mobile-similar-item">
+                        <div class="mobile-similar-badge">🔥 Hot</div>
+                        <a href="{% url 'seller:product_page' similar_product.id %}" style="text-decoration: none; color: inherit;">
+                            <div class="mobile-similar-image">
+                                {% if similar_product.images.first %}
+                                    <img src="data:image/jpeg;base64,{{ similar_product.images.first.image|b64encode }}" alt="{{ similar_product.name }}">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/200x200?text=No+Image" alt="{{ similar_product.name }}">
+                                {% endif %}
+                            </div>
+                            <div class="mobile-similar-info">
+                                <div class="mobile-similar-name">{{ similar_product.name|truncatechars:30 }}</div>
+                                <div class="mobile-similar-price">${{ similar_product.calculated_final_price|default:similar_product.base_price|floatformat:2 }}</div>
+                            </div>
+                        </a>
+                    </div>
+                {% endif %}
+            {% endfor %}
         </div>
     </div>
 
@@ -2802,6 +4834,339 @@
             if (tabPane) tabPane.classList.add('active');
         }
 
+        // --- Mobile Tab switching logic ---
+        function showMobileTab(event, tabId) {
+            // Remove 'active' from all mobile tab buttons
+            document.querySelectorAll('.mobile-tab-btn').forEach(btn => btn.classList.remove('active'));
+            // Hide all mobile tab panes
+            document.querySelectorAll('.mobile-tab-pane').forEach(pane => pane.classList.remove('active'));
+            // Activate the clicked mobile tab button
+            event.currentTarget.classList.add('active');
+            // Show the selected mobile tab pane
+            const tabPane = document.getElementById(tabId);
+            if (tabPane) tabPane.classList.add('active');
+        }
+
+        // --- Quantity Control Functions ---
+        function incrementQuantity() {
+            const input = document.getElementById('quantity');
+            const currentValue = parseInt(input.value) || 1;
+            input.value = currentValue + 1;
+            validateQuantity();
+        }
+
+        function decrementQuantity() {
+            const input = document.getElementById('quantity');
+            const currentValue = parseInt(input.value) || 1;
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+                validateQuantity();
+            }
+        }
+
+        function validateQuantity() {
+            const input = document.getElementById('quantity');
+            let value = parseInt(input.value) || 1;
+            if (value < 1) {
+                value = 1;
+            }
+            input.value = value;
+        }
+
+        function incrementMobileQuantity() {
+            const input = document.getElementById('mobile_quantity');
+            const currentValue = parseInt(input.value) || 1;
+            input.value = currentValue + 1;
+            validateMobileQuantity();
+        }
+
+        function decrementMobileQuantity() {
+            const input = document.getElementById('mobile_quantity');
+            const currentValue = parseInt(input.value) || 1;
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+                validateMobileQuantity();
+            }
+        }
+
+        function validateMobileQuantity() {
+            const input = document.getElementById('mobile_quantity');
+            let value = parseInt(input.value) || 1;
+            if (value < 1) {
+                value = 1;
+            }
+            input.value = value;
+        }
+
+        // --- Review Display Functions ---
+        let reviewsExpanded = false;
+        let sellerReviewsExpanded = false;
+        let mobileReviewsExpanded = false;
+        let mobileSellerReviewsExpanded = false;
+
+        function toggleReviews() {
+            const button = document.querySelector('.see-all-btn');
+            const hiddenReviews = document.querySelectorAll('.review-hidden');
+            
+            if (reviewsExpanded) {
+                // Collapse
+                hiddenReviews.forEach(review => {
+                    review.classList.remove('show');
+                });
+                button.textContent = 'See All';
+                reviewsExpanded = false;
+            } else {
+                // Expand
+                hiddenReviews.forEach(review => {
+                    review.classList.add('show');
+                });
+                button.textContent = 'See Less';
+                reviewsExpanded = true;
+            }
+        }
+
+        function toggleSellerReviews() {
+            const button = document.querySelector('.seller-reviews-container .see-all-btn');
+            const hiddenReviews = document.querySelectorAll('.seller-review-hidden');
+            
+            if (sellerReviewsExpanded) {
+                // Collapse
+                hiddenReviews.forEach(review => {
+                    review.classList.remove('show');
+                });
+                button.textContent = 'See All';
+                sellerReviewsExpanded = false;
+            } else {
+                // Expand
+                hiddenReviews.forEach(review => {
+                    review.classList.add('show');
+                });
+                button.textContent = 'See Less';
+                sellerReviewsExpanded = true;
+            }
+        }
+
+        function toggleMobileReviews() {
+            const button = document.querySelector('.mobile-see-all-btn');
+            const hiddenReviews = document.querySelectorAll('.mobile-review-hidden');
+            
+            if (mobileReviewsExpanded) {
+                // Collapse
+                hiddenReviews.forEach(review => {
+                    review.classList.remove('show');
+                });
+                button.textContent = 'See All';
+                mobileReviewsExpanded = false;
+            } else {
+                // Expand
+                hiddenReviews.forEach(review => {
+                    review.classList.add('show');
+                });
+                button.textContent = 'See Less';
+                mobileReviewsExpanded = true;
+            }
+        }
+
+        function toggleMobileSellerReviews() {
+            const button = document.querySelector('.mobile-seller-reviews-container .mobile-see-all-btn');
+            const hiddenReviews = document.querySelectorAll('.mobile-seller-review-hidden');
+            
+            if (mobileSellerReviewsExpanded) {
+                // Collapse
+                hiddenReviews.forEach(review => {
+                    review.classList.remove('show');
+                });
+                button.textContent = 'See All';
+                mobileSellerReviewsExpanded = false;
+            } else {
+                // Expand
+                hiddenReviews.forEach(review => {
+                    review.classList.add('show');
+                });
+                button.textContent = 'See Less';
+                mobileSellerReviewsExpanded = true;
+            }
+        }
+
+        // --- Review Submission Functions ---
+        function submitProductReview(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const productId = '{{ product.id }}';
+            
+            fetch(`/products/${productId}/review/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Review submitted successfully!');
+                    form.reset();
+                    loadProductReviews();
+                } else {
+                    alert('Error submitting review: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting review. Please try again.');
+            });
+        }
+
+        function submitSellerReview(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const sellerId = '{{ product.seller.id }}';
+            
+            fetch(`/seller/${sellerId}/review/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Seller review submitted successfully!');
+                    form.reset();
+                    loadSellerReviews();
+                } else {
+                    alert('Error submitting seller review: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting seller review. Please try again.');
+            });
+        }
+
+        function loadProductReviews() {
+            const productId = '{{ product.id }}';
+            fetch(`/products/${productId}/reviews/`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('reviewsTableBody');
+                const mobileTbody = document.getElementById('mobileReviewsTableBody');
+                
+                if (data.reviews && data.reviews.length > 0) {
+                    const reviewsHTML = data.reviews.map((review, index) => {
+                        const stars = generateStarsHTML(review.rating);
+                        const isHidden = index >= 3 ? 'review-hidden' : '';
+                        const mobileIsHidden = index >= 3 ? 'mobile-review-hidden' : '';
+                        
+                        return `
+                            <tr class="${isHidden}">
+                                <td>${review.reviewer_name}</td>
+                                <td>
+                                    <div class="review-rating">
+                                        <span>${review.rating}</span>
+                                        <div class="review-stars">${stars}</div>
+                                    </div>
+                                </td>
+                                <td class="review-comment">${review.comment}</td>
+                                <td class="review-date">${review.created_at}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    tbody.innerHTML = reviewsHTML;
+                    if (mobileTbody) mobileTbody.innerHTML = reviewsHTML;
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="reviews-loading">No reviews yet</td></tr>';
+                    if (mobileTbody) mobileTbody.innerHTML = '<tr><td colspan="4" class="reviews-loading">No reviews yet</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading reviews:', error);
+            });
+        }
+
+        function loadSellerReviews() {
+            const sellerId = '{{ product.seller.id }}';
+            fetch(`/seller/${sellerId}/reviews/`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('sellerReviewsTableBody');
+                const mobileTbody = document.getElementById('mobileSellerReviewsTableBody');
+                
+                if (data.reviews && data.reviews.length > 0) {
+                    const reviewsHTML = data.reviews.map((review, index) => {
+                        const stars = generateStarsHTML(review.rating);
+                        const isHidden = index >= 3 ? 'seller-review-hidden' : '';
+                        const mobileIsHidden = index >= 3 ? 'mobile-seller-review-hidden' : '';
+                        
+                        return `
+                            <tr class="${isHidden}">
+                                <td>${review.reviewer_name}</td>
+                                <td>
+                                    <div class="review-rating">
+                                        <span>${review.rating}</span>
+                                        <div class="review-stars">${stars}</div>
+                                    </div>
+                                </td>
+                                <td class="review-comment">${review.comment}</td>
+                                <td class="review-date">${review.created_at}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    tbody.innerHTML = reviewsHTML;
+                    if (mobileTbody) mobileTbody.innerHTML = reviewsHTML;
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="reviews-loading">No seller reviews yet</td></tr>';
+                    if (mobileTbody) mobileTbody.innerHTML = '<tr><td colspan="4" class="reviews-loading">No seller reviews yet</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading seller reviews:', error);
+            });
+        }
+
+        function generateStarsHTML(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                const starClass = i <= Math.floor(rating) ? 'filled' : (i === Math.ceil(rating) && rating % 1 !== 0 ? 'half' : '');
+                stars += `<span class="review-star ${starClass}">⭐</span>`;
+            }
+            return stars;
+        }
+
+        // Initialize review system and event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial reviews
+            loadProductReviews();
+            loadSellerReviews();
+            
+            // Add event listeners for review forms
+            const productReviewForm = document.getElementById('productReviewForm');
+            const sellerReviewForm = document.getElementById('sellerReviewForm');
+            const mobileProductReviewForm = document.getElementById('mobileProductReviewForm');
+            const mobileSellerReviewForm = document.getElementById('mobileSellerReviewForm');
+            
+            if (productReviewForm) {
+                productReviewForm.addEventListener('submit', submitProductReview);
+            }
+            
+            if (sellerReviewForm) {
+                sellerReviewForm.addEventListener('submit', submitSellerReview);
+            }
+            
+            if (mobileProductReviewForm) {
+                mobileProductReviewForm.addEventListener('submit', submitProductReview);
+            }
+            
+            if (mobileSellerReviewForm) {
+                mobileSellerReviewForm.addEventListener('submit', submitSellerReview);
+            }
+        });
+
         // ========== REVIEW SYSTEM JAVASCRIPT ==========
         
         // Load reviews when reviews tab is clicked
@@ -2876,8 +5241,9 @@
                     starsElement.innerHTML = '';
                     for (let i = 1; i <= 5; i++) {
                         const star = document.createElement('span');
-                        star.className = `star ${i <= averageRating ? 'filled' : ''}`;
-                        star.textContent = '★';
+                        const starClass = i <= Math.floor(averageRating) ? 'filled' : (i === Math.ceil(averageRating) && averageRating % 1 !== 0 ? 'half' : '');
+                        star.className = `star ${starClass}`;
+                        star.textContent = '⭐';
                         starsElement.appendChild(star);
                     }
                 }
@@ -2962,8 +5328,8 @@
         function generateStarsHTML(rating) {
             let starsHTML = '';
             for (let i = 1; i <= 5; i++) {
-                const starClass = i <= rating ? 'filled' : '';
-                starsHTML += `<span class="star ${starClass}">★</span>`;
+                const starClass = i <= Math.floor(rating) ? 'filled' : (i === Math.ceil(rating) && rating % 1 !== 0 ? 'half' : '');
+                starsHTML += `<span class="star ${starClass}">⭐</span>`;
             }
             return starsHTML;
         }

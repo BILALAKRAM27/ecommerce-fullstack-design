@@ -3316,9 +3316,9 @@ def get_buyer_info(request, buyer_id):
         return JsonResponse({
             'success': True,
             'buyer': {
-                'id': buyer.id,
-                'name': buyer.name,
-                'email': buyer.email,
+            'id': buyer.id,
+            'name': buyer.name,
+            'email': buyer.email,
                 'phone': buyer.phone,
                 'address': buyer.address,
                 'total_orders': orders.count(),

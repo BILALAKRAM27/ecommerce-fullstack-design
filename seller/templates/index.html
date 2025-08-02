@@ -27,6 +27,8 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         /* Header */
@@ -43,6 +45,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 15px 0;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .logo {
@@ -62,6 +66,7 @@
             flex: 1;
             max-width: 500px;
             margin: 0 20px;
+            min-width: 0;
         }
 
         .search-bar input {
@@ -96,7 +101,9 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .header-actions span {
@@ -105,6 +112,7 @@
             gap: 5px;
             font-size: 14px;
             color: #666;
+            white-space: nowrap;
         }
 
         /* Navigation */
@@ -117,8 +125,10 @@
         .nav-menu {
             display: flex;
             align-items: center;
-            gap: 30px;
+            gap: 20px;
             padding: 15px 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
         }
 
         .nav-item {
@@ -750,7 +760,7 @@
         .footer-content {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
+            gap: 30px;
             margin-bottom: 30px;
         }
 
@@ -783,6 +793,34 @@
             align-items: center;
             padding-top: 20px;
             border-top: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .footer-bottom-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-bottom-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-description {
+            color: #666;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .footer-copyright,
+        .footer-language {
+            color: #666;
+            font-size: 14px;
         }
 
         .social-links {
@@ -819,6 +857,63 @@
         }
 
         /* Responsive Design */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .header-actions {
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            
+            .nav-menu {
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 1000px) {
+            .header-top {
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            
+            .search-bar {
+                max-width: 350px;
+                min-width: 0;
+                flex-shrink: 1;
+            }
+            
+            .header-actions {
+                gap: 6px;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                width: 100%;
+                margin-top: 5px;
+            }
+        }
+        
+        @media (max-width: 775px) {
+            .header-top {
+                gap: 8px;
+            }
+            
+            .search-bar {
+                max-width: 300px;
+                margin: 0;
+            }
+            
+            .header-actions {
+                gap: 4px;
+                margin-top: 8px;
+                justify-content: flex-start;
+            }
+            
+            .header-actions span {
+                font-size: 12px;
+            }
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 0 15px;
@@ -833,11 +928,19 @@
             .search-bar {
                 margin: 0;
                 max-width: none;
+                min-width: 0;
+            }
+            
+            .header-actions {
+                justify-content: flex-start;
+                gap: 12px;
+                flex-wrap: wrap;
             }
 
             .nav-menu {
                 flex-wrap: wrap;
                 gap: 15px;
+                justify-content: center;
             }
 
             .main-content {
@@ -893,6 +996,12 @@
                 gap: 15px;
                 text-align: center;
             }
+            
+            .footer-bottom-left,
+            .footer-bottom-right {
+                justify-content: center;
+                gap: 15px;
+            }
 
             .promo-cards {
                 flex-direction: column;
@@ -904,7 +1013,53 @@
             }
         }
 
+        @media (max-width: 600px) {
+            .header-actions {
+                gap: 8px;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            
+            .header-actions span {
+                font-size: 12px;
+            }
+            
+            .nav-menu {
+                gap: 10px;
+                padding: 10px 0;
+            }
+            
+            .nav-item {
+                font-size: 12px;
+            }
+        }
+        
         @media (max-width: 480px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .header-top {
+                padding: 10px 0;
+                gap: 10px;
+            }
+            
+            .search-category {
+                min-width: 60px;
+                font-size: 12px;
+                padding: 8px 6px;
+            }
+            
+            .search-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            .search-bar input {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+            
             .deals-grid,
             .category-grid,
             .recommended-grid {
@@ -922,6 +1077,49 @@
 
             .hero h2 {
                 font-size: 22px;
+            }
+            
+            .header-actions {
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            
+            .header-actions span {
+                font-size: 11px;
+            }
+            
+            .search-bar {
+                flex-direction: row;
+                gap: 0;
+                max-width: 100%;
+                margin: 0;
+            }
+            
+            .search-bar input {
+                flex: 1;
+                border-radius: 4px 0 0 4px;
+                border: 1px solid #ddd;
+                border-right: none;
+                min-width: 0;
+            }
+            
+            .search-category {
+                border-radius: 0;
+                border: 1px solid #ddd;
+                border-left: none;
+                border-right: none;
+                min-width: 80px;
+                flex-shrink: 0;
+            }
+            
+            .search-btn {
+                border-radius: 0 4px 4px 0;
+                border: 1px solid #ddd;
+                border-left: none;
+                flex-shrink: 0;
             }
         }
     </style>
@@ -1083,10 +1281,10 @@
 </style>
 </head>
 <body>
-    <!-- Sidebar Overlay -->
-    <div id="sidebar-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:2000;"></div>
-    <!-- Slide-in Sidebar -->
-    <aside id="slide-sidebar" style="position:fixed; top:0; left:-320px; width:320px; max-width:90vw; height:100vh; background:#fff; z-index:2100; box-shadow:2px 0 8px rgba(0,0,0,0.08); transition:left 0.3s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column; overflow-y:auto; overscroll-behavior:contain;">
+    <!-- MarketVibe Sidebar Overlay -->
+    <div id="marketvibe-sidebar-overlay" class="marketvibe-sidebar-overlay"></div>
+    <!-- MarketVibe Slide-in Sidebar -->
+    <aside id="marketvibe-slide-sidebar" class="marketvibe-slide-sidebar">
         <div style="background:#f5f7fa; padding:32px 24px 16px 24px; display:flex; flex-direction:column; align-items:flex-start; position:relative; flex-shrink:0; width:100%;">
             {% if not user.is_authenticated %}
                 <div style="width:48px; height:48px; border-radius:50%; background:#e0e4ea; display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
@@ -1120,7 +1318,7 @@
                                             <a href="{% url 'sellers:seller_profile' %}" style="font-size:14px; color:#4285f4; text-decoration:none;">Profile</a>
                 </div>
             {% endif %}
-            <button id="sidebar-close" style="position:absolute; top:18px; right:18px; background:none; border:none; font-size:22px; color:#b0b4bb; cursor:pointer;"><i class="fas fa-times"></i></button>
+            <button id="marketvibe-sidebar-close" class="marketvibe-sidebar-close"><i class="fas fa-times"></i></button>
         </div>
         <nav style="flex:1; padding:24px 0 0 0; min-height:0;">
             <ul style="list-style:none; padding:0 0 0 0; margin:0;">
@@ -1148,15 +1346,85 @@
         </nav>
     </aside>
     <style>
+    /* MarketVibe Sidebar Styles - Namespaced to prevent conflicts */
+    .marketvibe-sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.4);
+        z-index: 2000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .marketvibe-sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+    
+    .marketvibe-slide-sidebar {
+        position: fixed;
+        top: 0;
+        left: -320px;
+        width: 320px;
+        max-width: 90vw;
+        height: 100vh;
+        background: #fff;
+        z-index: 2100;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+        transition: left 0.3s cubic-bezier(.4,0,.2,1);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+    
+    .marketvibe-slide-sidebar.active {
+        left: 0 !important;
+    }
+    
+    .marketvibe-sidebar-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        background: none;
+        border: none;
+        font-size: 22px;
+        color: #b0b4bb;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+    
+    .marketvibe-sidebar-close:hover {
+        color: #666;
+    }
+    
+    /* Responsive Design */
     @media (max-width: 600px) {
-        #slide-sidebar {
-            width: 90vw !important;
-            min-width: 0 !important;
+        .marketvibe-slide-sidebar {
+            width: 90vw;
+            min-width: 0;
             left: -90vw;
         }
-        #slide-sidebar.open {
+        
+        .marketvibe-slide-sidebar.active {
             left: 0 !important;
         }
+    }
+    
+    @media (max-width: 480px) {
+        .marketvibe-slide-sidebar {
+            width: 95vw;
+            left: -95vw;
+        }
+    }
+    
+    /* Prevent body scroll when sidebar is open */
+    body.sidebar-open {
+        overflow: hidden;
     }
     </style>
     <!-- Header -->
@@ -1216,7 +1484,7 @@
         <nav class="nav">
             <div class="container">
                 <div class="nav-menu">
-                    <a href="#" class="nav-item active" id="sidebar-open">
+                    <a href="#" class="nav-item active" id="marketvibe-sidebar-open" style="cursor: pointer;">
                         <i class="fas fa-bars"></i>
                     </a>
                     <a href="{% url 'sellers:product_listing' %}" class="nav-item">All Categories</a>
@@ -1718,12 +1986,12 @@
             </div>
             
             <div class="footer-bottom">
-                <div style="display: flex; align-items: center; gap: 20px;">
+                <div class="footer-bottom-left">
                     <div class="logo">
                         <img class="fas fa-cube" src="{% static 'seller/assets/icon.png' %}"></img>
                         MarketVibe
                     </div>
-                    <p style="color: #666; margin: 0; font-size: 14px;">
+                    <p class="footer-description">
                         Best information about the company gies here but now lorem ipsum is
                     </p>
                     <div class="social-links">
@@ -1735,9 +2003,9 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <span style="color: #666; font-size: 14px;">© 2025 Ecommerce.</span>
-                    <span style="color: #666; font-size: 14px;">🇺🇸 English</span>
+                <div class="footer-bottom-right">
+                    <span class="footer-copyright">© 2025 Ecommerce.</span>
+                    <span class="footer-language">🇺🇸 English</span>
                     <div class="app-downloads">
                         <div class="app-btn">
                             <i class="fab fa-apple" style="margin-right: 5px;"></i>
@@ -1823,41 +2091,144 @@
         });
     </script>
     <script>
-        // Sidebar open/close logic
-        const sidebar = document.getElementById('slide-sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
-        const openBtn = document.getElementById('sidebar-open');
-        const closeBtn = document.getElementById('sidebar-close');
-
-        function openSidebar() {
-            if (window.innerWidth <= 600) {
-                sidebar.classList.add('open');
-                sidebar.style.left = '0';
-            } else {
-                sidebar.style.left = '0';
+        // MarketVibe Sidebar Management - Namespaced to prevent conflicts
+        (function() {
+            'use strict';
+            
+            // Get elements with namespaced IDs
+            const sidebar = document.getElementById('marketvibe-slide-sidebar');
+            const overlay = document.getElementById('marketvibe-sidebar-overlay');
+            const openBtn = document.getElementById('marketvibe-sidebar-open');
+            const closeBtn = document.getElementById('marketvibe-sidebar-close');
+            
+            // Debug logging
+            console.log('MarketVibe Sidebar Elements:', {
+                sidebar: sidebar,
+                overlay: overlay,
+                openBtn: openBtn,
+                closeBtn: closeBtn
+            });
+            
+            // Ensure sidebar is closed on page load
+            function initializeSidebar() {
+                console.log('Initializing sidebar...');
+                if (sidebar) {
+                    sidebar.classList.remove('active');
+                    const initialLeft = window.innerWidth <= 600 ? '-90vw' : '-320px';
+                    sidebar.style.left = initialLeft;
+                    console.log('Sidebar initialized with left:', initialLeft);
+                }
+                if (overlay) {
+                    overlay.classList.remove('active');
+                }
+                document.body.classList.remove('sidebar-open');
             }
-            overlay.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-        function closeSidebar() {
-            if (window.innerWidth <= 600) {
-                sidebar.classList.remove('open');
-                sidebar.style.left = '-90vw';
-            } else {
-                sidebar.style.left = '-320px';
+            
+            // Open sidebar function
+            function openSidebar() {
+                console.log('Opening sidebar...');
+                if (!sidebar || !overlay) {
+                    console.error('Sidebar or overlay elements not found');
+                    return;
+                }
+                
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                document.body.classList.add('sidebar-open');
+                
+                // Force the left position for immediate visual feedback
+                sidebar.style.left = '0';
+                
+                // Prevent body scroll
+                document.body.style.overflow = 'hidden';
+                
+                console.log('Sidebar opened successfully');
             }
-            overlay.style.display = 'none';
-            document.body.style.overflow = '';
-        }
-        openBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            openSidebar();
-        });
-        closeBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            closeSidebar();
-        });
-        overlay.addEventListener('click', closeSidebar);
+            
+            // Close sidebar function
+            function closeSidebar() {
+                console.log('Closing sidebar...');
+                if (!sidebar || !overlay) {
+                    console.error('Sidebar or overlay elements not found');
+                    return;
+                }
+                
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+                
+                // Set the correct closed position
+                const closedLeft = window.innerWidth <= 600 ? '-90vw' : '-320px';
+                sidebar.style.left = closedLeft;
+                
+                // Restore body scroll
+                document.body.style.overflow = '';
+                
+                console.log('Sidebar closed successfully');
+            }
+            
+            // Event listeners
+            if (openBtn) {
+                openBtn.addEventListener('click', function(e) {
+                    console.log('Open button clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openSidebar();
+                });
+            } else {
+                console.error('Open button not found');
+            }
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    console.log('Close button clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeSidebar();
+                });
+            } else {
+                console.error('Close button not found');
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    console.log('Overlay clicked');
+                    e.preventDefault();
+                    closeSidebar();
+                });
+            } else {
+                console.error('Overlay not found');
+            }
+            
+            // Close sidebar on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar && sidebar.classList.contains('active')) {
+                    console.log('Escape key pressed');
+                    closeSidebar();
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (sidebar && sidebar.classList.contains('active')) {
+                    // Ensure sidebar position is correct after resize
+                    setTimeout(() => {
+                        sidebar.style.left = '0';
+                    }, 100);
+                }
+            });
+            
+            // Initialize sidebar on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeSidebar);
+            } else {
+                initializeSidebar();
+            }
+            
+            // Additional safety: ensure sidebar is closed on page load
+            window.addEventListener('load', initializeSidebar);
+            
+        })();
     </script>
     <script>
         // Dropdown functionality

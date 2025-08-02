@@ -1,24 +1,26 @@
 # MarketVibe - Multi-Vendor E-commerce Platform
 
-A comprehensive multi-vendor e-commerce platform built with Django, featuring advanced seller/buyer management, Stripe Connect payment processing, dynamic product catalog, and robust order management system.
+A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featuring advanced seller/buyer management, Stripe Connect payment processing, dynamic product catalog, gift box campaigns, and robust order management system.
 
 ## 🚀 Features
 
 ### 🔐 Authentication & User Management
 - **Dual User Types**: Separate registration and management for Buyers and Sellers
 - **Secure Login**: Email-based authentication with password validation
-- **Profile Management**: Complete profile management with image upload support
+- **Profile Management**: Complete profile management with image upload support (BLOB storage)
 - **Account Deletion**: Secure account removal with complete data cleanup
 - **Session Management**: Secure login/logout functionality with proper session handling
 
 ### 🛍️ Buyer Features
 - **Buyer Registration**: Complete buyer account creation with profile setup
 - **Profile Management**: Update buyer information, profile pictures, and contact details
-- **Shopping Cart**: Advanced cart functionality with quantity management
+- **Shopping Cart**: Advanced cart functionality with quantity management and AJAX updates
 - **Wishlist Management**: Add/remove products to personal wishlist
 - **Address Management**: Store and manage shipping addresses
 - **Order History**: Complete order tracking and history
-- **Product Reviews**: Rate and review purchased products
+- **Product Reviews**: Rate and review purchased products with like/dislike system
+- **Gift Box Orders**: Special gift box campaign ordering system
+- **Order Tracking**: Real-time order status tracking with delivery estimates
 
 ### 🏪 Seller Features
 - **Seller Registration**: Complete seller onboarding with shop details
@@ -26,10 +28,12 @@ A comprehensive multi-vendor e-commerce platform built with Django, featuring ad
 - **Profile Management**: Update seller information and shop details
 - **Image Upload**: Profile and product image storage as BLOB in database
 - **Stripe Connect Integration**: Secure payment processing setup
-- **Product Management**: Comprehensive product CRUD operations
-- **Inventory Management**: Stock tracking and management
-- **Order Management**: Process and track customer orders
+- **Product Management**: Comprehensive product CRUD operations with dynamic forms
+- **Inventory Management**: Stock tracking and management with low stock alerts
+- **Order Management**: Process and track customer orders with status updates
 - **Revenue Tracking**: Monitor sales, revenue, and payouts
+- **Gift Box Campaigns**: Create and manage special gift box campaigns
+- **Promotion System**: Advanced promotion management with multiple types
 
 ### 🛒 Shopping & Cart System
 - **Dynamic Cart**: Real-time cart updates with AJAX
@@ -45,19 +49,19 @@ A comprehensive multi-vendor e-commerce platform built with Django, featuring ad
 - **Order Processing**: Complete order lifecycle management
 - **Payment Tracking**: Real-time payment status updates
 - **Webhook Integration**: Automated payment confirmation via Stripe webhooks
-- **Order Status Tracking**: Pending, Shipped, Delivered, Cancelled states
+- **Order Status Tracking**: Pending, Processing, Shipped, Delivered, Cancelled states
 - **Payment Records**: Complete payment transaction history
 
 ### 📦 Product Management
 - **Dynamic Product Creation**: Category-based dynamic form generation
-- **Product Categories**: Hierarchical category system with attributes
+- **Product Categories**: Hierarchical category system with 8 main categories and 40 subcategories
 - **Product Attributes**: Custom attributes per category (text, number, dropdown, boolean)
 - **Product Images**: Multiple image support with thumbnail designation
-- **Brand Management**: Product branding and logo support
+- **Brand Management**: Product branding and logo support with 32+ popular brands
 - **Product Conditions**: New, Used, Refurbished product states
 - **Pricing System**: Base price, discount percentage, and final price calculation
-- **Stock Management**: Real-time inventory tracking
-- **Product Reviews**: Customer rating and review system
+- **Stock Management**: Real-time inventory tracking with low stock notifications
+- **Product Reviews**: Customer rating and review system with like/dislike functionality
 
 ### 📊 Seller Dashboard
 - **Overview Dashboard**: Sales statistics, recent orders, and key metrics
@@ -68,28 +72,43 @@ A comprehensive multi-vendor e-commerce platform built with Django, featuring ad
 - **Promotion Management**: Create and manage product promotions
 - **Data Export**: Export orders and products as CSV
 - **Revenue Tracking**: Monitor earnings, payouts, and commission
+- **Gift Box Management**: Manage gift box campaigns and orders
+- **Notification System**: Real-time notifications for orders, stock, and payments
+
+### 🎁 Gift Box Campaigns
+- **Campaign Creation**: Sellers can create special gift box campaigns
+- **Buyer Selection**: Buyers can choose products for gift boxes
+- **Custom Messages**: Add personal messages to gift boxes
+- **Reveal Options**: Choose whether to reveal gift box contents
+- **Delivery Tracking**: Track gift box delivery status
+- **Campaign Management**: Manage multiple gift box campaigns
 
 ### 🔧 Advanced Features
 - **Dynamic Forms**: Category-based attribute forms for products
 - **Image Processing**: Base64 encoding for efficient image storage and display
 - **AJAX Integration**: Real-time updates without page refresh
-- **Responsive Design**: Mobile-friendly interface
+- **Responsive Design**: Mobile-friendly interface with modern CSS
 - **Search & Filter**: Product search and category filtering
 - **Pagination**: Efficient data loading for large datasets
 - **Error Handling**: Comprehensive error management and user feedback
 - **Security**: CSRF protection, form validation, and secure data handling
+- **Notification System**: Real-time notifications for buyers and sellers
+- **Activity Tracking**: Complete activity logging for sellers
 
 ## 🛠️ Technology Stack
 
 - **Backend**: Django 5.2.4
 - **Database**: SQLite (development) / PostgreSQL (production ready)
 - **Authentication**: Django's built-in authentication system
-- **Payment Processing**: Stripe Connect API
+- **Payment Processing**: Stripe Connect API (v12.3.0)
 - **File Storage**: Binary field storage for images (BLOB)
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **Charts**: Chart.js for analytics and reporting
 - **Styling**: Custom CSS with modern gradient designs
 - **AJAX**: Asynchronous data loading and updates
+- **Image Processing**: Base64 encoding for efficient storage
+- **Data Export**: CSV export functionality
+- **Environment**: Python 3.8+ with virtual environment support
 
 ## 📁 Project Structure
 
@@ -100,34 +119,45 @@ MarketVibe/
 │   ├── urls.py              # Main URL routing
 │   └── wsgi.py              # WSGI configuration
 ├── buyer/                   # Buyer app
-│   ├── models.py            # Buyer, Cart, Order, Payment models
+│   ├── models.py            # Buyer, Cart, Order, Payment, GiftBoxOrder models
 │   ├── views.py             # Buyer views and payment processing
 │   ├── forms.py             # Buyer forms
 │   ├── urls.py              # Buyer URL routing
 │   ├── utils_order.py       # Order processing utilities
+│   ├── context_processors.py # User sidebar data
 │   └── templates/buyer/     # Buyer templates
 │       ├── checkout_page.html
 │       ├── cart_page.html
 │       ├── buyer_profile.html
-│       ├── buyer_update.html
-│       └── buyer_delete.html
+│       ├── buyer_dashboard.html
+│       ├── giftbox_marketplace.html
+│       ├── giftbox_orders.html
+│       └── track_order.html
 ├── seller/                  # Seller app
-│   ├── models.py            # Seller, Product, Category models
+│   ├── models.py            # Seller, Product, Category, Promotion models
 │   ├── views.py             # Seller views and dashboard
 │   ├── forms.py             # Seller and product forms
 │   ├── urls.py              # Seller URL routing
+│   ├── signals.py           # Django signals for notifications
+│   ├── templatetags/        # Custom template tags
 │   ├── management/          # Custom management commands
 │   │   └── commands/
 │   │       ├── populate_categories.py
-│   │       └── populate_attribute_options.py
+│   │       ├── populate_brands.py
+│   │       ├── populate_all_data.py
+│   │       └── populate_activities_notifications.py
+│   ├── static/seller/       # Static assets
+│   │   ├── css/
+│   │   └── js/
 │   └── templates/seller/    # Seller templates
 │       ├── seller_dashboard.html
 │       ├── product_form.html
 │       ├── product_list.html
-│       ├── seller_profile.html
-│       └── register.html
+│       ├── giftbox_campaigns.html
+│       └── promotions_list.html
 ├── manage.py
 ├── requirements.txt
+├── django_design_system.md  # Design system documentation
 └── README.md
 ```
 
@@ -178,10 +208,15 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### Step 7: Populate Categories (Optional)
+### Step 7: Populate Sample Data (Recommended)
 ```bash
+# Populate all data (categories, brands, etc.)
+python manage.py populate_all_data
+
+# Or run individual commands:
 python manage.py populate_categories
-python manage.py populate_attribute_options
+python manage.py populate_brands
+python manage.py populate_activities_notifications
 ```
 
 ### Step 8: Run Development Server
@@ -213,6 +248,7 @@ Visit `http://localhost:8080/` to access the application.
 - **Reports**: View sales analytics and revenue reports
 - **Profile**: Update seller information and shop details
 - **Promotions**: Create and manage product promotions
+- **Gift Boxes**: Manage gift box campaigns and orders
 - **Export**: Download order and product data as CSV
 
 ### Buyer Shopping Experience
@@ -223,6 +259,13 @@ Visit `http://localhost:8080/` to access the application.
 5. Proceed to checkout with shipping address
 6. Choose payment method (Stripe or COD)
 7. Complete order and track delivery status
+
+### Gift Box Campaigns
+1. Sellers create gift box campaigns with fixed pricing
+2. Buyers browse available gift box campaigns
+3. Buyers select products for their gift box
+4. Add personal messages and choose reveal options
+5. Complete purchase and track delivery
 
 ### Payment Processing
 - **Stripe Integration**: Secure online payments with card processing
@@ -293,6 +336,8 @@ python manage.py test
 - `GET /buyer/checkout/` - Checkout page
 - `POST /buyer/place-order/` - Place COD order
 - `POST /buyer/stripe/process-payment/` - Process Stripe payment
+- `GET /buyer/gift-boxes/` - Browse gift box campaigns
+- `POST /buyer/gift-boxes/buy/` - Purchase gift box
 
 ### Seller Endpoints
 - `GET /seller/profile/` - View seller profile
@@ -306,6 +351,7 @@ python manage.py test
 - `POST /seller/products/<id>/delete/` - Delete product
 - `GET /seller/reports/` - Sales reports
 - `POST /seller/promotions/create/` - Create promotion
+- `GET /seller/giftbox-campaigns/` - Manage gift box campaigns
 - `GET /seller/export/` - Export data
 
 ### Stripe Endpoints
@@ -332,6 +378,7 @@ python manage.py test
 - **Interactive Dashboard**: Real-time updates and charts
 - **Professional Layout**: Card-based design for better organization
 - **Image Preview**: Real-time image upload previews
+- **Dark Mode Support**: Theme switching capability
 
 ## 💳 Payment Features
 
@@ -352,6 +399,23 @@ python manage.py test
 - **Chart Visualization**: Interactive charts using Chart.js
 - **Data Export**: CSV export functionality
 - **Real-time Updates**: Live dashboard updates
+
+## 🎁 Gift Box System
+
+- **Campaign Management**: Sellers create gift box campaigns
+- **Product Selection**: Buyers choose products for gift boxes
+- **Custom Messages**: Personal messages for gift recipients
+- **Reveal Options**: Choose to reveal or hide gift contents
+- **Delivery Tracking**: Track gift box delivery status
+- **Fixed Pricing**: Simplified pricing for gift boxes
+
+## 🔔 Notification System
+
+- **Real-time Notifications**: Instant updates for orders and payments
+- **Email Notifications**: Automated email alerts
+- **Dashboard Alerts**: Visual notification indicators
+- **Activity Logging**: Complete activity tracking
+- **Customizable Settings**: User preference management
 
 ## 🤝 Contributing
 

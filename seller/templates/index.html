@@ -281,10 +281,11 @@
         .hero {
             background: linear-gradient(135deg, #a8e6cf, #7fcdcd);
             border-radius: 12px;
-            padding: 40px;
+            padding: 0;
             margin-bottom: 30px;
             position: relative;
             overflow: hidden;
+            min-height: 200px;
         }
 
         .hero-content {
@@ -325,8 +326,140 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            color: #666;
+            gap: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .hero-product-image {
+            flex: 1;
+            height: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .hero-product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        
+        .hero-product-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 6px;
+            color: #4285f4;
+            font-size: 24px;
+        }
+        
+        /* MarketVibe Carousel Styles - Namespaced to prevent conflicts */
+        .marketvibe-carousel {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .marketvibe-carousel-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .marketvibe-carousel-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease-in-out, visibility 0.6s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px;
+        }
+        
+        .marketvibe-carousel-slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .marketvibe-carousel-prev,
+        .marketvibe-carousel-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.395);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #4285f4;
+            font-size: 16px;
+            z-index: 100;
+        }
+        
+        .marketvibe-carousel-prev {
+            left: 20px;
+        }
+        
+        .marketvibe-carousel-next {
+            right: 20px;
+        }
+        
+        .marketvibe-carousel-prev:hover,
+        .marketvibe-carousel-next:hover {
+            background: rgba(255, 255, 255, 0.689);
+            
+        }
+        
+        .marketvibe-carousel-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+        
+        .marketvibe-carousel-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .marketvibe-carousel-indicator.active {
+            background: #4285f4;
+            transform: scale(1.2);
+        }
+        
+        .marketvibe-carousel-indicator:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .marketvibe-carousel-indicator.active:hover {
+            background: #3367d6;
         }
 
         /* User Welcome */
@@ -1131,7 +1264,7 @@
                 font-size: 12px;
             }
         }
-        
+
         @media (max-width: 480px) {
             .container {
                 padding: 0 10px;
@@ -1195,6 +1328,47 @@
 
             .hero h2 {
                 font-size: 22px;
+            }
+            
+            .hero-image {
+                width: 150px;
+                height: 90px;
+                right: 20px;
+                gap: 6px;
+                padding: 8px;
+            }
+            
+            .hero-product-placeholder {
+                font-size: 18px;
+            }
+            
+            .marketvibe-carousel-slide {
+                padding: 20px;
+            }
+            
+            .marketvibe-carousel-nav {
+                bottom: 10px;
+                gap: 15px;
+            }
+            
+            .marketvibe-carousel-prev,
+            .marketvibe-carousel-next {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+            
+            .marketvibe-carousel-prev {
+                left: 15px;
+            }
+            
+            .marketvibe-carousel-next {
+                right: 15px;
+            }
+            
+            .marketvibe-carousel-indicator {
+                width: 10px;
+                height: 10px;
             }
             
             .header-actions {
@@ -1679,14 +1853,134 @@
 
                 <!-- Content -->
                 <div class="content">
-                    <!-- Hero Section -->
+                    <!-- Hero Section Carousel -->
                     <section class="hero">
-                        <div class="hero-content">
-                            <h2>Latest trending<br>Electronic items</h2>
-                            <button class="hero-btn">Learn more</button>
-                        </div>
-                        <div class="hero-image">
-                            <span>Electronic devices image</span>
+                        <div class="marketvibe-carousel">
+                            <div class="marketvibe-carousel-container">
+                                <!-- Slide 1: Electronics -->
+                                <div class="marketvibe-carousel-slide active" data-slide="0">
+                                    <div class="hero-content">
+                                        <h2>Latest trending<br>Electronic items</h2>
+                                        <button class="hero-btn">Learn more</button>
+                                    </div>
+                                    <div class="hero-image">
+                                        {% if electronics_products %}
+                                            {% for product in electronics_products|slice:":3" %}
+                                                <div class="hero-product-image">
+                                                    {% if product.thumbnail_image %}
+                                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
+                                                    {% else %}
+                                                        <div class="hero-product-placeholder">
+                                                            <i class="fas fa-mobile-alt"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="hero-product-placeholder">
+                                                <i class="fas fa-mobile-alt"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Slide 2: Furniture -->
+                                <div class="marketvibe-carousel-slide" data-slide="1">
+                                    <div class="hero-content">
+                                        <h2>Premium<br>Furniture Collection</h2>
+                                        <button class="hero-btn">Learn more</button>
+                                    </div>
+                                    <div class="hero-image">
+                                        {% if furniture_products %}
+                                            {% for product in furniture_products|slice:":3" %}
+                                                <div class="hero-product-image">
+                                                    {% if product.thumbnail_image %}
+                                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
+                                                    {% else %}
+                                                        <div class="hero-product-placeholder">
+                                                            <i class="fas fa-couch"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="hero-product-placeholder">
+                                                <i class="fas fa-couch"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Slide 3: Sports & Outdoor -->
+                                <div class="marketvibe-carousel-slide" data-slide="2">
+                                    <div class="hero-content">
+                                        <h2>Sports & Outdoor<br>Equipment</h2>
+                                        <button class="hero-btn">Learn more</button>
+                                    </div>
+                                    <div class="hero-image">
+                                        {% if sports_products %}
+                                            {% for product in sports_products|slice:":3" %}
+                                                <div class="hero-product-image">
+                                                    {% if product.thumbnail_image %}
+                                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
+                                                    {% else %}
+                                                        <div class="hero-product-placeholder">
+                                                            <i class="fas fa-dumbbell"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="hero-product-placeholder">
+                                                <i class="fas fa-dumbbell"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Slide 4: Clothing -->
+                                <div class="marketvibe-carousel-slide" data-slide="3">
+                                    <div class="hero-content">
+                                        <h2>Fashion &<br>Clothing Trends</h2>
+                                        <button class="hero-btn">Learn more</button>
+                                    </div>
+                                    <div class="hero-image">
+                                        {% if clothing_products %}
+                                            {% for product in clothing_products|slice:":3" %}
+                                                <div class="hero-product-image">
+                                                    {% if product.thumbnail_image %}
+                                                        <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
+                                                    {% else %}
+                                                        <div class="hero-product-placeholder">
+                                                            <i class="fas fa-tshirt"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="hero-product-placeholder">
+                                                <i class="fas fa-tshirt"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Carousel Navigation -->
+                            <button class="marketvibe-carousel-prev" aria-label="Previous slide">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="marketvibe-carousel-next" aria-label="Next slide">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            
+                            <!-- Carousel Indicators -->
+                            <div class="marketvibe-carousel-indicators">
+                                <button class="marketvibe-carousel-indicator active" data-slide="0" aria-label="Go to slide 1"></button>
+                                <button class="marketvibe-carousel-indicator" data-slide="1" aria-label="Go to slide 2"></button>
+                                <button class="marketvibe-carousel-indicator" data-slide="2" aria-label="Go to slide 3"></button>
+                                <button class="marketvibe-carousel-indicator" data-slide="3" aria-label="Go to slide 4"></button>
+                            </div>
                         </div>
                     </section>
 
@@ -1809,7 +2103,7 @@
                             <button class="source-btn">Source now</button>
                         </div>
                         <div class="category-grid">
-                                                {% for product in electronics_products %}
+                            {% for product in electronics_products %}
                         <a href="{% url 'sellers:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
                                 <div class="item-image">
@@ -2357,6 +2651,171 @@
             });
         });
     </script>
+    
+    <!-- MarketVibe Carousel JavaScript -->
+    <script>
+        // MarketVibe Carousel Management - Namespaced to prevent conflicts
+        (function() {
+            'use strict';
+            
+            const carousel = document.querySelector('.marketvibe-carousel');
+            if (!carousel) {
+                console.error('MarketVibe Carousel not found');
+                return;
+            }
+            console.log('MarketVibe Carousel found:', carousel);
+            
+            const slides = carousel.querySelectorAll('.marketvibe-carousel-slide');
+            const indicators = carousel.querySelectorAll('.marketvibe-carousel-indicator');
+            const prevBtn = carousel.querySelector('.marketvibe-carousel-prev');
+            const nextBtn = carousel.querySelector('.marketvibe-carousel-next');
+            
+            console.log('Carousel elements found:', {
+                slides: slides.length,
+                indicators: indicators.length,
+                prevBtn: !!prevBtn,
+                nextBtn: !!nextBtn
+            });
+            
+            let currentSlide = 0;
+            let autoPlayInterval;
+            const autoPlayDelay = 5000; // 5 seconds
+            
+            // Initialize carousel
+            function initCarousel() {
+                console.log('Initializing MarketVibe Carousel...');
+                console.log('Slides found:', slides.length);
+                console.log('Indicators found:', indicators.length);
+                console.log('Prev button found:', !!prevBtn);
+                console.log('Next button found:', !!nextBtn);
+                
+                if (slides.length === 0) {
+                    console.error('No slides found in carousel');
+                    return;
+                }
+                
+                // Set initial slide
+                showSlide(0);
+                console.log('Initial slide set to 0');
+                
+                // Start autoplay
+                startAutoPlay();
+                
+                // Add event listeners
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', previousSlide);
+                    console.log('Previous button event listener added');
+                }
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', nextSlide);
+                    console.log('Next button event listener added');
+                }
+                
+                // Add indicator event listeners
+                indicators.forEach((indicator, index) => {
+                    indicator.addEventListener('click', () => goToSlide(index));
+                });
+                console.log('Indicator event listeners added');
+                
+                // Pause autoplay on hover
+                carousel.addEventListener('mouseenter', pauseAutoPlay);
+                carousel.addEventListener('mouseleave', startAutoPlay);
+                
+                // Pause autoplay on focus (for accessibility)
+                carousel.addEventListener('focusin', pauseAutoPlay);
+                carousel.addEventListener('focusout', startAutoPlay);
+                
+                // Handle keyboard navigation
+                carousel.addEventListener('keydown', handleKeyboard);
+                
+                console.log('MarketVibe Carousel initialized successfully');
+            }
+            
+            // Show specific slide
+            function showSlide(index) {
+                console.log('Showing slide:', index);
+                
+                // Remove active class from all slides and indicators
+                slides.forEach(slide => slide.classList.remove('active'));
+                indicators.forEach(indicator => indicator.classList.remove('active'));
+                
+                // Add active class to current slide and indicator
+                if (slides[index]) {
+                    slides[index].classList.add('active');
+                    console.log('Activated slide:', index);
+                }
+                if (indicators[index]) {
+                    indicators[index].classList.add('active');
+                    console.log('Activated indicator:', index);
+                }
+                
+                currentSlide = index;
+            }
+            
+            // Next slide
+            function nextSlide() {
+                const nextIndex = (currentSlide + 1) % slides.length;
+                showSlide(nextIndex);
+            }
+            
+            // Previous slide
+            function previousSlide() {
+                const prevIndex = currentSlide === 0 ? slides.length - 1 : currentSlide - 1;
+                showSlide(prevIndex);
+            }
+            
+            // Go to specific slide
+            function goToSlide(index) {
+                if (index >= 0 && index < slides.length) {
+                    showSlide(index);
+                }
+            }
+            
+            // Start autoplay
+            function startAutoPlay() {
+                if (autoPlayInterval) clearInterval(autoPlayInterval);
+                autoPlayInterval = setInterval(nextSlide, autoPlayDelay);
+            }
+            
+            // Pause autoplay
+            function pauseAutoPlay() {
+                if (autoPlayInterval) {
+                    clearInterval(autoPlayInterval);
+                    autoPlayInterval = null;
+                }
+            }
+            
+            // Handle keyboard navigation
+            function handleKeyboard(e) {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        previousSlide();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        nextSlide();
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        goToSlide(0);
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        goToSlide(slides.length - 1);
+                        break;
+                }
+            }
+            
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCarousel);
+            } else {
+                initCarousel();
+            }
+            
+        })();
+    </script>
     <script>
         // MarketVibe Sidebar Management - Namespaced to prevent conflicts
         (function() {
@@ -2392,7 +2851,7 @@
             }
             
             // Open sidebar function
-            function openSidebar() {
+        function openSidebar() {
                 console.log('Opening sidebar...');
                 if (!sidebar || !overlay) {
                     console.error('Sidebar or overlay elements not found');
@@ -2407,13 +2866,13 @@
                 sidebar.style.left = '0';
                 
                 // Prevent body scroll
-                document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
                 
                 console.log('Sidebar opened successfully');
-            }
+        }
             
             // Close sidebar function
-            function closeSidebar() {
+        function closeSidebar() {
                 console.log('Closing sidebar...');
                 if (!sidebar || !overlay) {
                     console.error('Sidebar or overlay elements not found');
@@ -2429,30 +2888,30 @@
                 sidebar.style.left = closedLeft;
                 
                 // Restore body scroll
-                document.body.style.overflow = '';
+            document.body.style.overflow = '';
                 
                 console.log('Sidebar closed successfully');
-            }
+        }
             
             // Event listeners
             if (openBtn) {
-                openBtn.addEventListener('click', function(e) {
+        openBtn.addEventListener('click', function(e) {
                     console.log('Open button clicked');
-                    e.preventDefault();
+            e.preventDefault();
                     e.stopPropagation();
-                    openSidebar();
-                });
+            openSidebar();
+        });
             } else {
                 console.error('Open button not found');
             }
             
             if (closeBtn) {
-                closeBtn.addEventListener('click', function(e) {
+        closeBtn.addEventListener('click', function(e) {
                     console.log('Close button clicked');
-                    e.preventDefault();
+            e.preventDefault();
                     e.stopPropagation();
-                    closeSidebar();
-                });
+            closeSidebar();
+        });
             } else {
                 console.error('Close button not found');
             }

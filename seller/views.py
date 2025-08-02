@@ -3618,3 +3618,54 @@ def shipping_view(request):
         'user': request.user if request.user.is_authenticated else None,
     }
     return render(request, 'seller/shipping.html', context)
+
+@csrf_exempt
+def search_suggestions(request):
+    """AJAX endpoint for search suggestions"""
+    query = request.GET.get('q', '').strip()
+    category_id = request.GET.get('category', '')
+    
+    if not query or len(query) < 2:
+        return JsonResponse({'suggestions': []})
+    
+    # Build the base queryset
+    products = Product.objects.select_related('seller', 'category', 'brand').prefetch_related('images').filter(
+        Q(name__icontains=query) | 
+        Q(unique_id__icontains=query) |
+        Q(description__icontains=query)
+    )
+    
+    # Apply category filter if specified
+    if category_id:
+        try:
+            category = Category.objects.get(id=category_id)
+            # Include both the category and its children
+            child_categories = Category.objects.filter(parent=category)
+            category_ids = [category.id] + list(child_categories.values_list('id', flat=True))
+            products = products.filter(category_id__in=category_ids)
+        except Category.DoesNotExist:
+            pass
+    
+    # Limit to 8 suggestions for performance
+    products = products[:8]
+    
+    suggestions = []
+    for product in products:
+        # Get the first image for the product
+        first_image = product.images.first()
+        image_url = None
+        if first_image:
+            image_url = f"data:image/jpeg;base64,{base64.b64encode(first_image.image).decode('utf-8')}"
+        
+        suggestions.append({
+            'id': product.id,
+            'name': product.name,
+            'unique_id': product.unique_id,
+            'price': float(product.calculated_final_price),
+            'category': product.category.name,
+            'seller': product.seller.shop_name,
+            'image_url': image_url,
+            'url': reverse('sellers:product_page', args=[product.id])
+        })
+    
+    return JsonResponse({'suggestions': suggestions})

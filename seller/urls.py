@@ -96,4 +96,7 @@ urlpatterns += [
     path('information/', views.information_view, name='information'),
     path('money-refund/', views.money_refund_view, name='money_refund'),
     path('shipping/', views.shipping_view, name='shipping'),
+    
+    # Search functionality
+    path('search-suggestions/', views.search_suggestions, name='search_suggestions'),
 ]

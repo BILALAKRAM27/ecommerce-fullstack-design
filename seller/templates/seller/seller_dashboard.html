@@ -4144,7 +4144,7 @@ body.modal-open {
         <div class="ml-6" style="margin-left: 10px;color: #111827;">
           <h1 class="text-3xl font-bold mb-2" id="shopName">{{ seller.shop_name|default:"My Shop" }}</h1>
           <p class="text-lg opacity-90" id="shopBio">{{ seller.shop_description|default:"Welcome to my store!" }}</p>
-          <a href="{% url 'seller:seller_profile' %}">
+          <a href="{% url 'sellers:seller_profile' %}">
             <button class="btn btn-default " style="color: white;background-color: #3b82f6;border-color: white;margin-top: 15px;" >
               View Profile
           </button>
@@ -4234,7 +4234,7 @@ body.modal-open {
               <div class="orders-subtitle">Track and manage your customer orders</div>
             </div>
             <div class="orders-actions">
-              <a href="{% url 'seller:orders_list' %}" class="view-all-orders-btn">
+              <a href="{% url 'sellers:orders_list' %}" class="view-all-orders-btn">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                 </svg>
@@ -4351,7 +4351,7 @@ body.modal-open {
               <div class="products-subtitle">Manage your product inventory and sales</div>
             </div>
             <div class="products-actions">
-              <a href="{% url 'seller:products_list' %}" class="view-all-btn">
+              <a href="{% url 'sellers:products_list' %}" class="view-all-btn">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                 </svg>
@@ -4706,7 +4706,7 @@ body.modal-open {
               <div class="giftboxes-subtitle">Manage your gift box campaigns and orders</div>
             </div>
             <div class="giftboxes-actions">
-              <a href="{% url 'seller:giftbox_campaigns' %}" class="view-all-btn">
+              <a href="{% url 'sellers:giftbox_campaigns' %}" class="view-all-btn">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                 </svg>
@@ -4773,7 +4773,7 @@ body.modal-open {
             <div class="giftboxes-table-section">
               <div class="giftboxes-table-header">
                 <h4>Recent Gift Box Orders</h4>
-                <a href="{% url 'seller:giftbox_orders' %}" class="view-all-link">View All</a>
+                <a href="{% url 'sellers:giftbox_orders' %}" class="view-all-link">View All</a>
               </div>
               
               <div class="giftboxes-table">
@@ -4827,7 +4827,7 @@ body.modal-open {
                     <div class="empty-icon">🎁</div>
                     <h4>No Gift Box Orders Yet</h4>
                     <p>Gift box orders from customers will appear here</p>
-                                         <a href="{% url 'seller:giftbox_campaigns' %}" class="btn btn-primary">Join a Campaign</a>
+                                         <a href="{% url 'sellers:giftbox_campaigns' %}" class="btn btn-primary">Join a Campaign</a>
                   </div>
                   {% endfor %}
                 </div>
@@ -4997,7 +4997,7 @@ body.modal-open {
         </div>
         <div class="card-body space-y-3" >
 
-          <a href="{% url 'seller:product_create' %}" class="btn btn-secondary w-full">
+          <a href="{% url 'sellers:product_create' %}" class="btn btn-secondary w-full">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
@@ -7583,11 +7583,11 @@ window.testExportData = function() {
 
 // Gift Boxes Tab Functions
 function openGiftBoxCampaigns() {
-  window.location.href = "{% url 'seller:giftbox_campaigns' %}";
+  window.location.href = "{% url 'sellers:giftbox_campaigns' %}";
 }
 
 function openGiftBoxOrders() {
-  window.location.href = "{% url 'seller:giftbox_orders' %}";
+  window.location.href = "{% url 'sellers:giftbox_orders' %}";
 }
 
 function fulfillGiftBoxOrder(orderId) {

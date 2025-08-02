@@ -793,7 +793,7 @@
                     <footer class="card-footer">
                         <div class="action-buttons">
                             {% if order.status == 'pending' %}
-                            <a href="{% url 'seller:fulfill_giftbox_order' order.id %}" class="btn btn-primary">
+                            <a href="{% url 'sellers:fulfill_giftbox_order' order.id %}" class="btn btn-primary">
                                 Fulfill Order
                             </a>
                             {% else %}

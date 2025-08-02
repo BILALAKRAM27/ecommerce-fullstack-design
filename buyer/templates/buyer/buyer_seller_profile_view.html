@@ -660,7 +660,7 @@
                     <h2>Products by {{ seller.shop_name }}</h2>
                     <div class="products-grid">
                                                  {% for product in products %}
-                             <a href="{% url 'seller:product_page' product.id %}" class="product-card">
+                             <a href="{% url 'sellers:product_page' product.id %}" class="product-card">
                                  {% if product.images.first and product.images.first.image_data %}
                                      <img src="data:image/jpeg;base64,{{ product.images.first.image_data }}" alt="{{ product.name }}" class="product-image">
                                  {% elif product.image_data %}
@@ -678,7 +678,7 @@
                     
                     {% if total_products > 6 %}
                         <div style="text-align: center; margin-top: 2rem;">
-                            <a href="{% url 'seller:product_listing' %}?seller={{ seller.id }}" class="btn btn-primary">
+                            <a href="{% url 'sellers:product_listing' %}?seller={{ seller.id }}" class="btn btn-primary">
                                 View All {{ total_products }} Products
                             </a>
                         </div>

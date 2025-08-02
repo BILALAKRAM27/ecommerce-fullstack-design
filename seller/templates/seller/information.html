@@ -1,0 +1,153 @@
+{% extends 'index.html' %}
+{% load b64filters %}
+{% load static %}
+{% csrf_token %}
+
+{% block title %}Information - MarketVibe{% endblock %}
+
+{% block content %}
+<div class="info-container">
+    <div class="hero-section">
+        <div class="container">
+            <h1>About MarketVibe</h1>
+            <p>Your trusted multi-vendor e-commerce platform</p>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="container">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h2>Platform Overview</h2>
+                    <p>MarketVibe is a comprehensive multi-vendor e-commerce platform designed to connect buyers and sellers in a secure, efficient, and user-friendly environment. Our platform supports both individual sellers and established businesses, providing them with the tools they need to succeed in the digital marketplace.</p>
+                </div>
+
+                <div class="info-card">
+                    <h2>For Buyers</h2>
+                    <ul>
+                        <li>Browse products from multiple sellers</li>
+                        <li>Secure payment processing</li>
+                        <li>Real-time order tracking</li>
+                        <li>Product reviews and ratings</li>
+                        <li>Gift box campaigns</li>
+                        <li>Wishlist management</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h2>For Sellers</h2>
+                    <ul>
+                        <li>Easy product management</li>
+                        <li>Advanced analytics dashboard</li>
+                        <li>Direct payment processing</li>
+                        <li>Inventory management</li>
+                        <li>Promotion tools</li>
+                        <li>Order fulfillment system</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h2>Key Features</h2>
+                    <ul>
+                        <li>Multi-vendor support</li>
+                        <li>Secure payment processing</li>
+                        <li>Responsive design</li>
+                        <li>Real-time notifications</li>
+                        <li>Advanced search and filters</li>
+                        <li>Gift box campaigns</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.content-section {
+    padding: 4rem 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.info-card h2 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.info-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.info-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.info-card li {
+    padding: 0.5rem 0;
+    color: #666;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.info-card li:before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %} 

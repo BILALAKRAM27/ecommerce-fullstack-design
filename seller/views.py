@@ -3565,3 +3565,56 @@ def get_seller_reviews(request, seller_id):
         
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+def about_view(request):
+    """About Us page view"""
+    context = {
+        'title': 'About Us - MarketVibe',
+        'user': request.user if request.user.is_authenticated else None,
+    }
+    return render(request, 'seller/about.html', context)
+
+
+def find_store_view(request):
+    """Find Store page view"""
+    context = {
+        'title': 'Find Store - MarketVibe',
+        'user': request.user if request.user.is_authenticated else None,
+    }
+    return render(request, 'seller/find_store.html', context)
+
+
+def partnership_view(request):
+    """Partnership page view"""
+    context = {
+        'title': 'Partnership - MarketVibe',
+        'user': request.user if request.user.is_authenticated else None,
+    }
+    return render(request, 'seller/partnership.html', context)
+
+
+def information_view(request):
+    """Information page view"""
+    context = {
+        'title': 'Information - MarketVibe',
+        'user': request.user if request.user.is_authenticated else None,
+    }
+    return render(request, 'seller/information.html', context)
+
+
+def money_refund_view(request):
+    """Money Refund Policy page view"""
+    context = {
+        'title': 'Money Refund Policy - MarketVibe',
+        'user': request.user if request.user.is_authenticated else None,
+    }
+    return render(request, 'seller/money_refund.html', context)
+
+
+def shipping_view(request):
+    """Shipping Policy page view"""
+    context = {
+        'title': 'Shipping Policy - MarketVibe',
+        'user': request.user if request.user.is_authenticated else None,
+    }
+    return render(request, 'seller/shipping.html', context)

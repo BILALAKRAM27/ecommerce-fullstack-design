@@ -88,4 +88,12 @@ urlpatterns += [
     path('reviews/<str:review_type>/<int:review_id>/like/', views.like_review, name='like_review'),
     path('products/<int:product_id>/reviews/', views.get_product_reviews, name='get_product_reviews'),
     path('seller/<int:seller_id>/reviews/', views.get_seller_reviews, name='get_seller_reviews'),
+    
+    # New Template URLs
+    path('about/', views.about_view, name='about'),
+    path('find-store/', views.find_store_view, name='find_store'),
+    path('partnership/', views.partnership_view, name='partnership'),
+    path('information/', views.information_view, name='information'),
+    path('money-refund/', views.money_refund_view, name='money_refund'),
+    path('shipping/', views.shipping_view, name='shipping'),
 ]

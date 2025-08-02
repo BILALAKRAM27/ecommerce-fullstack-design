@@ -726,7 +726,7 @@
                                     {{ attr.attribute.name }}: {{ attr.value }}{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
                             </div>
-                            <div class="item-seller">Seller: {{ item.product.seller.shop_name }}</div>
+                            <div class="item-seller">sellers: {{ item.product.seller.shop_name }}</div>
                             <div class="item-actions">
                                 <button class="remove-btn">Remove</button>
                                 <button class="save-btn">Save for later</button>
@@ -755,14 +755,14 @@
                 {% endfor %}
                     </div>
                     <div class="cart-footer">
-                        <a href="{% url 'seller:index' %}" class="back-btn">Back to shop</a>
+                        <a href="{% url 'sellers:index' %}" class="back-btn">Back to shop</a>
                         <button class="remove-all-btn">Remove all</button>
                     </div>
                 {% else %}
                     <div class="empty-cart">
                         <i class="fas fa-shopping-cart"></i>
                         <p>Your cart is empty</p>
-                        <a href="{% url 'seller:index' %}" class="shop-now-link">
+                        <a href="{% url 'sellers:index' %}" class="shop-now-link">
                             Continue Shopping
                         </a>
                     </div>

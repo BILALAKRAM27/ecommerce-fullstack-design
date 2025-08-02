@@ -1,0 +1,366 @@
+{% extends 'index.html' %}
+{% load b64filters %}
+{% load static %}
+{% csrf_token %}
+
+{% block title %}Shipping Policy - MarketVibe{% endblock %}
+
+{% block content %}
+<div class="shipping-container">
+    <div class="hero-section">
+        <div class="container">
+            <h1>Shipping Policy</h1>
+            <p>Fast, reliable shipping to your doorstep</p>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="container">
+            <div class="shipping-card">
+                <div class="policy-header">
+                    <i class="fas fa-shipping-fast"></i>
+                    <h2>Flat Rate Shipping</h2>
+                </div>
+                
+                <div class="policy-content">
+                    <div class="shipping-highlight">
+                        <div class="price-badge">
+                            <span class="currency">$</span>
+                            <span class="amount">15</span>
+                            <span class="per">per order</span>
+                        </div>
+                        <p>Standard shipping rate for all orders</p>
+                    </div>
+                    
+                    <div class="policy-details">
+                        <h3>Shipping Information:</h3>
+                        <ul>
+                            <li>Flat rate of $15 per order regardless of order size</li>
+                            <li>Standard delivery time: 3-7 business days</li>
+                            <li>Free shipping on orders over $100</li>
+                            <li>Express shipping available for additional cost</li>
+                            <li>Tracking number provided for all shipments</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="policy-details">
+                        <h3>Multi-Vendor Orders:</h3>
+                        <ul>
+                            <li>When purchasing from multiple vendors, shipping cost is split fairly</li>
+                            <li>Each vendor ships their portion of your order</li>
+                            <li>You may receive multiple packages for one order</li>
+                            <li>Individual tracking numbers for each vendor's shipment</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="policy-details">
+                        <h3>Shipping Zones:</h3>
+                        <div class="zones-grid">
+                            <div class="zone-card">
+                                <h4>Domestic</h4>
+                                <p>3-5 business days</p>
+                                <span class="zone-price">$15</span>
+                            </div>
+                            <div class="zone-card">
+                                <h4>International</h4>
+                                <p>7-14 business days</p>
+                                <span class="zone-price">$25</span>
+                            </div>
+                            <div class="zone-card">
+                                <h4>Express</h4>
+                                <p>1-2 business days</p>
+                                <span class="zone-price">$30</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="policy-details">
+                        <h3>Order Processing:</h3>
+                        <ol>
+                            <li>Orders are processed within 24 hours</li>
+                            <li>You'll receive a confirmation email with tracking information</li>
+                            <li>Vendors ship within 1-2 business days</li>
+                            <li>Real-time tracking updates via email</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <h3>Shipping Questions?</h3>
+                        <p>For specific shipping inquiries or to track your order, please contact the seller directly through their store page.</p>
+                        <div class="contact-buttons">
+                            <a href="/support/" class="support-btn">
+                                <i class="fas fa-headset"></i>
+                                Contact Support
+                            </a>
+                            <a href="/track-order/" class="track-btn">
+                                <i class="fas fa-truck"></i>
+                                Track Order
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.shipping-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.content-section {
+    padding: 4rem 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.shipping-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.policy-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.policy-header i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.policy-header h2 {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.policy-content {
+    padding: 3rem;
+}
+
+.shipping-highlight {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    border: 2px solid #667eea;
+}
+
+.price-badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    margin-bottom: 1rem;
+}
+
+.currency {
+    font-size: 1.5rem;
+    color: #667eea;
+    font-weight: bold;
+}
+
+.amount {
+    font-size: 3rem;
+    color: #667eea;
+    font-weight: bold;
+}
+
+.per {
+    font-size: 1rem;
+    color: #666;
+}
+
+.shipping-highlight p {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.policy-details {
+    margin-bottom: 2rem;
+}
+
+.policy-details h3 {
+    color: #333;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.policy-details h3:before {
+    content: '🚚';
+    font-size: 1.2rem;
+}
+
+.policy-details ul,
+.policy-details ol {
+    color: #666;
+    line-height: 1.8;
+    padding-left: 1.5rem;
+}
+
+.policy-details li {
+    margin-bottom: 0.5rem;
+}
+
+.zones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.zone-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+    transition: transform 0.3s ease;
+}
+
+.zone-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.zone-card h4 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.zone-card p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.zone-price {
+    background: #667eea;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.contact-info {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.contact-info h3 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.contact-info p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.contact-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.support-btn,
+.track-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.support-btn {
+    background: #667eea;
+    color: white;
+}
+
+.track-btn {
+    background: #28a745;
+    color: white;
+}
+
+.support-btn:hover,
+.track-btn:hover {
+    transform: translateY(-2px);
+}
+
+.support-btn:hover {
+    background: #5a6fd8;
+}
+
+.track-btn:hover {
+    background: #218838;
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .policy-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .policy-content {
+        padding: 2rem;
+    }
+    
+    .amount {
+        font-size: 2.5rem;
+    }
+    
+    .zones-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .contact-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+{% endblock %} 

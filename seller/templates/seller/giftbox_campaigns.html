@@ -432,7 +432,7 @@
                     <p class="page-subtitle">Manage your active campaigns and join new opportunities to boost your sales</p>
                 </div>
             </div>
-            <a href="{% url 'seller:giftbox_orders' %}" class="btn btn-primary" style="margin-left: 20px; text-decoration: none; color: white;">View Orders</a>
+            <a href="{% url 'sellers:giftbox_orders' %}" class="btn btn-primary" style="margin-left: 20px; text-decoration: none; color: white;">View Orders</a>
 
         </header>
 
@@ -499,7 +499,7 @@
                                 Already Joined
                             </button>
                             {% else %}
-                            <form method="post" action="{% url 'seller:join_giftbox_campaign' campaign.id %}">
+                            <form method="post" action="{% url 'sellers:join_giftbox_campaign' campaign.id %}">
                                 {% csrf_token %}
                                 <button class="btn btn-primary" type="submit">
                                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">

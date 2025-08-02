@@ -1,0 +1,322 @@
+{% extends 'index.html' %}
+{% load b64filters %}
+{% load static %}
+{% csrf_token %}
+
+{% block title %}Partnership - MarketVibe{% endblock %}
+
+{% block content %}
+<div class="partnership-container">
+    <div class="hero-section">
+        <div class="container">
+            <h1>Technology & Partnerships</h1>
+            <p>Built with cutting-edge technologies for secure, scalable commerce</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="container">
+            <h2 class="section-title">Core Technology Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <i class="fab fa-python"></i>
+                    </div>
+                    <h3>Django 5.2.4</h3>
+                    <p>Robust web framework for rapid development and clean, pragmatic design</p>
+                </div>
+                
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3>PostgreSQL</h3>
+                    <p>Advanced open-source database with ACID compliance and scalability</p>
+                </div>
+                
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <i class="fab fa-stripe"></i>
+                    </div>
+                    <h3>Stripe Connect</h3>
+                    <p>Secure payment processing with multi-vendor support and real-time transactions</p>
+                </div>
+                
+                <div class="tech-card">
+                    <div class="tech-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Chart.js</h3>
+                    <p>Interactive charts and analytics for comprehensive data visualization</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section partners-section">
+        <div class="container">
+            <h2 class="section-title">Integration Partners</h2>
+            <div class="partners-grid">
+                <div class="partner-card">
+                    <div class="partner-logo">
+                        <i class="fab fa-stripe"></i>
+                    </div>
+                    <h3>Stripe Connect</h3>
+                    <p>Multi-vendor payment processing with automatic commission calculation and direct transfers to seller accounts.</p>
+                    <ul>
+                        <li>Secure payment processing</li>
+                        <li>Real-time webhook integration</li>
+                        <li>Multi-currency support</li>
+                        <li>PCI compliance</li>
+                    </ul>
+                </div>
+                
+                <div class="partner-card">
+                    <div class="partner-logo">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Security Framework</h3>
+                    <p>Comprehensive security measures to protect user data and transactions.</p>
+                    <ul>
+                        <li>CSRF protection</li>
+                        <li>Secure session management</li>
+                        <li>Input validation</li>
+                        <li>Data encryption</li>
+                    </ul>
+                </div>
+                
+                <div class="partner-card">
+                    <div class="partner-logo">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Responsive Design</h3>
+                    <p>Modern, mobile-first design system for optimal user experience across all devices.</p>
+                    <ul>
+                        <li>Mobile-responsive layouts</li>
+                        <li>Progressive Web App features</li>
+                        <li>Touch-friendly interfaces</li>
+                        <li>Cross-browser compatibility</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section infrastructure-section">
+        <div class="container">
+            <h2 class="section-title">Infrastructure & Security</h2>
+            <div class="infrastructure-grid">
+                <div class="infra-card">
+                    <h3><i class="fas fa-server"></i> Scalable Architecture</h3>
+                    <p>Built with scalability in mind, supporting thousands of concurrent users and transactions.</p>
+                </div>
+                
+                <div class="infra-card">
+                    <h3><i class="fas fa-lock"></i> Data Security</h3>
+                    <p>End-to-end encryption, secure payment processing, and comprehensive data protection measures.</p>
+                </div>
+                
+                <div class="infra-card">
+                    <h3><i class="fas fa-sync"></i> Real-time Updates</h3>
+                    <p>Live notifications, real-time inventory updates, and instant payment confirmations.</p>
+                </div>
+                
+                <div class="infra-card">
+                    <h3><i class="fas fa-cloud"></i> Cloud-Ready</h3>
+                    <p>Designed for cloud deployment with support for containerization and microservices architecture.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.partnership-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.section {
+    padding: 4rem 0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: #333;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.tech-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.tech-card:hover {
+    transform: translateY(-5px);
+}
+
+.tech-icon {
+    font-size: 3rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.tech-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.tech-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.partners-section {
+    background: white;
+}
+
+.partners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.partner-card {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.partner-logo {
+    font-size: 2.5rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.partner-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.partner-card p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.partner-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.partner-card li {
+    padding: 0.5rem 0;
+    color: #666;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.partner-card li:before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: bold;
+}
+
+.infrastructure-section {
+    background: #f8f9fa;
+}
+
+.infrastructure-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.infra-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.infra-card:hover {
+    transform: translateY(-5px);
+}
+
+.infra-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.infra-card h3 i {
+    color: #667eea;
+}
+
+.infra-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .tech-grid,
+    .partners-grid,
+    .infrastructure-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,230 @@
+{% extends 'index.html' %}
+{% load b64filters %}
+{% load static %}
+{% csrf_token %}
+
+{% block title %}Money Refund Policy - MarketVibe{% endblock %}
+
+{% block content %}
+<div class="refund-container">
+    <div class="hero-section">
+        <div class="container">
+            <h1>Money Refund Policy</h1>
+            <p>Your satisfaction is our priority</p>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="container">
+            <div class="refund-card">
+                <div class="policy-header">
+                    <i class="fas fa-undo-alt"></i>
+                    <h2>30-Day Return Policy</h2>
+                </div>
+                
+                <div class="policy-content">
+                    <p class="policy-text">
+                        We offer a 30-day return policy for all purchases. Items must be in original condition with all accessories included.
+                    </p>
+                    
+                    <div class="policy-details">
+                        <h3>Return Requirements:</h3>
+                        <ul>
+                            <li>Items must be in original, unused condition</li>
+                            <li>All original packaging and accessories must be included</li>
+                            <li>Return requests must be made within 30 days of purchase</li>
+                            <li>Proof of purchase required</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="policy-details">
+                        <h3>How to Return:</h3>
+                        <ol>
+                            <li>Contact the seller directly through their store page</li>
+                            <li>Provide your order number and reason for return</li>
+                            <li>Follow the seller's return instructions</li>
+                            <li>Ship the item back using the provided return label</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="policy-details">
+                        <h3>Refund Process:</h3>
+                        <ul>
+                            <li>Refunds are processed within 3-5 business days after receiving the returned item</li>
+                            <li>Original payment method will be credited</li>
+                            <li>Shipping costs may be deducted for non-defective returns</li>
+                            <li>You will receive an email confirmation when the refund is processed</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <h3>Need Help?</h3>
+                        <p>For further assistance with returns or refunds, please contact the seller directly through their store page or contact our support team.</p>
+                        <a href="/support/" class="support-btn">
+                            <i class="fas fa-headset"></i>
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.refund-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.content-section {
+    padding: 4rem 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.refund-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.policy-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.policy-header i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.policy-header h2 {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.policy-content {
+    padding: 3rem;
+}
+
+.policy-text {
+    font-size: 1.2rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.policy-details {
+    margin-bottom: 2rem;
+}
+
+.policy-details h3 {
+    color: #333;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.policy-details h3:before {
+    content: '📋';
+    font-size: 1.2rem;
+}
+
+.policy-details ul,
+.policy-details ol {
+    color: #666;
+    line-height: 1.8;
+    padding-left: 1.5rem;
+}
+
+.policy-details li {
+    margin-bottom: 0.5rem;
+}
+
+.contact-info {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.contact-info h3 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.contact-info p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.support-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #667eea;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.support-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .policy-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .policy-content {
+        padding: 2rem;
+    }
+    
+    .policy-text {
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %} 

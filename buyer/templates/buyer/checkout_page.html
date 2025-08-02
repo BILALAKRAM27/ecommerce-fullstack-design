@@ -440,6 +440,114 @@
             }
         }
 
+        /* Notification Card */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--bg-primary);
+            border: 1px solid var(--neutral-200);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+            padding: 1rem 1.5rem;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 300px;
+            max-width: 500px;
+            animation: slideDownNotification 0.3s ease-out;
+        }
+
+        .notification.show {
+            display: flex;
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--error);
+        }
+
+        .notification.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .notification.info {
+            border-left: 4px solid var(--info);
+        }
+
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+        }
+
+        .notification-icon.success {
+            background-color: var(--success);
+        }
+
+        .notification-icon.error {
+            background-color: var(--error);
+        }
+
+        .notification-icon.warning {
+            background-color: var(--warning);
+        }
+
+        .notification-icon.info {
+            background-color: var(--info);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .notification-message {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .notification-close:hover {
+            background-color: var(--neutral-100);
+            color: var(--text-primary);
+        }
+
+        @keyframes slideDownNotification {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
         /* Utility Classes */
         .flex { display: flex; }
         .items-center { align-items: center; }
@@ -474,18 +582,38 @@
     </style>
 </head>
 <body>
+<!-- Notification Container -->
+<div id="notification" class="notification">
+    <div class="notification-icon">
+        <span id="notification-icon-text">✓</span>
+    </div>
+    <div class="notification-content">
+        <div class="notification-title" id="notification-title">Success</div>
+        <div class="notification-message" id="notification-message">Operation completed successfully</div>
+    </div>
+    <button class="notification-close" onclick="hideNotification()">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+    </button>
+</div>
+
 <div class="checkout-container">
     {% csrf_token %}
     <div class="container">
         <!-- Page Header -->
         <div class="mb-6">
             <h1 class="text-3xl font-bold mb-4">Checkout</h1>
-            <div class="flex items-center text-sm text-muted">
-                <a href="/">Home</a>
-                <span class="mx-2">/</span>
-                <a href="{% url 'buyer:cart_page' %}">Cart</a>
-                <span class="mx-2">/</span>
-                <span class="text-primary">Checkout</span>
+            <div class="flex items-center text-sm text-primary">
+                <a href="/" style="text-decoration: none; color: gray;">Home</a>
+                <p style="color: rgba(128, 128, 128, 0);">..</p
+                <span class="mx-2"> > </span>
+                <p style="color: rgba(128, 128, 128, 0);">..</p>
+                <a href="{% url 'buyer:cart_page' %}" style="text-decoration: none; color: gray;">Cart</a>
+                <p style="color: rgba(128, 128, 128, 0);">..</p
+                <span class="mx-2 color-gray" > > </span>
+                <p style="color: rgba(128, 128, 128, 0);">..</p
+                <span class="text-primary" >Checkout</span>
             </div>
         </div>
 
@@ -977,7 +1105,7 @@
                 
                 // Show success message
                 setTimeout(() => {
-                    alert('Card details saved successfully! You can now click "Pay Now" to complete your order.');
+                    showNotification('success', 'Card Saved Successfully', 'Your card details have been saved. You can now click "Pay Now" to complete your order.');
                 }, 100);
                 
             } catch (error) {
@@ -1021,7 +1149,7 @@
             showSavedCardInfo();
             
             // Show confirmation message
-            alert('Card details removed. You can add a new card by selecting Stripe again.');
+            showNotification('info', 'Card Removed', 'Card details have been removed. You can add a new card by selecting Stripe again.');
             
             console.log('Card removed successfully');
         }
@@ -1105,7 +1233,7 @@
             
             // Validate form
             if (!validator.validateAllFields()) {
-                alert('Please fill in all required fields correctly.');
+                showNotification('error', 'Validation Error', 'Please fill in all required fields correctly.');
                 return;
             }
             
@@ -1755,6 +1883,51 @@
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             });
+        }
+
+        // Notification functions
+        function showNotification(type, title, message, duration = 4000) {
+            const notification = document.getElementById('notification');
+            const iconText = document.getElementById('notification-icon-text');
+            const titleElement = document.getElementById('notification-title');
+            const messageElement = document.getElementById('notification-message');
+            
+            // Set icon based on type
+            switch(type) {
+                case 'success':
+                    iconText.textContent = '✓';
+                    break;
+                case 'error':
+                    iconText.textContent = '✕';
+                    break;
+                case 'warning':
+                    iconText.textContent = '⚠';
+                    break;
+                case 'info':
+                    iconText.textContent = 'ℹ';
+                    break;
+                default:
+                    iconText.textContent = '✓';
+            }
+            
+            // Set content
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+            
+            // Set classes
+            notification.className = `notification ${type} show`;
+            
+            // Auto-hide after duration
+            if (duration > 0) {
+                setTimeout(() => {
+                    hideNotification();
+                }, duration);
+            }
+        }
+        
+        function hideNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.remove('show');
         }
 
         // Utility functions

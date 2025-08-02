@@ -1,316 +1,582 @@
 {% extends 'index.html' %}
-{% load b64filters %}
-{% load static %}
-{% csrf_token %}
+{% block content %} 
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Store - MarketVibe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': '#4285F4',
+                        'primary-blue-dark': '#3367D6',
+                        'primary-blue-light': '#E3F2FD',
+                        'neutral-50': '#FAFAFA',
+                        'neutral-800': '#424242',
+                        'neutral-900': '#212121',
+                        'success': '#2ECC71',
+                        'warning': '#F39C12',
+                        'error': '#E74C3C',
+                        'info': '#3498DB'
+                    },
+                    fontFamily: {
+                        'primary': ['Inter', 'Roboto', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        .filter-active {
+            background: #4285F4;
+            color: white;
+        }
+        .store-verified {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #2ECC71;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .rating-stars {
+            color: #F39C12;
+        }
+        .skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+        }
+        @keyframes skeleton-loading {
+            0% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+         </style>
+         {% endblock extra_css %}
+ </head>
 
-{% block title %}Find Store - MarketVibe{% endblock %}
-
-{% block content %}
-<div class="find-store-container">
-    <div class="hero-section">
-        <div class="container">
-            <h1>Find Store</h1>
-            <p>Discover amazing stores and products on MarketVibe</p>
+<body class="font-primary bg-neutral-50 text-neutral-900">
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div class="relative container mx-auto px-6 py-16">
+            <div class="text-center max-w-4xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                    Discover Amazing Stores
+                </h1>
+                <p class="text-xl mb-8 opacity-90">
+                    Explore thousands of verified stores and find exactly what you're looking for
+                </p>
+                
+                <!-- View Toggle -->
+                <div class="flex justify-center mb-8">
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-1 flex">
+                        <button id="buyerViewBtn" class="px-6 py-2 rounded-md bg-white text-primary-blue font-medium transition-all">
+                            <i class="fas fa-shopping-cart mr-2"></i>Shop Stores
+                        </button>
+                        <button id="sellerViewBtn" class="px-6 py-2 rounded-md text-white font-medium transition-all">
+                            <i class="fas fa-store mr-2"></i>Market Research
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <div class="search-section">
-        <div class="container">
-            <div class="search-box">
-                <input type="text" id="storeSearch" placeholder="Search stores..." class="search-input">
-                <button class="search-btn">
-                    <i class="fas fa-search"></i>
+    <!-- Search & Filter Section -->
+    <section class="bg-white border-b border-neutral-200 sticky top-0 z-40 shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <!-- Search Bar -->
+            <div class="flex flex-col lg:flex-row gap-4 items-center">
+                <div class="relative flex-1 max-w-2xl">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search stores, categories, or products..." 
+                        class="w-full pl-12 pr-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-primary-blue focus:outline-none transition-colors"
+                    >
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400"></i>
+                </div>
+                
+                <!-- Filter Toggle -->
+                <button id="filterToggle" class="lg:hidden bg-primary-blue text-white px-4 py-3 rounded-lg">
+                    <i class="fas fa-filter mr-2"></i>Filters
                 </button>
+                
+                <!-- View Options (Desktop) -->
+                <div class="hidden lg:flex gap-2">
+                    <button id="gridView" class="p-3 border border-neutral-200 rounded-lg hover:bg-neutral-100 transition-colors bg-primary-blue text-white">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button id="listView" class="p-3 border border-neutral-200 rounded-lg hover:bg-neutral-100 transition-colors">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-    </div>
+            
+            <!-- Filters Panel -->
+            <div id="filtersPanel" class="mt-4 lg:block hidden">
+                <div class="flex flex-wrap gap-4">
+                    <!-- Category Filter -->
+                    <div class="relative">
+                        <select id="categoryFilter" class="bg-white border border-neutral-200 rounded-lg px-4 py-2 pr-8 focus:border-primary-blue focus:outline-none">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.name }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Rating Filter -->
+                    <div class="relative">
+                        <select id="ratingFilter" class="bg-white border border-neutral-200 rounded-lg px-4 py-2 pr-8 focus:border-primary-blue focus:outline-none">
+                            <option value="">All Ratings</option>
+                            <option value="4.5">4.5+ Stars</option>
+                            <option value="4.0">4.0+ Stars</option>
+                            <option value="3.5">3.5+ Stars</option>
+                        </select>
+                    </div>
+                    
 
-    <div class="stores-section">
-        <div class="container">
-            <div class="stores-grid" id="storesGrid">
-                <div class="store-card">
-                    <div class="store-header-card">
-                        <div class="store-avatar">
-                            <i class="fas fa-laptop"></i>
-                        </div>
-                        <div class="store-name">Tech Haven</div>
-                        <div class="store-category">Electronics</div>
+                    
+                    <!-- Sort Options -->
+                    <div class="relative">
+                        <select id="sortFilter" class="bg-white border border-neutral-200 rounded-lg px-4 py-2 pr-8 focus:border-primary-blue focus:outline-none">
+                            <option value="popular">Most Popular</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="newest">Newest</option>
+                            <option value="products">Most Products</option>
+                        </select>
                     </div>
-                    <div class="store-body">
-                        <div class="store-stats">
-                            <div class="stat-item">
-                                <div class="stat-value">156</div>
-                                <div class="stat-label">Products</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">2340</div>
-                                <div class="stat-label">Orders</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">4.8</div>
-                                <div class="stat-label">Rating</div>
-                            </div>
-                        </div>
-                        <div class="store-description">Premium electronics and gadgets for tech enthusiasts.</div>
-                        <div class="store-actions">
-                            <a href="/seller/1/profile/" class="btn btn-primary">
-                                <i class="fas fa-store"></i>
-                                View Store
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="store-card">
-                    <div class="store-header-card">
-                        <div class="store-avatar">
-                            <i class="fas fa-tshirt"></i>
-                        </div>
-                        <div class="store-name">Fashion Forward</div>
-                        <div class="store-category">Clothing</div>
-                    </div>
-                    <div class="store-body">
-                        <div class="store-stats">
-                            <div class="stat-item">
-                                <div class="stat-value">89</div>
-                                <div class="stat-label">Products</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">1890</div>
-                                <div class="stat-label">Orders</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">4.6</div>
-                                <div class="stat-label">Rating</div>
-                            </div>
-                        </div>
-                        <div class="store-description">Trendy fashion items for men and women.</div>
-                        <div class="store-actions">
-                            <a href="/seller/2/profile/" class="btn btn-primary">
-                                <i class="fas fa-store"></i>
-                                View Store
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="store-card">
-                    <div class="store-header-card">
-                        <div class="store-avatar">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <div class="store-name">Home Comfort</div>
-                        <div class="store-category">Home & Garden</div>
-                    </div>
-                    <div class="store-body">
-                        <div class="store-stats">
-                            <div class="stat-item">
-                                <div class="stat-value">203</div>
-                                <div class="stat-label">Products</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">3120</div>
-                                <div class="stat-label">Orders</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">4.9</div>
-                                <div class="stat-label">Rating</div>
-                            </div>
-                        </div>
-                        <div class="store-description">Everything you need for your home.</div>
-                        <div class="store-actions">
-                            <a href="/seller/3/profile/" class="btn btn-primary">
-                                <i class="fas fa-store"></i>
-                                View Store
-                            </a>
-                        </div>
-                    </div>
+                    
+                    <!-- Clear Filters -->
+                    <button id="clearFilters" class="text-primary-blue hover:text-primary-blue-dark font-medium">
+                        Clear All
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
 
-<style>
-.find-store-container {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
-}
+    <!-- Results Summary -->
+    <section class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+            <div id="resultsCount" class="text-neutral-600">
+                Showing <span class="font-semibold">{{ total_sellers }}</span> stores
+            </div>
+            <div id="viewModeIndicator" class="text-sm text-neutral-600">
+                <span id="currentViewMode">Buyer</span> View
+            </div>
+        </div>
+    </section>
 
-.hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 3rem 0;
-    text-align: center;
-}
+    <!-- Stores Grid/List -->
+    <main class="container mx-auto px-6 pb-16">
+        <div id="storesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Stores will be loaded dynamically -->
+        </div>
 
-.hero-section h1 {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
+        <!-- Load More Button -->
+        <div class="text-center mt-12">
+            <button id="loadMoreBtn" class="bg-primary-blue text-white px-8 py-3 rounded-lg hover:bg-primary-blue-dark transition-colors">
+                <i class="fas fa-plus mr-2"></i>Load More Stores
+            </button>
+        </div>
+         </main>
 
-.hero-section p {
-    font-size: 1.1rem;
-    opacity: 0.9;
-}
+     <!-- JavaScript -->
+     {% block extra_js %}
+     <script>
+        // Store data will be loaded from backend
+        let storeData = [];
+        let currentPage = 1;
+        let isLoading = false;
 
-.search-section {
-    background: white;
-    padding: 2rem 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.search-box {
-    display: flex;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.search-input {
-    flex: 1;
-    padding: 1rem 1.5rem;
-    border: 2px solid #e1e5e9;
-    border-right: none;
-    border-radius: 8px 0 0 8px;
-    font-size: 1rem;
-}
-
-.search-btn {
-    padding: 1rem 1.5rem;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-.stores-section {
-    padding: 3rem 0;
-}
-
-.stores-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
-}
-
-.store-card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.3s ease;
-    cursor: pointer;
-}
-
-.store-card:hover {
-    transform: translateY(-5px);
-}
-
-.store-header-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 1.5rem;
-    text-align: center;
-}
-
-.store-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 2rem;
-}
-
-.store-name {
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.store-category {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-.store-body {
-    padding: 1.5rem;
-}
-
-.store-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #333;
-}
-
-.stat-label {
-    font-size: 0.8rem;
-    color: #666;
-}
-
-.store-description {
-    color: #666;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-}
-
-.store-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.btn {
-    flex: 1;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    text-decoration: none;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.btn-primary {
-    background: #667eea;
-    color: white;
-}
-
-@media (max-width: 768px) {
-    .stores-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .store-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-</style>
-{% endblock %} 
+        // View mode management
+        let currentView = 'buyer';
+        
+        const buyerViewBtn = document.getElementById('buyerViewBtn');
+        const sellerViewBtn = document.getElementById('sellerViewBtn');
+        const currentViewMode = document.getElementById('currentViewMode');
+        
+        buyerViewBtn.addEventListener('click', () => switchView('buyer'));
+        sellerViewBtn.addEventListener('click', () => switchView('seller'));
+        
+        function switchView(view) {
+            currentView = view;
+            currentViewMode.textContent = view === 'buyer' ? 'Buyer' : 'Seller';
+            
+            // Update button styles
+            if (view === 'buyer') {
+                buyerViewBtn.classList.add('bg-white', 'text-primary-blue');
+                buyerViewBtn.classList.remove('text-white');
+                sellerViewBtn.classList.remove('bg-white', 'text-primary-blue');
+                sellerViewBtn.classList.add('text-white');
+            } else {
+                sellerViewBtn.classList.add('bg-white', 'text-primary-blue');
+                sellerViewBtn.classList.remove('text-white');
+                buyerViewBtn.classList.remove('bg-white', 'text-primary-blue');
+                buyerViewBtn.classList.add('text-white');
+            }
+            
+            // Toggle content visibility
+            document.querySelectorAll('.buyer-content').forEach(el => {
+                el.classList.toggle('hidden', view !== 'buyer');
+            });
+            document.querySelectorAll('.seller-content').forEach(el => {
+                el.classList.toggle('hidden', view !== 'seller');
+            });
+        }
+        
+        // Search and filter functionality
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const ratingFilter = document.getElementById('ratingFilter');
+        const sortFilter = document.getElementById('sortFilter');
+        const clearFilters = document.getElementById('clearFilters');
+        const filterToggle = document.getElementById('filterToggle');
+        const filtersPanel = document.getElementById('filtersPanel');
+        
+        // Filter toggle for mobile
+        filterToggle.addEventListener('click', () => {
+            filtersPanel.classList.toggle('hidden');
+        });
+        
+        // Search functionality
+        searchInput.addEventListener('input', debounce(loadStores, 300));
+        categoryFilter.addEventListener('change', loadStores);
+        ratingFilter.addEventListener('change', loadStores);
+        sortFilter.addEventListener('change', loadStores);
+        
+        clearFilters.addEventListener('click', () => {
+            searchInput.value = '';
+            categoryFilter.value = '';
+            ratingFilter.value = '';
+            sortFilter.value = 'popular';
+            currentPage = 1;
+            loadStores();
+        });
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        async function loadStores() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            const searchTerm = searchInput.value;
+            const selectedCategory = categoryFilter.value;
+            const selectedRating = ratingFilter.value;
+            const sortBy = sortFilter.value;
+            
+            // Show loading state
+            const storesContainer = document.getElementById('storesContainer');
+            if (currentPage === 1) {
+                storesContainer.innerHTML = '<div class="col-span-full text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-primary-blue"></i></div>';
+            }
+            
+            try {
+                const params = new URLSearchParams({
+                    search: searchTerm,
+                    category: selectedCategory,
+                    rating: selectedRating,
+                    sort: sortBy,
+                    page: currentPage
+                });
+                
+                const response = await fetch(`/search-stores/?${params}&_t=${Date.now()}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Response error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                                 const data = await response.json();
+                 
+                 // Debug: Log the first store's profile_url
+                 if (data.stores && data.stores.length > 0) {
+                     console.log('First store profile_url:', data.stores[0].profile_url);
+                 }
+                 
+                 if (currentPage === 1) {
+                    storeData = data.stores;
+                    renderStores(data.stores);
+                } else {
+                    storeData = [...storeData, ...data.stores];
+                    appendStores(data.stores);
+                }
+                
+                // Update results count
+                document.getElementById('resultsCount').innerHTML = 
+                    `Showing <span class="font-semibold">${data.total_count}</span> stores`;
+                
+                // Update load more button
+                const loadMoreBtn = document.getElementById('loadMoreBtn');
+                if (data.has_next) {
+                    loadMoreBtn.style.display = 'block';
+                } else {
+                    loadMoreBtn.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error loading stores:', error);
+                console.error('Error details:', error.message);
+                console.error('Error response:', error.response);
+                storesContainer.innerHTML = '<div class="col-span-full text-center py-8 text-red-500">Error loading stores. Please try again.</div>';
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        function renderStores(stores) {
+            const storesContainer = document.getElementById('storesContainer');
+            storesContainer.innerHTML = '';
+            
+            if (stores.length === 0) {
+                storesContainer.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <div class="text-neutral-500 mb-4">No stores found matching your criteria.</div>
+                        <div class="text-sm text-neutral-400">Try adjusting your search or filters.</div>
+                    </div>`;
+                return;
+            }
+            
+            stores.forEach(store => {
+                storesContainer.appendChild(createStoreCard(store));
+            });
+        }
+        
+        function appendStores(stores) {
+            const storesContainer = document.getElementById('storesContainer');
+            stores.forEach(store => {
+                storesContainer.appendChild(createStoreCard(store));
+            });
+        }
+        
+                 function createStoreCard(store) {
+             const card = document.createElement('article');
+             card.className = 'bg-white rounded-2xl shadow-lg overflow-hidden card-hover relative';
+             card.setAttribute('data-store-id', store.id);
+             card.setAttribute('data-category', store.category);
+             card.setAttribute('data-rating', store.rating);
+             
+             // Apply current view mode classes
+             if (listView.classList.contains('bg-primary-blue')) {
+                 card.classList.add('md:flex', 'md:flex-row');
+             }
+            
+            // Generate gradient colors based on category
+            const gradients = {
+                'electronics': 'gradient-bg',
+                'clothing': 'bg-gradient-to-br from-pink-500 to-purple-600',
+                'home': 'bg-gradient-to-br from-green-500 to-teal-600',
+                'sports': 'bg-gradient-to-br from-orange-500 to-red-600',
+                'books': 'bg-gradient-to-br from-indigo-500 to-purple-600',
+                'health': 'bg-gradient-to-br from-blue-500 to-cyan-600'
+            };
+            
+            const gradientClass = gradients[store.category.toLowerCase()] || 'gradient-bg';
+            const iconClass = getCategoryIcon(store.category);
+            
+                         card.innerHTML = `
+                 ${store.is_verified ? '<div class="store-verified"><i class="fas fa-check-circle mr-1"></i>Verified</div>' : ''}
+                 
+                 <div class="${gradientClass} text-white p-6 text-center relative">
+                     <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                         ${store.image ? 
+                             `<img src="data:image/jpeg;base64,${store.image}" alt="${store.name}" class="w-full h-full object-cover rounded-full">` : 
+                             `<i class="${iconClass} text-3xl"></i>`
+                         }
+                     </div>
+                     <h3 class="text-xl font-bold mb-2">${store.name}</h3>
+                     <p class="text-sm opacity-90">${store.category} Store</p>
+                 </div>
+                
+                                     <div class="p-6 ${listView.classList.contains('bg-primary-blue') ? 'md:flex-1' : ''}">
+                         <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="rating-stars mr-2">
+                                ${generateStars(store.rating)}
+                            </div>
+                            <span class="font-semibold">${store.rating}</span>
+                            <span class="text-neutral-500 text-sm ml-1">(${store.review_count})</span>
+                        </div>
+                        <div class="bg-success bg-opacity-10 text-success px-2 py-1 rounded-full text-xs font-medium">
+                            ${store.satisfaction_percentage}% Satisfaction
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 mb-4 p-3 bg-neutral-50 rounded-lg">
+                        <div class="text-center">
+                            <div class="font-bold text-lg text-neutral-900">${store.product_count}</div>
+                            <div class="text-xs text-neutral-600">Products</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-bold text-lg text-neutral-900">${formatNumber(store.order_count)}</div>
+                            <div class="text-xs text-neutral-600">Orders</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="font-bold text-lg text-neutral-900">${store.satisfaction_percentage}%</div>
+                            <div class="text-xs text-neutral-600">Satisfaction</div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-neutral-600 text-sm mb-4 line-clamp-2">
+                        ${store.description}
+                    </p>
+                    
+                    <div class="buyer-content mb-4">
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${store.buyer_categories.map(cat => `<span class="bg-primary-blue-light text-primary-blue px-2 py-1 rounded-full text-xs">${cat}</span>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="seller-content mb-4 hidden">
+                        <div class="bg-${store.position_color} bg-opacity-10 p-3 rounded-lg">
+                            <div class="text-sm font-medium text-${store.position_color} mb-1">Market Position</div>
+                            <div class="text-xs text-neutral-600">${store.market_position}</div>
+                        </div>
+                    </div>
+                    
+                                         <div class="flex gap-2">
+                         <a href="${store.profile_url}" class="flex-1 bg-primary-blue text-white py-2 px-4 rounded-lg text-center hover:bg-primary-blue-dark transition-colors" onclick="console.log('Profile URL:', '${store.profile_url}')">
+                             <i class="fas fa-store mr-2"></i>Visit Store
+                         </a>
+                        <button class="p-2 border border-neutral-200 rounded-lg hover:bg-neutral-100 transition-colors">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function getCategoryIcon(category) {
+            const icons = {
+                'electronics': 'fas fa-laptop',
+                'clothing': 'fas fa-tshirt',
+                'home': 'fas fa-home',
+                'sports': 'fas fa-dumbbell',
+                'books': 'fas fa-book',
+                'health': 'fas fa-heartbeat'
+            };
+            return icons[category.toLowerCase()] || 'fas fa-store';
+        }
+        
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+        
+        function formatNumber(num) {
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+        
+        // View toggle functionality
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        const storesContainer = document.getElementById('storesContainer');
+        
+                 gridView.addEventListener('click', () => {
+             storesContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+             gridView.classList.add('bg-primary-blue', 'text-white');
+             gridView.classList.remove('hover:bg-neutral-100');
+             listView.classList.remove('bg-primary-blue', 'text-white');
+             listView.classList.add('hover:bg-neutral-100');
+             
+             // Reset cards to grid view layout
+             document.querySelectorAll('[data-store-id]').forEach(card => {
+                 card.classList.remove('md:flex', 'md:flex-row');
+                 const content = card.querySelector('.p-6');
+                 if (content) {
+                     content.classList.remove('md:flex-1');
+                 }
+             });
+         });
+         
+         listView.addEventListener('click', () => {
+             storesContainer.className = 'space-y-4';
+             listView.classList.add('bg-primary-blue', 'text-white');
+             listView.classList.remove('hover:bg-neutral-100');
+             gridView.classList.remove('bg-primary-blue', 'text-white');
+             gridView.classList.add('hover:bg-neutral-100');
+             
+             // Modify cards for list view
+             document.querySelectorAll('[data-store-id]').forEach(card => {
+                 card.classList.add('md:flex', 'md:flex-row');
+                 const content = card.querySelector('.p-6');
+                 if (content) {
+                     content.classList.add('md:flex-1');
+                 }
+             });
+         });
+        
+        // Load more functionality
+        document.getElementById('loadMoreBtn').addEventListener('click', () => {
+            currentPage++;
+            loadStores();
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial view
+            switchView('buyer');
+            
+            // Load initial stores
+            loadStores();
+            
+            // Initialize any tooltips or additional UI elements
+            console.log('Find Store page initialized');
+                 });
+     </script>
+     {% endblock extra_js %}
+ </body>
+ {% endblock %}
+ </html>

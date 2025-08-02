@@ -18,7 +18,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from .models import Seller
 from django.views.decorators.http import require_POST, require_GET
-from django.db.models import Sum, Count, Q, Min, Max, F
+from django.db.models import Sum, Count, Q, Min, Max, F, Avg
 from datetime import datetime, timedelta
 import csv
 from io import StringIO
@@ -3576,13 +3576,228 @@ def about_view(request):
 
 
 def find_store_view(request):
-    """Find Store page view"""
+    """Find Store page view with dynamic data"""
+    # Get all verified sellers with their statistics
+    sellers = Seller.objects.annotate(
+        product_count=Count('products'),
+        order_count=Count('products__orderitem__order', distinct=True),
+        avg_rating=Avg('reviews__rating'),
+        review_count=Count('reviews')
+    ).filter(
+        product_count__gt=0  # Only show sellers with products
+    ).order_by('-avg_rating', '-product_count')
+    
+    # Get categories for filter dropdown
+    categories = Category.objects.filter(parent__isnull=True).order_by('name')
+    
+    # Calculate market position for each seller
+    for seller in sellers:
+        # Calculate satisfaction percentage based on reviews
+        if seller.review_count > 0:
+            positive_reviews = seller.reviews.filter(rating__gte=4.0).count()
+            seller.satisfaction_percentage = round((positive_reviews / seller.review_count) * 100)
+        else:
+            seller.satisfaction_percentage = 0
+        
+        # Determine market position
+        if seller.avg_rating and seller.avg_rating >= 4.5:
+            seller.market_position = "Top performer"
+            seller.position_color = "success"
+        elif seller.avg_rating and seller.avg_rating >= 4.0:
+            seller.market_position = "Growing rapidly"
+            seller.position_color = "info"
+        else:
+            seller.market_position = "Established seller"
+            seller.position_color = "warning"
+    
     context = {
         'title': 'Find Store - MarketVibe',
         'user': request.user if request.user.is_authenticated else None,
+        'sellers': sellers,
+        'categories': categories,
+        'total_sellers': sellers.count(),
     }
     return render(request, 'seller/find_store.html', context)
 
+
+@csrf_exempt
+def search_stores_ajax(request):
+    """AJAX endpoint for searching and filtering stores"""
+    try:
+        search_term = request.GET.get('search', '').strip()
+        category = request.GET.get('category', '')
+        rating_filter = request.GET.get('rating', '')
+        sort_by = request.GET.get('sort', 'popular')
+        page = int(request.GET.get('page', 1))
+        per_page = 12
+        
+        # Build base queryset
+        sellers = Seller.objects.annotate(
+            product_count=Count('products'),
+            avg_rating=Avg('reviews__rating'),
+            review_count=Count('reviews')
+        ).filter(product_count__gt=0)
+        
+        # Set order_count to 0 for now (we can implement this later)
+        # We'll handle this in the loop where we process each seller
+        
+        # Apply search filter
+        if search_term:
+            sellers = sellers.filter(
+                Q(shop_name__icontains=search_term) |
+                Q(shop_description__icontains=search_term) |
+                Q(products__name__icontains=search_term) |
+                Q(products__category__name__icontains=search_term)
+            ).distinct()
+        
+        # Apply category filter
+        if category:
+            sellers = sellers.filter(products__category__name__icontains=category).distinct()
+        
+        # Apply rating filter
+        if rating_filter:
+            min_rating = float(rating_filter)
+            sellers = sellers.filter(avg_rating__gte=min_rating)
+        
+        # Apply sorting - simplified
+        if sort_by == 'rating':
+            sellers = sellers.order_by('-avg_rating', '-product_count')
+        elif sort_by == 'newest':
+            sellers = sellers.order_by('-created_at')
+        elif sort_by == 'products':
+            sellers = sellers.order_by('-product_count', '-avg_rating')
+        else:  # popular (default)
+            sellers = sellers.order_by('-product_count', '-avg_rating')
+        
+        # Pagination
+        paginator = Paginator(sellers, per_page)
+        sellers_page = paginator.get_page(page)
+        
+        # Prepare response data
+        stores_data = []
+        
+        if len(sellers_page) == 0:
+            return JsonResponse({
+                'stores': [],
+                'total_count': 0,
+                'has_next': False,
+                'has_previous': False,
+                'current_page': page,
+                'total_pages': 0,
+            })
+        
+        for seller in sellers_page:
+            
+            # Calculate satisfaction percentage
+            if seller.review_count > 0:
+                positive_reviews = seller.reviews.filter(rating__gte=4.0).count()
+                satisfaction_percentage = round((positive_reviews / seller.review_count) * 100)
+            else:
+                satisfaction_percentage = 0
+            
+            # Get top categories for this seller
+            top_categories = seller.products.values('category__name').annotate(
+                count=Count('id')
+            ).order_by('-count')[:3]
+            
+            # Determine market position
+            if seller.avg_rating and seller.avg_rating >= 4.5:
+                market_position = "Top performer in this category"
+                position_color = "success"
+            elif seller.avg_rating and seller.avg_rating >= 4.0:
+                market_position = "Growing rapidly in this segment"
+                position_color = "info"
+            else:
+                market_position = "Established seller"
+                position_color = "warning"
+            
+            # Get seller's top product categories for buyer view
+            buyer_categories = []
+            for cat in top_categories:
+                buyer_categories.append(cat['category__name'])
+            
+            store_data = {
+                'id': seller.id,
+                'name': seller.shop_name,
+                'description': seller.shop_description or "Quality products and excellent service",
+                'category': top_categories[0]['category__name'] if top_categories else "General",
+                'rating': round(seller.avg_rating, 1) if seller.avg_rating else 0,
+                'review_count': seller.review_count,
+                'product_count': seller.product_count,
+                'order_count': 0,  # Set to 0 for now since we simplified the query
+                'satisfaction_percentage': satisfaction_percentage,
+                'market_position': market_position,
+                'position_color': position_color,
+                'buyer_categories': buyer_categories,
+                'is_verified': True,  # All sellers in our system are verified
+                'profile_url': f'/seller/{seller.id}/profile/',
+                'image': seller.get_image_base64(),  # Include seller image
+            }
+            
+            stores_data.append(store_data)
+        
+        response_data = {
+            'stores': stores_data,
+            'total_count': paginator.count,
+            'has_next': sellers_page.has_next(),
+            'has_previous': sellers_page.has_previous(),
+            'current_page': page,
+            'total_pages': paginator.num_pages,
+        }
+        
+        return JsonResponse(response_data)
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e),
+            'stores': [],
+            'total_count': 0,
+            'has_next': False,
+            'has_previous': False,
+            'current_page': 1,
+            'total_pages': 0,
+        }, status=500)
+
+
+def get_store_statistics():
+    """Helper function to get overall store statistics"""
+    total_sellers = Seller.objects.filter(products__isnull=False).distinct().count()
+    total_products = Product.objects.count()
+    total_orders = Order.objects.count()
+    
+    # Calculate average rating across all sellers
+    avg_rating = Seller.objects.aggregate(
+        avg_rating=Avg('reviews__rating')
+    )['avg_rating'] or 0
+    
+    return {
+        'total_sellers': total_sellers,
+        'total_products': total_products,
+        'total_orders': total_orders,
+        'avg_rating': round(avg_rating, 1),
+    }
+
+
+@csrf_exempt
+def test_sellers_endpoint(request):
+    """Test endpoint to check seller data"""
+    print("DEBUG: test_sellers_endpoint called")
+    try:
+        sellers = Seller.objects.all()
+        print(f"DEBUG: Total sellers in DB: {sellers.count()}")
+        
+        for seller in sellers[:3]:  # Show first 3 sellers
+            print(f"DEBUG: Seller {seller.id}: {seller.shop_name}")
+            products = seller.products.all()
+            print(f"DEBUG: Seller {seller.id} has {products.count()} products")
+        
+        return JsonResponse({
+            'total_sellers': sellers.count(),
+            'sellers_with_products': Seller.objects.filter(products__isnull=False).distinct().count(),
+            'total_products': Product.objects.count(),
+        })
+    except Exception as e:
+        print(f"DEBUG: Error in test endpoint: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 def partnership_view(request):
     """Partnership page view"""

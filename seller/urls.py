@@ -99,4 +99,6 @@ urlpatterns += [
     
     # Search functionality
     path('search-suggestions/', views.search_suggestions, name='search_suggestions'),
+    path('search-stores/', views.search_stores_ajax, name='search_stores_ajax'),
+    path('test-sellers/', views.test_sellers_endpoint, name='test_sellers'),
 ]

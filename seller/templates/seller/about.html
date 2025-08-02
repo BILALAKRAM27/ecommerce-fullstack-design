@@ -1,303 +1,428 @@
 {% extends 'index.html' %}
-{% load b64filters %}
 {% load static %}
-{% csrf_token %}
-
-{% block title %}About Us - MarketVibe{% endblock %}
-
 {% block content %}
-<div class="about-container">
-    <div class="hero-section">
-        <div class="container">
-            <h1>About MarketVibe</h1>
-            <p>Empowering Commerce Through Innovation</p>
-        </div>
-    </div>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - MarketVibe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': '#4285F4',
+                        'primary-blue-dark': '#3367D6',
+                        'primary-blue-light': '#E3F2FD',
+                        'neutral-50': '#FAFAFA',
+                        'neutral-800': '#424242',
+                        'neutral-900': '#212121',
+                        'success': '#2ECC71',
+                        'warning': '#F39C12',
+                        'error': '#E74C3C',
+                        'info': '#3498DB'
+                    },
+                    fontFamily: {
+                        'primary': ['Inter', 'Roboto', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .about-gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .about-card-hover {
+            transition: all 0.3s ease;
+        }
+        .about-card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        .about-animate-float {
+            animation: about-float 6s ease-in-out infinite;
+        }
+        @keyframes about-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .about-chart-bar {
+            transition: all 0.5s ease;
+        }
+        .about-chart-bar:hover {
+            opacity: 0.8;
+        }
+    </style>
+    {% endblock %}
 
-    <div class="section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mission-card">
-                        <div class="card-icon">
-                            <i class="fas fa-rocket"></i>
-                        </div>
-                        <h3>Our Mission</h3>
-                        <p>To create a secure, innovative, and user-friendly multi-vendor e-commerce platform that connects buyers and sellers worldwide.</p>
+<body class="font-primary bg-neutral-50 text-neutral-900">
+    <!-- Hero Section -->
+    <section class="about-gradient-bg text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div class="relative container mx-auto px-6 py-20 lg:py-32">
+            <div class="text-center max-w-4xl mx-auto">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 about-animate-float">
+                    About MarketVibe
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 opacity-90 font-light">
+                    Empowering Commerce Through Innovation
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm px-6 py-3 rounded-full">
+                        <span class="text-sm font-medium">🚀 Trusted by 25,000+ Users</span>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="vision-card">
-                        <div class="card-icon">
-                            <i class="fas fa-eye"></i>
-                        </div>
-                        <h3>Our Vision</h3>
-                        <p>To become the leading multi-vendor marketplace that revolutionizes online commerce through cutting-edge technology.</p>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm px-6 py-3 rounded-full">
+                        <span class="text-sm font-medium">⭐ 4.8/5 Platform Rating</span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="section developer-section">
-        <div class="container">
-            <h2 class="section-title">Meet the Developer</h2>
-            <div class="developer-card">
-                <div class="developer-avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="developer-info">
-                    <h3>Bilal Akram</h3>
-                    <p class="developer-title">Full Stack Developer & Platform Architect</p>
-                    <p class="developer-description">
-                        A passionate developer committed to creating secure, scalable, and user-friendly web applications. 
-                        With expertise in Django, Python, and modern web technologies.
+    <!-- Mission & Vision Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-neutral-900">
+                    Our Foundation
+                </h2>
+                <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+                    Built on trust, innovation, and a commitment to connecting global commerce
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                <article class="bg-gradient-to-br from-primary-blue-light to-white p-8 rounded-2xl border border-neutral-200 about-card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-primary-blue rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-rocket text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-neutral-900">Our Mission</h3>
+                    </div>
+                    <p class="text-neutral-700 leading-relaxed">
+                        To create a secure, innovative, and user-friendly multi-vendor e-commerce platform that connects buyers and sellers worldwide, fostering economic growth and digital transformation.
                     </p>
-                    <div class="developer-contact">
-                        <a href="https://github.com/BILALAKRAM27" target="_blank" class="contact-link">
-                            <i class="fab fa-github"></i> GitHub
-                        </a>
-                        <a href="mailto:bilalakram190204@gmail.com" class="contact-link">
-                            <i class="fas fa-envelope"></i> Email
-                        </a>
+                </article>
+                
+                <article class="bg-gradient-to-br from-purple-50 to-white p-8 rounded-2xl border border-neutral-200 about-card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-eye text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-neutral-900">Our Vision</h3>
+                    </div>
+                    <p class="text-neutral-700 leading-relaxed">
+                        To become the leading multi-vendor marketplace that revolutionizes online commerce through cutting-edge technology, exceptional user experience, and unwavering commitment to security.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platform Statistics -->
+    <section class="py-20 bg-gradient-to-r from-neutral-50 to-primary-blue-light">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-neutral-900">
+                    Platform at a Glance
+                </h2>
+                <p class="text-lg text-neutral-600">
+                    Real numbers that showcase our growing community
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                <div class="bg-white p-6 rounded-2xl text-center shadow-lg about-card-hover">
+                    <div class="w-16 h-16 bg-success bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-store text-success text-2xl"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-neutral-900 mb-2">500+</div>
+                    <div class="text-neutral-600 font-medium">Active Sellers</div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-2xl text-center shadow-lg about-card-hover">
+                    <div class="w-16 h-16 bg-primary-blue bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shopping-cart text-primary-blue text-2xl"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-neutral-900 mb-2">10K+</div>
+                    <div class="text-neutral-600 font-medium">Products Sold</div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-2xl text-center shadow-lg about-card-hover">
+                    <div class="w-16 h-16 bg-warning bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-users text-warning text-2xl"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-neutral-900 mb-2">25K+</div>
+                    <div class="text-neutral-600 font-medium">Happy Customers</div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-2xl text-center shadow-lg about-card-hover">
+                    <div class="w-16 h-16 bg-info bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shipping-fast text-info text-2xl"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-neutral-900 mb-2">2.5</div>
+                    <div class="text-neutral-600 font-medium">Avg. Delivery Days</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Growth Charts Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-neutral-900">
+                    Growth & Performance
+                </h2>
+                <p class="text-lg text-neutral-600">
+                    Our journey in numbers and trends
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+                <!-- Monthly Growth Chart -->
+                <div class="bg-neutral-50 p-8 rounded-2xl border border-neutral-200">
+                    <h3 class="text-xl font-bold mb-6 text-neutral-900">Monthly User Growth</h3>
+                    <div class="relative h-48">
+                        <div class="absolute bottom-0 left-0 right-0 flex items-end justify-between h-full">
+                            <div class="about-chart-bar bg-primary-blue rounded-t-lg" style="height: 60%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-primary-blue rounded-t-lg" style="height: 75%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-primary-blue rounded-t-lg" style="height: 85%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-primary-blue rounded-t-lg" style="height: 70%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-primary-blue rounded-t-lg" style="height: 90%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-primary-blue rounded-t-lg" style="height: 100%; width: 12%;"></div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-sm text-neutral-600 mt-4">
+                        <span>Jan</span>
+                        <span>Feb</span>
+                        <span>Mar</span>
+                        <span>Apr</span>
+                        <span>May</span>
+                        <span>Jun</span>
+                    </div>
+                </div>
+                
+                <!-- Order Trends -->
+                <div class="bg-neutral-50 p-8 rounded-2xl border border-neutral-200">
+                    <h3 class="text-xl font-bold mb-6 text-neutral-900">Order Volume Trends</h3>
+                    <div class="relative h-48">
+                        <div class="absolute bottom-0 left-0 right-0 flex items-end justify-between h-full">
+                            <div class="about-chart-bar bg-success rounded-t-lg" style="height: 45%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-success rounded-t-lg" style="height: 60%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-success rounded-t-lg" style="height: 80%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-success rounded-t-lg" style="height: 65%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-success rounded-t-lg" style="height: 95%; width: 12%;"></div>
+                            <div class="about-chart-bar bg-success rounded-t-lg" style="height: 100%; width: 12%;"></div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-sm text-neutral-600 mt-4">
+                        <span>Jan</span>
+                        <span>Feb</span>
+                        <span>Mar</span>
+                        <span>Apr</span>
+                        <span>May</span>
+                        <span>Jun</span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="section stats-section">
-        <div class="container">
-            <h2 class="section-title">Platform Statistics</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-store"></i>
+    <!-- Developer Section -->
+    <section class="py-20 about-gradient-bg text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-10"></div>
+        <div class="relative container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    Meet the Architect
+                </h2>
+                <p class="text-lg opacity-90">
+                    The visionary behind MarketVibe's innovation
+                </p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8 md:p-12">
+                    <div class="flex flex-col md:flex-row items-center gap-8">
+                        <div class="flex-shrink-0">
+                            <div class="w-32 h-32 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user-circle text-6xl text-white opacity-90"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center md:text-left flex-1">
+                            <h3 class="text-3xl font-bold mb-2">Bilal Akram</h3>
+                            <p class="text-xl opacity-90 mb-4">Full Stack Developer & Platform Architect</p>
+                            <p class="text-lg leading-relaxed mb-6 opacity-90">
+                                A passionate developer committed to creating secure, scalable, and user-friendly web applications. 
+                                With deep expertise in Django, Python, and modern web technologies, Bilal has architected MarketVibe 
+                                to deliver exceptional performance and security for all users.
+                            </p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                                <a href="https://github.com/BILALAKRAM27" target="_blank" 
+                                   class="inline-flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-3 rounded-lg transition-all duration-300 hover:transform hover:scale-105">
+                                    <i class="fab fa-github text-xl"></i>
+                                    <span>GitHub Profile</span>
+                                </a>
+                                <a href="mailto:bilalakram190204@gmail.com" 
+                                   class="inline-flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 px-6 py-3 rounded-lg transition-all duration-300 hover:transform hover:scale-105">
+                                    <i class="fas fa-envelope text-xl"></i>
+                                    <span>Get in Touch</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-number">500+</div>
-                    <div class="stat-label">Active Sellers</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="stat-number">10,000+</div>
-                    <div class="stat-label">Products Sold</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-number">25,000+</div>
-                    <div class="stat-label">Happy Customers</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-shipping-fast"></i>
-                    </div>
-                    <div class="stat-number">2.5</div>
-                    <div class="stat-label">Avg. Delivery Days</div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
 
-<style>
-.about-container {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
-}
+    <!-- Development History -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-neutral-900">
+                    Our Journey
+                </h2>
+                <p class="text-lg text-neutral-600">
+                    From concept to platform - the MarketVibe story
+                </p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="relative">
+                    <!-- Timeline line -->
+                    <div class="absolute left-1/2 transform -translate-x-px h-full w-0.5 bg-primary-blue"></div>
+                    
+                    <!-- Timeline items -->
+                    <div class="space-y-12">
+                        <div class="relative flex items-center">
+                            <div class="flex-1 pr-8 text-right">
+                                <div class="bg-neutral-50 p-6 rounded-lg">
+                                    <h3 class="text-xl font-bold mb-2">Platform Conception</h3>
+                                    <p class="text-neutral-600">Initial ideation and market research for a secure multi-vendor platform</p>
+                                </div>
+                            </div>
+                            <div class="w-4 h-4 bg-primary-blue rounded-full border-4 border-white shadow-lg z-10"></div>
+                            <div class="flex-1 pl-8">
+                                <span class="text-primary-blue font-bold">Q1 2023</span>
+                            </div>
+                        </div>
+                        
+                        <div class="relative flex items-center">
+                            <div class="flex-1 pr-8 text-right">
+                                <span class="text-primary-blue font-bold">Q3 2023</span>
+                            </div>
+                            <div class="w-4 h-4 bg-primary-blue rounded-full border-4 border-white shadow-lg z-10"></div>
+                            <div class="flex-1 pl-8">
+                                <div class="bg-neutral-50 p-6 rounded-lg">
+                                    <h3 class="text-xl font-bold mb-2">Development Phase</h3>
+                                    <p class="text-neutral-600">Core platform architecture and security framework implementation</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative flex items-center">
+                            <div class="flex-1 pr-8 text-right">
+                                <div class="bg-neutral-50 p-6 rounded-lg">
+                                    <h3 class="text-xl font-bold mb-2">Beta Launch</h3>
+                                    <p class="text-neutral-600">Limited release with select vendors and continuous improvement</p>
+                                </div>
+                            </div>
+                            <div class="w-4 h-4 bg-primary-blue rounded-full border-4 border-white shadow-lg z-10"></div>
+                            <div class="flex-1 pl-8">
+                                <span class="text-primary-blue font-bold">Q1 2024</span>
+                            </div>
+                        </div>
+                        
+                        <div class="relative flex items-center">
+                            <div class="flex-1 pr-8 text-right">
+                                <span class="text-primary-blue font-bold">Present</span>
+                            </div>
+                            <div class="w-4 h-4 bg-success rounded-full border-4 border-white shadow-lg z-10"></div>
+                            <div class="flex-1 pl-8">
+                                <div class="bg-gradient-to-r from-success to-primary-blue text-white p-6 rounded-lg">
+                                    <h3 class="text-xl font-bold mb-2">Thriving Platform</h3>
+                                    <p>Serving 25,000+ users with continuous innovation and feature enhancement</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-.hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 4rem 0;
-    text-align: center;
-}
+    <!-- Trust & Security -->
+    <section class="py-20 bg-gradient-to-r from-neutral-50 to-primary-blue-light">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-neutral-900">
+                    Built on Trust
+                </h2>
+                <p class="text-lg text-neutral-600">
+                    Security and reliability at the core of everything we do
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-success bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-shield-alt text-success text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-neutral-900">Secure Transactions</h3>
+                    <p class="text-neutral-600">End-to-end encryption and PCI compliance for all payment processing</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-primary-blue bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-users-cog text-primary-blue text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-neutral-900">24/7 Support</h3>
+                    <p class="text-neutral-600">Dedicated customer service team available around the clock</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-warning bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-star text-warning text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-neutral-900">Quality Assurance</h3>
+                    <p class="text-neutral-600">Rigorous vendor verification and product quality standards</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-.hero-section h1 {
-    font-size: 3rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
-
-.hero-section p {
-    font-size: 1.2rem;
-    opacity: 0.9;
-}
-
-.section {
-    padding: 4rem 0;
-}
-
-.section-title {
-    text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 3rem;
-    color: #333;
-    font-weight: bold;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-}
-
-.col-md-6 {
-    flex: 1;
-    min-width: 300px;
-}
-
-.mission-card, .vision-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.mission-card:hover, .vision-card:hover {
-    transform: translateY(-5px);
-}
-
-.card-icon {
-    font-size: 3rem;
-    color: #667eea;
-    margin-bottom: 1rem;
-}
-
-.mission-card h3, .vision-card h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #333;
-}
-
-.mission-card p, .vision-card p {
-    color: #666;
-    line-height: 1.6;
-}
-
-.developer-section {
-    background: white;
-}
-
-.developer-card {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 3rem;
-    border-radius: 15px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-}
-
-.developer-avatar {
-    font-size: 5rem;
-    opacity: 0.9;
-}
-
-.developer-info h3 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-}
-
-.developer-title {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin-bottom: 1rem;
-}
-
-.developer-description {
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-}
-
-.developer-contact {
-    display: flex;
-    gap: 1rem;
-}
-
-.contact-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: white;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 5px;
-    transition: all 0.3s ease;
-}
-
-.contact-link:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-}
-
-.stats-section {
-    background: #f8f9fa;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-}
-
-.stat-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-}
-
-.stat-icon {
-    font-size: 2.5rem;
-    color: #667eea;
-    margin-bottom: 1rem;
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    color: #666;
-    font-size: 1rem;
-}
-
-@media (max-width: 768px) {
-    .hero-section h1 {
-        font-size: 2rem;
-    }
-    
-    .developer-card {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-{% endblock %} 
+    <!-- Call to Action -->
+    <section class="py-20 about-gradient-bg text-white text-center">
+        <div class="container mx-auto px-6">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                    Ready to Join MarketVibe?
+                </h2>
+                <p class="text-xl mb-8 opacity-90">
+                    Whether you're looking to sell your products or find amazing deals, 
+                    we're here to make your e-commerce journey exceptional.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="{% url 'sellers:login' %}" class="bg-white text-primary-blue hover:bg-neutral-100 px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 hover:transform hover:scale-105">
+                        Start Selling
+                    </a>
+                    <a href="/" class="bg-transparent border-2 border-white hover:bg-white hover:text-primary-blue px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 hover:transform hover:scale-105">
+                        Shop Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+{% endblock %}
+</html>

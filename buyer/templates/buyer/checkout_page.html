@@ -680,6 +680,11 @@
                                                 🎯
                                             </div>
                                         {% endif %}
+                                    {% elif is_quote_checkout %}
+                                        <!-- Quote Display -->
+                                        <div class="item-image" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                            💬
+                                        </div>
                                     {% elif is_regular_checkout %}
                                         <!-- Regular Product Display -->
                                         {% if product.image_url %}
@@ -695,10 +700,20 @@
                                     {% endif %}
                                     <div class="item-details">
                                         <h4 class="font-medium">{{ product.name }}</h4>
-                                        {% if product.attributes %}
-                                            <p class="text-sm text-muted">{{ product.attributes }}</p>
+                                        {% if is_quote_checkout %}
+                                            {% if product.description %}
+                                                <p class="text-sm text-muted">{{ product.description }}</p>
+                                            {% endif %}
+                                            {% if product.notes %}
+                                                <p class="text-sm text-muted">Notes: {{ product.notes }}</p>
+                                            {% endif %}
+                                            <p class="text-sm">Qty: {{ product.quantity }}</p>
+                                        {% else %}
+                                            {% if product.attributes %}
+                                                <p class="text-sm text-muted">{{ product.attributes }}</p>
+                                            {% endif %}
+                                            <p class="text-sm">Qty: {{ product.quantity }}</p>
                                         {% endif %}
-                                        <p class="text-sm">Qty: {{ product.quantity }}</p>
                                     </div>
                                     <div class="item-price">${{ product.price|floatformat:2 }}</div>
                                 </div>

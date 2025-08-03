@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from .models import (
     Seller, Category, CategoryAttribute, AttributeOption, Brand, 
     Product, ProductImage, ProductAttributeValue, ProductReview, GiftBoxCampaign, SellerGiftBoxParticipation,
-    SellerReview, ProductReviewLike, SellerReviewLike
+    SellerReview, ProductReviewLike, SellerReviewLike, QuoteRequest, QuoteResponse, NewsletterSubscriber
 )
 
 # ========== SELLER ADMIN ==========
@@ -193,3 +193,69 @@ class SellerReviewLikeAdmin(admin.ModelAdmin):
 
 admin.site.register(GiftBoxCampaign)
 admin.site.register(SellerGiftBoxParticipation)
+
+@admin.register(QuoteRequest)
+class QuoteRequestAdmin(admin.ModelAdmin):
+    list_display = ['id', 'product_name', 'buyer', 'category', 'quantity', 'unit', 'urgency', 'status', 'created_at']
+    list_filter = ['status', 'urgency', 'unit', 'category', 'created_at']
+    search_fields = ['product_name', 'buyer__name', 'description']
+    readonly_fields = ['created_at', 'updated_at', 'expires_at']
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('buyer', 'category', 'product_name', 'description')
+        }),
+        ('Requirements', {
+            'fields': ('quantity', 'unit', 'urgency', 'budget_range', 'delivery_deadline')
+        }),
+        ('Status & Timing', {
+            'fields': ('status', 'created_at', 'updated_at', 'expires_at')
+        }),
+    )
+
+@admin.register(QuoteResponse)
+class QuoteResponseAdmin(admin.ModelAdmin):
+    list_display = ['id', 'quote_request', 'seller', 'price', 'delivery_estimate', 'is_accepted', 'is_rejected', 'created_at']
+    list_filter = ['is_accepted', 'is_rejected', 'created_at', 'seller']
+    search_fields = ['quote_request__product_name', 'seller__shop_name', 'notes']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Quote Information', {
+            'fields': ('quote_request', 'seller')
+        }),
+        ('Response Details', {
+            'fields': ('price', 'delivery_estimate', 'notes')
+        }),
+        ('Status', {
+            'fields': ('is_accepted', 'is_rejected')
+        }),
+        ('Timing', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+@admin.register(NewsletterSubscriber)
+class NewsletterSubscriberAdmin(admin.ModelAdmin):
+    list_display = ['email', 'role', 'is_active', 'subscribed_at', 'preferences_summary']
+    list_filter = ['role', 'is_active', 'receive_product_updates', 'receive_platform_announcements', 'subscribed_at']
+    search_fields = ['email', 'user__username']
+    readonly_fields = ['subscribed_at', 'updated_at']
+    date_hierarchy = 'subscribed_at'
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('email', 'role', 'user')
+        }),
+        ('Preferences', {
+            'fields': ('receive_product_updates', 'receive_platform_announcements', 'receive_seller_tools', 'receive_buyer_recommendations')
+        }),
+        ('Status', {
+            'fields': ('is_active',)
+        }),
+        ('Timing', {
+            'fields': ('subscribed_at', 'updated_at')
+        }),
+    )

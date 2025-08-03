@@ -1,0 +1,232 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-inbox me-2"></i>Quotes Inbox
+                </h2>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" id="newQuotesBtn">
+                        <i class="fas fa-plus-circle me-1"></i>New Requests
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="myResponsesBtn">
+                        <i class="fas fa-reply me-1"></i>My Responses
+                    </button>
+                </div>
+            </div>
+            
+            <!-- New Quote Requests Section -->
+            <div id="newQuotesSection">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-quote-left me-2"></i>New Quote Requests
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if quote_requests %}
+                            <div class="row">
+                                {% for quote in quote_requests %}
+                                <div class="col-lg-6 col-xl-4 mb-4">
+                                    <div class="card h-100 border-0 shadow-sm quote-card">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-{{ quote.urgency }}">{{ quote.get_urgency_display }}</span>
+                                            <small class="text-muted">{{ quote.created_at|date:"M d, Y" }}</small>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">{{ quote.product_name }}</h6>
+                                            <p class="card-text text-muted small mb-2">
+                                                <i class="fas fa-user me-1"></i>{{ quote.buyer.name }}
+                                            </p>
+                                            <p class="card-text">{{ quote.description|truncatewords:20 }}</p>
+                                            
+                                            <div class="row text-center mb-3">
+                                                <div class="col-4">
+                                                    <small class="text-muted">Quantity</small>
+                                                    <div class="fw-bold">{{ quote.quantity }} {{ quote.get_unit_display }}</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <small class="text-muted">Category</small>
+                                                    <div class="fw-bold">{{ quote.category.name }}</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <small class="text-muted">Budget</small>
+                                                    <div class="fw-bold">{{ quote.budget_range|default:"Not specified" }}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if quote.delivery_deadline %}
+                                            <div class="alert alert-warning py-2 mb-3">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                <small>Deadline: {{ quote.delivery_deadline|date:"M d, Y" }}</small>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-footer bg-transparent">
+                                            <div class="d-grid">
+                                                <a href="{% url 'sellers:respond_to_quote' quote.id %}" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-reply me-1"></i>Respond to Quote
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No new quote requests</h5>
+                                <p class="text-muted">When buyers submit quote requests in your categories, they'll appear here.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- My Responses Section -->
+            <div id="myResponsesSection" style="display: none;">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-reply me-2"></i>My Quote Responses
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if seller_responses %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Buyer</th>
+                                            <th>My Price</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for response in seller_responses %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ response.quote_request.product_name }}</strong>
+                                                <br><small class="text-muted">{{ response.quote_request.category.name }}</small>
+                                            </td>
+                                            <td>{{ response.quote_request.buyer.name }}</td>
+                                            <td>
+                                                <strong>${{ response.price }}</strong>
+                                                <br><small class="text-muted">per unit</small>
+                                            </td>
+                                            <td>
+                                                {% if response.is_accepted %}
+                                                    <span class="badge bg-success">Accepted</span>
+                                                {% elif response.is_rejected %}
+                                                    <span class="badge bg-danger">Rejected</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ response.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <a href="{% url 'sellers:quote_details' response.quote_request.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye me-1"></i>View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-reply fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No responses yet</h5>
+                                <p class="text-muted">Your quote responses will appear here once you start responding to requests.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const newQuotesBtn = document.getElementById('newQuotesBtn');
+    const myResponsesBtn = document.getElementById('myResponsesBtn');
+    const newQuotesSection = document.getElementById('newQuotesSection');
+    const myResponsesSection = document.getElementById('myResponsesSection');
+    
+    newQuotesBtn.addEventListener('click', function() {
+        newQuotesBtn.classList.add('active');
+        myResponsesBtn.classList.remove('active');
+        newQuotesSection.style.display = 'block';
+        myResponsesSection.style.display = 'none';
+    });
+    
+    myResponsesBtn.addEventListener('click', function() {
+        myResponsesBtn.classList.add('active');
+        newQuotesBtn.classList.remove('active');
+        myResponsesSection.style.display = 'block';
+        newQuotesSection.style.display = 'none';
+    });
+    
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        // You can add AJAX refresh logic here if needed
+    }, 30000);
+});
+</script>
+
+<style>
+.quote-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+}
+
+.quote-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.badge.bg-low { background-color: #28a745; }
+.badge.bg-medium { background-color: #ffc107; color: #212529; }
+.badge.bg-high { background-color: #fd7e14; }
+.badge.bg-urgent { background-color: #dc3545; }
+
+.card-header {
+    border-bottom: none;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.btn-group .btn {
+    border-radius: 8px;
+    margin: 0 2px;
+}
+
+.btn-group .btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: none;
+    color: #856404;
+}
+</style>
+{% endblock %} 

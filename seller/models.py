@@ -412,3 +412,121 @@ class SellerGiftBoxParticipation(models.Model):
 
     def __str__(self):
         return f"{self.seller} in {self.campaign}"
+
+# ========== QUOTES SYSTEM MODELS ==========
+
+class QuoteRequest(models.Model):
+    QUOTE_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('responded', 'Seller Responded'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+        ('converted', 'Converted to Order'),
+        ('expired', 'Expired'),
+    ]
+    
+    buyer = models.ForeignKey("buyer.Buyer", on_delete=models.CASCADE, related_name='quote_requests')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='quote_requests')
+    product_name = models.CharField(max_length=200)
+    description = models.TextField()
+    quantity = models.PositiveIntegerField()
+    unit = models.CharField(max_length=20, choices=[
+        ('pcs', 'Pieces'),
+        ('kg', 'Kilograms'),
+        ('tons', 'Tons'),
+        ('units', 'Units'),
+    ], default='pcs')
+    urgency = models.CharField(max_length=20, choices=[
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    ], default='medium')
+    status = models.CharField(max_length=20, choices=QUOTE_STATUS_CHOICES, default='pending')
+    budget_range = models.CharField(max_length=100, blank=True, null=True)
+    delivery_deadline = models.DateField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Quote Request #{self.id} - {self.product_name} by {self.buyer.name}"
+    
+    @property
+    def is_expired(self):
+        if self.expires_at:
+            return timezone.now() > self.expires_at
+        return False
+    
+    def get_responses_count(self):
+        return self.responses.count()
+    
+    def get_accepted_response(self):
+        return self.responses.filter(is_accepted=True).first()
+
+class QuoteResponse(models.Model):
+    quote_request = models.ForeignKey(QuoteRequest, on_delete=models.CASCADE, related_name='responses')
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='quote_responses')
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    delivery_estimate = models.CharField(max_length=100)
+    notes = models.TextField(blank=True, null=True)
+    is_accepted = models.BooleanField(default=False)
+    is_rejected = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('quote_request', 'seller')
+    
+    def __str__(self):
+        return f"Quote Response from {self.seller.shop_name} for {self.quote_request.product_name}"
+    
+    @property
+    def total_price(self):
+        return self.price * self.quote_request.quantity
+
+# ========== NEWSLETTER SUBSCRIPTION MODELS ==========
+
+class NewsletterSubscriber(models.Model):
+    ROLE_CHOICES = [
+        ('buyer', 'Buyer'),
+        ('seller', 'Seller'),
+        ('both', 'Both'),
+    ]
+    
+    email = models.EmailField(unique=True)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Preferences
+    receive_product_updates = models.BooleanField(default=True)
+    receive_platform_announcements = models.BooleanField(default=True)
+    receive_seller_tools = models.BooleanField(default=False)
+    receive_buyer_recommendations = models.BooleanField(default=False)
+    
+    is_active = models.BooleanField(default=True)
+    subscribed_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-subscribed_at']
+    
+    def __str__(self):
+        return f"{self.email} ({self.get_role_display()})"
+    
+    @property
+    def preferences_summary(self):
+        prefs = []
+        if self.receive_product_updates:
+            prefs.append("Product Updates")
+        if self.receive_platform_announcements:
+            prefs.append("Platform Announcements")
+        if self.receive_seller_tools:
+            prefs.append("Seller Tools")
+        if self.receive_buyer_recommendations:
+            prefs.append("Buyer Recommendations")
+        return ", ".join(prefs) if prefs else "None"

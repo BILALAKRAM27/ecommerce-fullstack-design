@@ -1,0 +1,356 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Quote Request Details -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-quote-left me-2"></i>{{ quote_request.product_name }}
+                    </h4>
+                    <p class="mb-0 mt-2">Quote Request Details</p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Request Information</h6>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-user me-1"></i><strong>Buyer:</strong> {{ quote_request.buyer.name }}
+                            </p>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-tags me-1"></i><strong>Category:</strong> {{ quote_request.category.name }}
+                            </p>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-sort-numeric-up me-1"></i><strong>Quantity:</strong> {{ quote_request.quantity }} {{ quote_request.get_unit_display }}
+                            </p>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-clock me-1"></i><strong>Urgency:</strong> 
+                                <span class="badge bg-{{ quote_request.urgency }}">{{ quote_request.get_urgency_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Additional Details</h6>
+                            {% if quote_request.budget_range %}
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-dollar-sign me-1"></i><strong>Budget:</strong> {{ quote_request.budget_range }}
+                            </p>
+                            {% endif %}
+                            {% if quote_request.delivery_deadline %}
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-calendar me-1"></i><strong>Deadline:</strong> {{ quote_request.delivery_deadline|date:"M d, Y" }}
+                            </p>
+                            {% endif %}
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-calendar-alt me-1"></i><strong>Posted:</strong> {{ quote_request.created_at|date:"M d, Y" }}
+                            </p>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-info-circle me-1"></i><strong>Status:</strong> 
+                                <span class="badge bg-{{ quote_request.status }}">{{ quote_request.get_status_display }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted">Description:</h6>
+                        <p class="mb-0">{{ quote_request.description }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seller Responses -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-reply me-2"></i>Seller Responses ({{ quote_request.responses.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if quote_request.responses.all %}
+                        <div class="row">
+                            {% for response in quote_request.responses.all %}
+                            <div class="col-lg-6 mb-4">
+                                <div class="card h-100 border-0 shadow-sm response-card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">{{ response.seller.shop_name }}</h6>
+                                            <small class="text-muted">{{ response.created_at|date:"M d, Y" }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="h5 text-primary mb-0">${{ response.price }}</div>
+                                            <small class="text-muted">per unit</small>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-3">
+                                            <div class="col-6">
+                                                <small class="text-muted">Total Price</small>
+                                                <div class="fw-bold">${{ response.total_price }}</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Delivery</small>
+                                                <div class="fw-bold">{{ response.delivery_estimate }}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if response.notes %}
+                                        <div class="mb-3">
+                                            <small class="text-muted">Notes:</small>
+                                            <p class="mb-0 small">{{ response.notes }}</p>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                {% if response.is_accepted %}
+                                                    <span class="badge bg-success">Accepted</span>
+                                                {% elif response.is_rejected %}
+                                                    <span class="badge bg-danger">Rejected</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {% if user_type == 'buyer' and quote_request.status == 'responded' and not response.is_accepted and not response.is_rejected %}
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-success btn-sm" onclick="acceptQuote({{ response.id }})">
+                                                    <i class="fas fa-check me-1"></i>Accept
+                                                </button>
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="rejectQuote({{ response.id }})">
+                                                    <i class="fas fa-times me-1"></i>Reject
+                                                </button>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-reply fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No responses yet</h5>
+                            <p class="text-muted">
+                                {% if user_type == 'buyer' %}
+                                    Sellers will respond to your quote request. You'll receive notifications when they do.
+                                {% else %}
+                                    This quote request is still waiting for responses from sellers.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% if user_type == 'buyer' %}{% url 'sellers:buyer_quote_requests' %}{% else %}{% url 'sellers:seller_quotes_inbox' %}{% endif %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to {% if user_type == 'buyer' %}My Quotes{% else %}Quotes Inbox{% endif %}
+                </a>
+                
+                {% if user_type == 'buyer' and quote_request.status == 'accepted' %}
+                    <a href="{% url 'buyer:checkout_page' %}" class="btn btn-success">
+                        <i class="fas fa-shopping-cart me-1"></i>Proceed to Checkout
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function acceptQuote(responseId) {
+    console.log('Accepting quote response:', responseId);
+    
+    Swal.fire({
+        title: 'Accept Quote?',
+        text: 'Are you sure you want to accept this quote? This will reject all other responses.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Accept Quote',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            console.log('User confirmed quote acceptance');
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            console.log('CSRF Token:', csrfToken ? 'Found' : 'Not found');
+            
+            fetch(`/quotes/response/${responseId}/accept/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Quote Accepted!',
+                        text: data.message,
+                        confirmButtonText: 'Proceed to Checkout',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    }).then(() => {
+                        console.log('Redirect URL:', data.redirect_url);
+                        // Always redirect to checkout if redirect_url is provided
+                        if (data.redirect_url) {
+                            console.log('Redirecting to:', data.redirect_url);
+                            window.location.href = data.redirect_url;
+                        } else {
+                            console.log('No redirect URL, reloading page');
+                            window.location.reload();
+                        }
+                    });
+                } else {
+                    console.error('Server returned error:', data.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message,
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while accepting the quote.',
+                    confirmButtonText: 'OK'
+                });
+            });
+        }
+    });
+}
+
+function rejectQuote(responseId) {
+    Swal.fire({
+        title: 'Reject Quote?',
+        text: 'Are you sure you want to reject this quote?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Reject Quote',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/quotes/response/${responseId}/reject/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Quote Rejected',
+                        text: data.message,
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message,
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while rejecting the quote.',
+                    confirmButtonText: 'OK'
+                });
+            });
+        }
+    });
+}
+</script>
+
+<style>
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: none;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.response-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.response-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+}
+
+.badge.bg-pending { background-color: #6c757d; }
+.badge.bg-responded { background-color: #17a2b8; }
+.badge.bg-accepted { background-color: #28a745; }
+.badge.bg-rejected { background-color: #dc3545; }
+.badge.bg-converted { background-color: #6f42c1; }
+.badge.bg-expired { background-color: #fd7e14; }
+
+.badge.bg-low { background-color: #28a745; }
+.badge.bg-medium { background-color: #ffc107; color: #212529; }
+.badge.bg-high { background-color: #fd7e14; }
+.badge.bg-urgent { background-color: #dc3545; }
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+    border: none;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+</style>
+{% endblock %} 

@@ -706,6 +706,10 @@ def checkout_view(request):
     promotion_data = request.session.get('promotion_data')
     is_promotion_checkout = promotion_data is not None
     
+    # Check if this is a quote checkout
+    quote_data = request.session.get('quote_data')
+    is_quote_checkout = quote_data is not None
+    
     # Clear conflicting session data to ensure proper checkout type
     if is_giftbox_checkout and is_promotion_checkout:
         # If both are present, we need to determine which one is more recent
@@ -722,13 +726,29 @@ def checkout_view(request):
                 del request.session['promotion_data']
             is_promotion_checkout = False
     
+    # Clear quote data if other checkout types are present
+    if is_giftbox_checkout or is_promotion_checkout:
+        if 'quote_data' in request.session:
+            del request.session['quote_data']
+        is_quote_checkout = False
+    
+    # Clear other checkout data if quote checkout is present
+    if is_quote_checkout:
+        if 'giftbox_data' in request.session:
+            del request.session['giftbox_data']
+        if 'promotion_data' in request.session:
+            del request.session['promotion_data']
+        is_giftbox_checkout = False
+        is_promotion_checkout = False
+    
     # Add debug logging
-    print(f"DEBUG: Checkout view - Giftbox: {is_giftbox_checkout}, Promotion: {is_promotion_checkout}")
-    print(f"DEBUG: Session data - Giftbox: {giftbox_data}, Promotion: {promotion_data}")
+    print(f"DEBUG: Checkout view - Giftbox: {is_giftbox_checkout}, Promotion: {is_promotion_checkout}, Quote: {is_quote_checkout}")
+    print(f"DEBUG: Session data - Giftbox: {giftbox_data}, Promotion: {promotion_data}, Quote: {quote_data}")
+    print(f"DEBUG: All session keys: {list(request.session.keys())}")
     print(f"DEBUG: Referer: {request.META.get('HTTP_REFERER', '')}")
     
-    # If neither giftbox nor promotion checkout, this is a regular cart checkout
-    if not is_giftbox_checkout and not is_promotion_checkout:
+    # If neither giftbox, promotion, nor quote checkout, this is a regular cart checkout
+    if not is_giftbox_checkout and not is_promotion_checkout and not is_quote_checkout:
         # Clear any existing session data for other checkout types
         if 'giftbox_data' in request.session:
             del request.session['giftbox_data']
@@ -902,6 +922,89 @@ def checkout_view(request):
             'is_regular_checkout': False,
             'promotion_data': promotion_data,
         }
+    elif is_quote_checkout:
+        # Clear any existing giftbox and promotion data when doing quote checkout
+        if 'giftbox_data' in request.session:
+            del request.session['giftbox_data']
+        if 'promotion_data' in request.session:
+            del request.session['promotion_data']
+        
+        # Handle quote checkout
+        seller_id = quote_data.get('seller_id')
+        seller_name = quote_data.get('seller_name', 'Seller')
+        product_name = quote_data.get('product_name', 'Quote Product')
+        quantity = quote_data.get('quantity', 1)
+        unit = quote_data.get('unit', 'pcs')
+        price = quote_data.get('price', 0)
+        total_price = quote_data.get('total_price', 0)
+        delivery_estimate = quote_data.get('delivery_estimate', 'Standard Delivery')
+        notes = quote_data.get('notes', '')
+        description = quote_data.get('description', '')
+        
+        # Get seller object
+        try:
+            seller = get_object_or_404(Seller, id=seller_id)
+        except:
+            # If seller doesn't exist, clear the session and redirect to cart
+            print(f"DEBUG: Seller {seller_id} not found, clearing session")
+            if 'quote_data' in request.session:
+                del request.session['quote_data']
+            messages.error(request, 'The seller for this quote is no longer available.')
+            return redirect('buyer:cart_page')
+        
+        # Create quote seller group
+        grouped_sellers = [{
+            'seller': {'shop_name': seller_name},
+            'products': [{
+                'name': f'Quote: {product_name}',
+                'image_url': '',  # No image for quote
+                'attributes': f'Quantity: {quantity} {unit}, Delivery: {delivery_estimate}',
+                'quantity': quantity,
+                'price': price,
+                'is_quote': True,
+                'description': description,
+                'notes': notes,
+            }],
+            'subtotal': total_price,
+        }]
+        
+        # Calculate order summary for quote
+        subtotal = total_price
+        shipping = 15.99
+        tax = round(subtotal * 0.125, 2)  # 12.5% tax
+        total = subtotal + shipping + tax
+        total_items = quantity
+        
+        order_summary = {
+            'subtotal': subtotal,
+            'shipping': shipping,
+            'tax': tax,
+            'total': total,
+            'total_items': total_items,
+        }
+        
+        # Get buyer's address (it's a TextField, not an object)
+        buyer_address = getattr(buyer, 'address', '')
+        shipping_address = {
+            'street': buyer_address,
+            'city': '',
+            'zip_code': '',
+            'country': 'US',
+        }
+        
+        context = {
+            'grouped_sellers': grouped_sellers,
+            'order_summary': order_summary,
+            'shipping_address': shipping_address,
+            'buyer': buyer,
+            'cart': None,  # No cart for quote
+            'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
+            'is_giftbox_checkout': False,
+            'is_promotion_checkout': False,
+            'is_quote_checkout': True,
+            'is_regular_checkout': False,
+            'quote_data': quote_data,
+        }
     else:
         # Handle regular cart checkout
         print(f"DEBUG: Processing regular cart checkout")
@@ -1019,6 +1122,10 @@ def place_order_view(request):
         promotion_data = request.session.get('promotion_data')
         is_promotion_order = promotion_data is not None
         
+        # Check if this is a quote order
+        quote_data = request.session.get('quote_data')
+        is_quote_order = quote_data is not None
+        
         if is_giftbox_order:
             # Handle gift box order
             seller_id = giftbox_data.get('seller_id')
@@ -1118,6 +1225,84 @@ def place_order_view(request):
                 'orders': [order.id],
                 'is_promotion': True
             })
+        elif is_quote_order:
+            # Handle quote order
+            print(f"DEBUG: Processing quote order")
+            print(f"DEBUG: Quote data in session: {quote_data}")
+            quote_request_id = quote_data.get('quote_request_id')
+            quote_response_id = quote_data.get('quote_response_id')
+            seller_id = quote_data.get('seller_id')
+            seller_name = quote_data.get('seller_name', 'Seller')
+            product_name = quote_data.get('product_name', 'Quote Product')
+            quantity = quote_data.get('quantity', 1)
+            unit = quote_data.get('unit', 'pcs')
+            total_price = quote_data.get('total_price', 0)
+            delivery_estimate = quote_data.get('delivery_estimate', 'Standard Delivery')
+            notes = quote_data.get('notes', '')
+            description = quote_data.get('description', '')
+            
+            print(f"DEBUG: Quote Request ID: {quote_request_id}, Response ID: {quote_response_id}, Seller ID: {seller_id}")
+            
+            seller = get_object_or_404(Seller, id=seller_id)
+            
+            # Get shipping address from request
+            import json
+            data = json.loads(request.body)
+            shipping_address = data.get('shipping_address', {})
+            shipping_address_str = f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('zip_code', '')}, {shipping_address.get('country', '')}"
+            
+            # Create quote order (using regular Order model)
+            print(f"DEBUG: Creating quote order for quote response {quote_response_id}")
+            order = Order.objects.create(
+                buyer=buyer,
+                seller=seller,
+                status='pending',
+                total_amount=total_price,
+                payment_status='pending',
+                order_type='cod',
+                delivery_address=shipping_address_str,
+                notes=f'Quote: {product_name} - {quantity} {unit}, Delivery: {delivery_estimate}, Notes: {notes}',
+            )
+            print(f"DEBUG: Created quote order ID: {order.id}")
+            
+            # Create order item for the quote
+            # Use the first product from the seller as a placeholder
+            placeholder_product = seller.products.first()
+            if not placeholder_product:
+                # If no products exist, create a minimal order item
+                return JsonResponse({'success': False, 'error': 'Seller has no products available'})
+            
+            # Create order item with the quote product information stored in notes
+            order_item = OrderItem.objects.create(
+                order=order,
+                product=placeholder_product,
+                price_at_purchase=total_price,
+                quantity=quantity
+            )
+            
+            # Store the actual quote product name in the order notes
+            # The order notes already contain: f'Quote: {product_name} - {quantity} {unit}, Delivery: {delivery_estimate}, Notes: {notes}'
+            # This ensures the quote product name is preserved in the order
+            
+            # Update quote request status to 'converted'
+            from seller.models import QuoteRequest, QuoteResponse
+            try:
+                quote_request = QuoteRequest.objects.get(id=quote_request_id)
+                quote_request.status = 'converted'
+                quote_request.save()
+                print(f"DEBUG: Updated quote request {quote_request_id} status to 'converted'")
+            except QuoteRequest.DoesNotExist:
+                print(f"DEBUG: Quote request {quote_request_id} not found")
+            
+            # Clear quote data from session
+            if 'quote_data' in request.session:
+                del request.session['quote_data']
+            
+            return JsonResponse({
+                'success': True,
+                'orders': [order.id],
+                'is_quote': True
+            })
         else:
             # Handle regular cart order
             cart, _ = Cart.objects.get_or_create(buyer=buyer)
@@ -1214,6 +1399,10 @@ def process_stripe_payment(request):
         # Check if this is a promotion order
         promotion_data = request.session.get('promotion_data')
         is_promotion_order = promotion_data is not None
+        
+        # Check if this is a quote order
+        quote_data = request.session.get('quote_data')
+        is_quote_order = quote_data is not None
         
         if is_giftbox_order:
             # Handle gift box Stripe payment
@@ -1387,6 +1576,124 @@ def process_stripe_payment(request):
                 }],
                 'orders': [order.id],
                 'is_promotion': True
+            })
+        elif is_quote_order:
+            # Handle quote Stripe payment
+            print(f"DEBUG: Processing quote Stripe payment")
+            print(f"DEBUG: Quote data in session: {quote_data}")
+            quote_request_id = quote_data.get('quote_request_id')
+            quote_response_id = quote_data.get('quote_response_id')
+            seller_id = quote_data.get('seller_id')
+            seller_name = quote_data.get('seller_name', 'Seller')
+            product_name = quote_data.get('product_name', 'Quote Product')
+            quantity = quote_data.get('quantity', 1)
+            unit = quote_data.get('unit', 'pcs')
+            total_price = quote_data.get('total_price', 0)
+            delivery_estimate = quote_data.get('delivery_estimate', 'Standard Delivery')
+            notes = quote_data.get('notes', '')
+            description = quote_data.get('description', '')
+            
+            print(f"DEBUG: Quote Request ID: {quote_request_id}, Response ID: {quote_response_id}, Seller ID: {seller_id}")
+            
+            seller = get_object_or_404(Seller, id=seller_id)
+            
+            # Check if seller has Stripe account
+            if not seller.stripe_account_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Seller {seller.shop_name} is not set up for online payments. Please contact the seller or choose Cash on Delivery.'
+                })
+            
+            # Get shipping address from form and format it
+            shipping_address_raw = request.POST.get('shipping_address', '')
+            # Parse the shipping address if it's JSON, otherwise use as is
+            import json
+            try:
+                shipping_address_data = json.loads(shipping_address_raw) if shipping_address_raw else {}
+                shipping_address_str = f"{shipping_address_data.get('street', '')}, {shipping_address_data.get('city', '')}, {shipping_address_data.get('zip_code', '')}, {shipping_address_data.get('country', '')}"
+            except (json.JSONDecodeError, TypeError):
+                shipping_address_str = shipping_address_raw
+            
+            # Calculate total with shipping and tax
+            subtotal = total_price
+            shipping = 15.99
+            tax = round(subtotal * 0.125, 2)  # 12.5% tax
+            final_total = subtotal + shipping + tax
+            
+            # Create quote order (using regular Order model)
+            print(f"DEBUG: Creating quote order for quote response {quote_response_id}")
+            order = Order.objects.create(
+                buyer=buyer,
+                seller=seller,
+                status='pending',
+                total_amount=final_total,
+                payment_status='pending',
+                order_type='stripe',
+                delivery_address=shipping_address_str,
+                notes=f'Quote: {product_name} - {quantity} {unit}, Delivery: {delivery_estimate}, Notes: {notes}',
+            )
+            print(f"DEBUG: Created quote order ID: {order.id}")
+            
+            # Create order item for the quote with the actual quote product name
+            # Use the first product from the seller as a placeholder but update the name
+            placeholder_product = seller.products.first()
+            if not placeholder_product:
+                # If no products exist, create a minimal order item
+                return JsonResponse({'success': False, 'error': 'Seller has no products available'})
+            
+            # Create order item with quote product name
+            order_item = OrderItem.objects.create(
+                order=order,
+                product=placeholder_product,
+                price_at_purchase=total_price,
+                quantity=quantity
+            )
+            
+            # Update the product name in the order item to reflect the quote product
+            # We'll store the quote product name in the order notes since we can't modify the product model
+            # The order notes already contain the quote information
+            
+            # Update quote request status to 'converted'
+            from seller.models import QuoteRequest, QuoteResponse
+            try:
+                quote_request = QuoteRequest.objects.get(id=quote_request_id)
+                quote_request.status = 'converted'
+                quote_request.save()
+                print(f"DEBUG: Updated quote request {quote_request_id} status to 'converted'")
+            except QuoteRequest.DoesNotExist:
+                print(f"DEBUG: Quote request {quote_request_id} not found")
+            
+            # Create Stripe PaymentIntent for quote
+            amount = int(final_total * 100)  # in cents
+            commission = int(final_total * 0.10 * 100)  # 10% commission, in cents
+            
+            payment_intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency="usd",
+                payment_method_types=["card"],
+                application_fee_amount=commission,
+                transfer_data={
+                    "destination": seller.stripe_account_id,
+                },
+                metadata={
+                    "order_id": order.id,
+                    "order_type": "quote",
+                }
+            )
+            
+            # Clear quote data from session
+            if 'quote_data' in request.session:
+                del request.session['quote_data']
+            
+            return JsonResponse({
+                'success': True,
+                'payment_intents': [{
+                    'order_id': order.id,
+                    'client_secret': payment_intent.client_secret,
+                    'amount': final_total
+                }],
+                'orders': [order.id],
+                'is_quote': True
             })
         else:
             # Handle regular cart Stripe payment
@@ -1609,12 +1916,38 @@ def fetch_order_details(request):
                             'subtotal': 0
                         }
                     
+                    # Check if this is a quote order by looking at the order notes
+                    product_name = item.product.name
+                    if order.notes and order.notes.startswith('Quote:'):
+                        # Extract the quote product name from the notes
+                        # Format: "Quote: {product_name} - {quantity} {unit}, Delivery: {delivery_estimate}, Notes: {notes}"
+                        try:
+                            quote_info = order.notes.split('Quote: ')[1].split(' - ')[0]
+                            product_name = quote_info
+                        except (IndexError, AttributeError):
+                            # If parsing fails, use the original product name
+                            product_name = item.product.name
+                    
+                    # Check if this is a quote order by looking at the order notes
+                    is_quote_order = order.notes and order.notes.startswith('Quote:')
+                    
+                    # For quote orders, price_at_purchase is the total price, not per-unit
+                    # For regular orders, price_at_purchase is per-unit price
+                    if is_quote_order:
+                        item_price = item.price_at_purchase  # Total price for quote
+                        item_subtotal = item_price  # Don't multiply by quantity
+                        print(f"DEBUG: Quote order - price_at_purchase: {item.price_at_purchase}, quantity: {item.quantity}, subtotal: {item_subtotal}")
+                    else:
+                        item_price = item.price_at_purchase  # Per-unit price
+                        item_subtotal = item_price * item.quantity  # Multiply by quantity
+                        print(f"DEBUG: Regular order - price_at_purchase: {item.price_at_purchase}, quantity: {item.quantity}, subtotal: {item_subtotal}")
+                    
                     seller_items[seller.id]['items'].append({
-                        'name': item.product.name,
+                        'name': product_name,
                         'quantity': item.quantity,
-                        'price': item.price_at_purchase
+                        'price': item_price
                     })
-                    seller_items[seller.id]['subtotal'] += item.price_at_purchase * item.quantity
+                    seller_items[seller.id]['subtotal'] += item_subtotal
                 
                 # Add order payment status - check if there's a successful payment record
                 payment_status = order.payment_status

@@ -6,6 +6,7 @@ from .models import Seller, Product, ProductImage, Brand, Category
 from buyer.models import Buyer
 from .models import CategoryAttribute, ProductAttributeValue
 from .models import ProductReview, SellerReview
+from .models import QuoteRequest, QuoteResponse, NewsletterSubscriber
 
 
 class SellerLoginForm(AuthenticationForm):
@@ -188,20 +189,18 @@ class ProductImageForm(forms.ModelForm):
 
 
 class DynamicProductForm(forms.ModelForm):
-    # Do NOT define any image or images field here. The file input is handled in the template and processed in the view.
     class Meta:
         model = Product
-        fields = [
-            'category', 'brand', 'name', 'description',
-            'base_price', 'discount_percentage', 'final_price',
-            'stock', 'condition'
-        ]
+        fields = ['name', 'description', 'base_price', 'discount_percentage', 'stock', 'condition', 'category', 'brand']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'base_price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-            'discount_percentage': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
-            'final_price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-            'stock': forms.NumberInput(attrs={'min': '0'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'base_price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'discount_percentage': forms.NumberInput(attrs={'class': 'form-control'}),
+            'stock': forms.NumberInput(attrs={'class': 'form-control'}),
+            'condition': forms.Select(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'brand': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -312,3 +311,118 @@ class SellerReviewForm(forms.ModelForm):
             'class': 'form-control',
             'required': True
         })
+
+# ========== QUOTES SYSTEM FORMS ==========
+
+class QuoteRequestForm(forms.ModelForm):
+    class Meta:
+        model = QuoteRequest
+        fields = ['category', 'product_name', 'description', 'quantity', 'unit', 'urgency', 'budget_range', 'delivery_deadline']
+        widgets = {
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'product_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'What item you need?'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Type more details about your requirements',
+                'rows': 4
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Quantity',
+                'min': '1'
+            }),
+            'unit': forms.Select(attrs={'class': 'form-control'}),
+            'urgency': forms.Select(attrs={'class': 'form-control'}),
+            'budget_range': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., $100-500'
+            }),
+            'delivery_deadline': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+        }
+
+class QuoteResponseForm(forms.ModelForm):
+    class Meta:
+        model = QuoteResponse
+        fields = ['price', 'delivery_estimate', 'notes']
+        widgets = {
+            'price': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Price per unit',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'delivery_estimate': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., 3-5 business days'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Additional notes or terms',
+                'rows': 3
+            }),
+        }
+
+# ========== NEWSLETTER SUBSCRIPTION FORMS ==========
+
+class NewsletterSubscriptionForm(forms.ModelForm):
+    class Meta:
+        model = NewsletterSubscriber
+        fields = ['email', 'role', 'receive_product_updates', 'receive_platform_announcements', 
+                 'receive_seller_tools', 'receive_buyer_recommendations']
+        widgets = {
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your email address'
+            }),
+            'role': forms.Select(attrs={'class': 'form-control'}),
+            'receive_product_updates': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'receive_platform_announcements': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'receive_seller_tools': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'receive_buyer_recommendations': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if user:
+            # Auto-detect role based on user type
+            try:
+                seller = Seller.objects.get(user=user)
+                self.fields['role'].initial = 'seller'
+            except Seller.DoesNotExist:
+                try:
+                    buyer = Buyer.objects.get(email=user.email)
+                    self.fields['role'].initial = 'buyer'
+                except Buyer.DoesNotExist:
+                    self.fields['role'].initial = 'both'
+            
+            # Pre-fill email if user is logged in
+            if user.email:
+                self.fields['email'].initial = user.email
+                self.fields['email'].widget.attrs['readonly'] = True
+
+class SimpleNewsletterForm(forms.ModelForm):
+    """Simplified newsletter form for footer/modal use"""
+    class Meta:
+        model = NewsletterSubscriber
+        fields = ['email']
+        widgets = {
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your email address'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if user and user.email:
+            self.fields['email'].initial = user.email

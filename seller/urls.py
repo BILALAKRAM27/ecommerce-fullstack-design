@@ -101,4 +101,18 @@ urlpatterns += [
     path('search-suggestions/', views.search_suggestions, name='search_suggestions'),
     path('search-stores/', views.search_stores_ajax, name='search_stores_ajax'),
     path('test-sellers/', views.test_sellers_endpoint, name='test_sellers'),
+    
+    # ========== QUOTES SYSTEM URLs ==========
+    path('quotes/submit/', views.submit_quote_request, name='submit_quote_request'),
+    path('quotes/inbox/', views.seller_quotes_inbox, name='seller_quotes_inbox'),
+    path('quotes/<int:quote_id>/respond/', views.respond_to_quote, name='respond_to_quote'),
+    path('quotes/my-requests/', views.buyer_quote_requests, name='buyer_quote_requests'),
+    path('quotes/<int:quote_id>/details/', views.quote_details, name='quote_details'),
+    path('quotes/response/<int:response_id>/accept/', views.accept_quote_response, name='accept_quote_response'),
+    path('quotes/response/<int:response_id>/reject/', views.reject_quote_response, name='reject_quote_response'),
+    
+    # ========== NEWSLETTER SUBSCRIPTION URLs ==========
+    path('newsletter/subscribe/', views.subscribe_newsletter, name='subscribe_newsletter'),
+    path('newsletter/manage/', views.manage_newsletter_subscription, name='manage_newsletter_subscription'),
+    path('newsletter/unsubscribe/', views.unsubscribe_newsletter, name='unsubscribe_newsletter'),
 ]

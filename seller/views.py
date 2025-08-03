@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 from .models import Seller, Product, ProductImage, Brand, Category, CategoryAttribute, AttributeOption, ProductAttributeValue, Notification, Activity
 from .forms import UserRegisterForm, SellerUpdateForm, SellerLoginForm, ProductForm, ProductImageForm, DynamicProductForm
 from django.utils import timezone
-from buyer.models import Buyer, Order, OrderStatus, Payment, PaymentStatus
+from buyer.models import Buyer, Order, OrderStatus, Payment, PaymentStatus, BuyerNotification
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -36,6 +36,8 @@ from buyer.models import GiftBoxOrder
 from django.forms import ModelMultipleChoiceField
 from django.http import JsonResponse
 from .models import ProductReview, ProductReviewLike, SellerReview, SellerReviewLike
+from .models import QuoteRequest, QuoteResponse, NewsletterSubscriber
+from .forms import QuoteRequestForm, QuoteResponseForm, NewsletterSubscriptionForm, SimpleNewsletterForm
 
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY") or settings.STRIPE_SECRET_KEY
@@ -3884,3 +3886,386 @@ def search_suggestions(request):
         })
     
     return JsonResponse({'suggestions': suggestions})
+
+# ========== QUOTES SYSTEM VIEWS ==========
+
+@login_required
+def submit_quote_request(request):
+    """Allow buyers to submit quote requests"""
+    if request.method == 'POST':
+        form = QuoteRequestForm(request.POST)
+        if form.is_valid():
+            try:
+                # Check if user is a buyer - try to find by email
+                try:
+                    buyer = Buyer.objects.get(email=request.user.email)
+                except Buyer.DoesNotExist:
+                    # If no buyer found by email, try to create one or return error
+                    return JsonResponse({'success': False, 'message': 'Buyer profile not found. Please contact support.'}, status=400)
+                
+                if not buyer:
+                    return JsonResponse({'success': False, 'message': 'Only buyers can submit quote requests.'}, status=400)
+                
+                # Create quote request
+                quote_request = form.save(commit=False)
+                quote_request.buyer = buyer
+                
+                # Set expiration date (30 days from now)
+                quote_request.expires_at = timezone.now() + timedelta(days=30)
+                quote_request.save()
+                
+                # Notify relevant sellers
+                notify_sellers_of_quote_request(quote_request)
+                
+                messages.success(request, 'Quote request submitted successfully! Sellers will be notified.')
+                return JsonResponse({'success': True, 'message': 'Quote request submitted successfully!'})
+            except Buyer.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Buyer profile not found.'}, status=400)
+            except Exception as e:
+                return JsonResponse({'success': False, 'message': str(e)}, status=500)
+        else:
+            return JsonResponse({'success': False, 'message': 'Please fix the errors below.', 'errors': form.errors}, status=400)
+    
+    # GET request - show form
+    form = QuoteRequestForm()
+    categories = Category.objects.all()
+    
+    context = {
+        'form': form,
+        'categories': categories,
+        'title': 'Submit Quote Request - MarketVibe'
+    }
+    return render(request, 'seller/submit_quote_request.html', context)
+
+@login_required
+def seller_quotes_inbox(request):
+    """Seller's quotes inbox - view incoming quote requests"""
+    try:
+        seller = Seller.objects.get(user=request.user)
+        
+        # Get quote requests relevant to this seller's categories
+        seller_categories = seller.products.values_list('category', flat=True).distinct()
+        quote_requests = QuoteRequest.objects.filter(
+            category__in=seller_categories,
+            status__in=['pending', 'responded']
+        ).exclude(
+            responses__seller=seller  # Exclude quotes already responded to
+        ).order_by('-created_at')
+        
+        # Get seller's responses
+        seller_responses = QuoteResponse.objects.filter(seller=seller).order_by('-created_at')
+        
+        context = {
+            'quote_requests': quote_requests,
+            'seller_responses': seller_responses,
+            'seller': seller,
+            'title': 'Quotes Inbox - MarketVibe'
+        }
+        return render(request, 'seller/quotes_inbox.html', context)
+    except Seller.DoesNotExist:
+        messages.error(request, 'Seller profile not found.')
+        return redirect('sellers:index')
+
+@login_required
+def respond_to_quote(request, quote_id):
+    """Allow sellers to respond to quote requests"""
+    try:
+        seller = Seller.objects.get(user=request.user)
+        quote_request = get_object_or_404(QuoteRequest, id=quote_id)
+        
+        # Check if seller already responded
+        existing_response = QuoteResponse.objects.filter(
+            quote_request=quote_request,
+            seller=seller
+        ).first()
+        
+        if request.method == 'POST':
+            form = QuoteResponseForm(request.POST, instance=existing_response)
+            if form.is_valid():
+                response = form.save(commit=False)
+                response.quote_request = quote_request
+                response.seller = seller
+                response.save()
+                
+                # Update quote request status
+                quote_request.status = 'responded'
+                quote_request.save()
+                
+                # Notify buyer
+                notify_buyer_of_quote_response(quote_request, response)
+                
+                messages.success(request, 'Quote response submitted successfully!')
+                return redirect('sellers:seller_quotes_inbox')
+        else:
+            form = QuoteResponseForm(instance=existing_response)
+        
+        context = {
+            'quote_request': quote_request,
+            'form': form,
+            'existing_response': existing_response,
+            'seller': seller,
+            'title': f'Respond to Quote - {quote_request.product_name}'
+        }
+        return render(request, 'seller/respond_to_quote.html', context)
+    except Seller.DoesNotExist:
+        messages.error(request, 'Seller profile not found.')
+        return redirect('sellers:index')
+
+@login_required
+def buyer_quote_requests(request):
+    """Buyer's quote requests page"""
+    try:
+        buyer = Buyer.objects.get(email=request.user.email)
+        quote_requests = QuoteRequest.objects.filter(buyer=buyer).order_by('-created_at')
+        
+        context = {
+            'quote_requests': quote_requests,
+            'buyer': buyer,
+            'title': 'My Quote Requests - MarketVibe'
+        }
+        return render(request, 'seller/buyer_quote_requests.html', context)
+    except Buyer.DoesNotExist:
+        messages.error(request, 'Buyer profile not found.')
+        return redirect('sellers:index')
+
+@login_required
+def quote_details(request, quote_id):
+    """View detailed quote request and responses"""
+    quote_request = get_object_or_404(QuoteRequest, id=quote_id)
+    
+    # Check if user is authorized to view this quote
+    if request.user.is_authenticated:
+        try:
+            buyer = Buyer.objects.get(email=request.user.email)
+            if quote_request.buyer == buyer:
+                user_type = 'buyer'
+            else:
+                messages.error(request, 'You are not authorized to view this quote.')
+                return redirect('sellers:index')
+        except Buyer.DoesNotExist:
+            try:
+                seller = Seller.objects.get(user=request.user)
+                if quote_request.responses.filter(seller=seller).exists():
+                    user_type = 'seller'
+                else:
+                    messages.error(request, 'You are not authorized to view this quote.')
+                    return redirect('sellers:index')
+            except Seller.DoesNotExist:
+                messages.error(request, 'User profile not found.')
+                return redirect('sellers:index')
+    else:
+        messages.error(request, 'Please log in to view quote details.')
+        return redirect('sellers:login')
+    
+    context = {
+        'quote_request': quote_request,
+        'user_type': user_type,
+        'title': f'Quote Details - {quote_request.product_name}'
+    }
+    return render(request, 'seller/quote_details.html', context)
+
+@login_required
+@require_POST
+def accept_quote_response(request, response_id):
+    """Buyer accepts a quote response"""
+    try:
+        buyer = Buyer.objects.get(email=request.user.email)
+        response = get_object_or_404(QuoteResponse, id=response_id)
+        
+        # Verify this is the buyer's quote request
+        if response.quote_request.buyer != buyer:
+            return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
+        
+        # Mark response as accepted
+        response.is_accepted = True
+        response.save()
+        
+        # Update quote request status
+        quote_request = response.quote_request
+        quote_request.status = 'accepted'
+        quote_request.save()
+        
+        # Reject other responses
+        other_responses = QuoteResponse.objects.filter(
+            quote_request=quote_request
+        ).exclude(id=response_id)
+        for other_response in other_responses:
+            other_response.is_rejected = True
+            other_response.save()
+        
+        # Set quote data in session for checkout
+        quote_data = {
+            'quote_request_id': quote_request.id,
+            'quote_response_id': response.id,
+            'seller_id': response.seller.id,
+            'seller_name': response.seller.shop_name,
+            'product_name': quote_request.product_name,
+            'quantity': quote_request.quantity,
+            'unit': quote_request.unit,
+            'price': float(response.price),
+            'total_price': float(response.total_price),
+            'delivery_estimate': response.delivery_estimate,
+            'notes': response.notes or '',
+            'description': quote_request.description,
+        }
+        request.session['quote_data'] = quote_data
+        
+        # Notify seller
+        notify_seller_of_quote_acceptance(quote_request, response)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Quote accepted successfully!',
+            'redirect_url': reverse('buyer:checkout_page')
+        })
+    except Buyer.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Buyer profile not found.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@login_required
+@require_POST
+def reject_quote_response(request, response_id):
+    """Buyer rejects a quote response"""
+    try:
+        buyer = Buyer.objects.get(email=request.user.email)
+        response = get_object_or_404(QuoteResponse, id=response_id)
+        
+        # Verify this is the buyer's quote request
+        if response.quote_request.buyer != buyer:
+            return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
+        
+        # Mark response as rejected
+        response.is_rejected = True
+        response.save()
+        
+        # Notify seller
+        notify_seller_of_quote_rejection(quote_request, response)
+        
+        return JsonResponse({'success': True, 'message': 'Quote rejected.'})
+    except Buyer.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Buyer profile not found.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+# ========== NEWSLETTER SUBSCRIPTION VIEWS ==========
+
+@csrf_exempt
+def subscribe_newsletter(request):
+    """Handle newsletter subscription"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email', '').strip()
+            role = data.get('role', 'both')
+            
+            if not email:
+                return JsonResponse({'success': False, 'message': 'Email is required.'}, status=400)
+            
+            # Check if already subscribed
+            existing_subscriber = NewsletterSubscriber.objects.filter(email=email).first()
+            if existing_subscriber:
+                return JsonResponse({'success': False, 'message': 'You are already subscribed to our newsletter.'}, status=400)
+            
+            # Create new subscriber
+            subscriber = NewsletterSubscriber.objects.create(
+                email=email,
+                role=role,
+                user=request.user if request.user.is_authenticated else None
+            )
+            
+            return JsonResponse({
+                'success': True, 
+                'message': 'Successfully subscribed to our newsletter!'
+            })
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
+
+@login_required
+def manage_newsletter_subscription(request):
+    """Allow users to manage their newsletter subscription"""
+    try:
+        subscriber = NewsletterSubscriber.objects.get(email=request.user.email)
+        
+        if request.method == 'POST':
+            form = NewsletterSubscriptionForm(request.POST, instance=subscriber, user=request.user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Newsletter preferences updated successfully!')
+                return redirect('sellers:manage_newsletter_subscription')
+        else:
+            form = NewsletterSubscriptionForm(instance=subscriber, user=request.user)
+        
+        context = {
+            'form': form,
+            'subscriber': subscriber,
+            'title': 'Manage Newsletter Subscription - MarketVibe'
+        }
+        return render(request, 'seller/manage_newsletter_subscription.html', context)
+    except NewsletterSubscriber.DoesNotExist:
+        messages.error(request, 'Newsletter subscription not found.')
+        return redirect('sellers:index')
+
+@login_required
+@require_POST
+def unsubscribe_newsletter(request):
+    """Unsubscribe from newsletter"""
+    try:
+        subscriber = NewsletterSubscriber.objects.get(email=request.user.email)
+        subscriber.is_active = False
+        subscriber.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Successfully unsubscribed from our newsletter.'
+        })
+    except NewsletterSubscriber.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Subscription not found.'}, status=404)
+
+# ========== HELPER FUNCTIONS ==========
+
+def notify_sellers_of_quote_request(quote_request):
+    """Notify relevant sellers about new quote request"""
+    # Get sellers in the same category
+    relevant_sellers = Seller.objects.filter(
+        products__category=quote_request.category
+    ).distinct()
+    
+    for seller in relevant_sellers:
+        Notification.objects.create(
+            seller=seller,
+            type='system',
+            title=f'New Quote Request: {quote_request.product_name}',
+            message=f'A buyer is looking for {quote_request.quantity} {quote_request.get_unit_display()} of {quote_request.product_name}. Check your quotes inbox to respond.'
+        )
+
+def notify_buyer_of_quote_response(quote_request, response):
+    """Notify buyer about quote response"""
+    BuyerNotification.objects.create(
+        buyer=quote_request.buyer,
+        type='system',
+        title=f'Quote Response: {quote_request.product_name}',
+        message=f'{response.seller.shop_name} has responded to your quote request for {quote_request.product_name}. Check your quote details to review the offer.'
+    )
+
+def notify_seller_of_quote_acceptance(quote_request, response):
+    """Notify seller about quote acceptance"""
+    Notification.objects.create(
+        seller=response.seller,
+        type='system',
+        title=f'Quote Accepted: {quote_request.product_name}',
+        message=f'Your quote response for {quote_request.product_name} has been accepted by {quote_request.buyer.name}. The buyer will proceed to checkout.'
+    )
+
+def notify_seller_of_quote_rejection(quote_request, response):
+    """Notify seller about quote rejection"""
+    Notification.objects.create(
+        seller=response.seller,
+        type='system',
+        title=f'Quote Rejected: {quote_request.product_name}',
+        message=f'Your quote response for {quote_request.product_name} was not selected by the buyer.'
+    )

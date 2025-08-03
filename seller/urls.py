@@ -116,4 +116,8 @@ urlpatterns += [
     path('newsletter/subscribe/', views.subscribe_newsletter, name='subscribe_newsletter'),
     path('newsletter/manage/', views.manage_newsletter_subscription, name='manage_newsletter_subscription'),
     path('newsletter/unsubscribe/', views.unsubscribe_newsletter, name='unsubscribe_newsletter'),
+    
+    # ========== LEGAL PAGES URLs ==========
+    path('user-agreement/', views.user_agreement_view, name='user_agreement'),
+    path('privacy-policy/', views.privacy_policy_view, name='privacy_policy'),
 ]

@@ -4365,3 +4365,12 @@ def fetch_quote_responses(request, quote_id):
         return JsonResponse({'error': 'Quote request not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+def user_agreement_view(request):
+    """Render the user agreement page."""
+    return render(request, 'seller/user_agreement.html')
+
+
+def privacy_policy_view(request):
+    """Render the privacy policy page."""
+    return render(request, 'seller/privacy_policy.html')

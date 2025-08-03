@@ -1,0 +1,254 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy - MarketVibe{% endblock %}
+
+{% block extra_css %}
+<style>
+    .legal-page {
+        background-color: white;
+        min-height: 100vh;
+        padding: 40px 0;
+    }
+
+    .legal-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .legal-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .legal-header h1 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .legal-header p {
+        font-size: 1.1rem;
+        color: #666;
+        margin: 0;
+    }
+
+    .legal-content {
+        line-height: 1.8;
+        color: #444;
+    }
+
+    .legal-section {
+        margin-bottom: 40px;
+    }
+
+    .legal-section h2 {
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 20px;
+        font-weight: 600;
+        border-left: 4px solid #4285f4;
+        padding-left: 15px;
+    }
+
+    .legal-section h3 {
+        font-size: 1.4rem;
+        color: #444;
+        margin: 25px 0 15px 0;
+        font-weight: 600;
+    }
+
+    .legal-section p {
+        margin-bottom: 15px;
+        text-align: justify;
+    }
+
+    .legal-section ul {
+        margin: 15px 0;
+        padding-left: 30px;
+    }
+
+    .legal-section li {
+        margin-bottom: 10px;
+        text-align: justify;
+    }
+
+    .legal-section strong {
+        color: #333;
+        font-weight: 600;
+    }
+
+    .legal-footer {
+        margin-top: 50px;
+        padding-top: 30px;
+        border-top: 2px solid #f0f0f0;
+        text-align: center;
+        color: #666;
+    }
+
+    .legal-footer p {
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .legal-header h1 {
+            font-size: 2rem;
+        }
+
+        .legal-section h2 {
+            font-size: 1.5rem;
+        }
+
+        .legal-section h3 {
+            font-size: 1.2rem;
+        }
+
+        .legal-container {
+            padding: 0 15px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .legal-page {
+            padding: 20px 0;
+        }
+
+        .legal-header {
+            margin-bottom: 30px;
+        }
+
+        .legal-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .legal-section {
+            margin-bottom: 30px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-page">
+    <div class="legal-container">
+        <div class="legal-header">
+            <h1>Privacy Policy</h1>
+            <p>Last updated:  August 2025</p>
+        </div>
+
+        <div class="legal-content">
+            <div class="legal-section">
+                <h2>1. Information We Collect</h2>
+                <h3>1.1 Personal Information</h3>
+                <p>We collect information you provide directly to us, such as when you create an account, make a purchase, or contact us. This may include:</p>
+                <ul>
+                    <li>Name, email address, and phone number</li>
+                    <li>Billing and shipping addresses</li>
+                    <li>Payment information (processed securely by third-party providers)</li>
+                    <li>Account credentials and profile information</li>
+                    <li>Communication preferences</li>
+                </ul>
+
+                <h3>1.2 Automatically Collected Information</h3>
+                <p>When you use our Platform, we automatically collect certain information, including:</p>
+                <ul>
+                    <li>Device information (IP address, browser type, operating system)</li>
+                    <li>Usage data (pages visited, time spent, links clicked)</li>
+                    <li>Location information (if you grant permission)</li>
+                    <li>Cookies and similar tracking technologies</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>2. How We Use Your Information</h2>
+                <p>We use the information we collect to:</p>
+                <ul>
+                    <li>Provide, maintain, and improve our services</li>
+                    <li>Process transactions and send related information</li>
+                    <li>Send technical notices, updates, and support messages</li>
+                    <li>Respond to your comments and questions</li>
+                    <li>Communicate with you about products, services, and events</li>
+                    <li>Monitor and analyze trends, usage, and activities</li>
+                    <li>Detect, investigate, and prevent fraudulent transactions</li>
+                    <li>Personalize your experience and deliver relevant content</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>3. Information Sharing and Disclosure</h2>
+                <h3>3.1 Service Providers</h3>
+                <p>We may share your information with third-party service providers who perform services on our behalf, such as:</p>
+                <ul>
+                    <li>Payment processing and fraud prevention</li>
+                    <li>Shipping and delivery services</li>
+                    <li>Customer support and analytics</li>
+                    <li>Marketing and advertising services</li>
+                </ul>
+
+                <h3>3.2 Legal Requirements</h3>
+                <p>We may disclose your information if required to do so by law or in response to valid requests by public authorities.</p>
+
+                <h3>3.3 Business Transfers</h3>
+                <p>In the event of a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>4. Data Security</h2>
+                <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet or electronic storage is 100% secure.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>5. Your Rights and Choices</h2>
+                <h3>5.1 Access and Update</h3>
+                <p>You can access and update your personal information through your account settings or by contacting us directly.</p>
+
+                <h3>5.2 Marketing Communications</h3>
+                <p>You can opt out of receiving marketing communications from us by following the unsubscribe instructions in our emails or contacting us directly.</p>
+
+                <h3>5.3 Cookies and Tracking</h3>
+                <p>You can control cookies through your browser settings. However, disabling certain cookies may limit your ability to use some features of our Platform.</p>
+
+                <h3>5.4 Data Portability</h3>
+                <p>You have the right to request a copy of your personal information in a structured, machine-readable format.</p>
+
+                <h3>5.5 Data Deletion</h3>
+                <p>You can request deletion of your personal information, subject to certain legal and contractual obligations.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>6. Children's Privacy</h2>
+                <p>Our Platform is not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have collected information from a child under 13, please contact us immediately.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>7. International Data Transfers</h2>
+                <p>Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your information in accordance with this Privacy Policy.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>8. Third-Party Links</h2>
+                <p>Our Platform may contain links to third-party websites or services. We are not responsible for the privacy practices of these third parties. We encourage you to review their privacy policies before providing any personal information.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>9. Changes to This Privacy Policy</h2>
+                <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date. Your continued use of the Platform after such changes constitutes acceptance of the updated Privacy Policy.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>10. Contact Us</h2>
+                <p>If you have any questions about this Privacy Policy or our privacy practices, please contact us at:</p>
+                <p><strong>Email:</strong> privacy@marketvibe.com<br>
+                <strong>Address:</strong> MarketVibe Privacy Team, 123 Commerce Street, Business City, BC 12345<br>
+                <strong>Phone:</strong> +1 (555) 123-4567</p>
+            </div>
+        </div>
+
+       
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,255 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block title %}User Agreement - MarketVibe{% endblock %}
+
+{% block extra_css %}
+<style>
+    .legal-page {
+        background-color: white;
+        min-height: 100vh;
+        padding: 40px 0;
+    }
+
+    .legal-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .legal-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .legal-header h1 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .legal-header p {
+        font-size: 1.1rem;
+        color: #666;
+        margin: 0;
+    }
+
+    .legal-content {
+        line-height: 1.8;
+        color: #444;
+    }
+
+    .legal-section {
+        margin-bottom: 40px;
+    }
+
+    .legal-section h2 {
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 20px;
+        font-weight: 600;
+        border-left: 4px solid #4285f4;
+        padding-left: 15px;
+    }
+
+    .legal-section h3 {
+        font-size: 1.4rem;
+        color: #444;
+        margin: 25px 0 15px 0;
+        font-weight: 600;
+    }
+
+    .legal-section p {
+        margin-bottom: 15px;
+        text-align: justify;
+    }
+
+    .legal-section ul {
+        margin: 15px 0;
+        padding-left: 30px;
+    }
+
+    .legal-section li {
+        margin-bottom: 10px;
+        text-align: justify;
+    }
+
+    .legal-section strong {
+        color: #333;
+        font-weight: 600;
+    }
+
+    .legal-footer {
+        margin-top: 50px;
+        padding-top: 30px;
+        border-top: 2px solid #f0f0f0;
+        text-align: center;
+        color: #666;
+    }
+
+    .legal-footer p {
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .legal-header h1 {
+            font-size: 2rem;
+        }
+
+        .legal-section h2 {
+            font-size: 1.5rem;
+        }
+
+        .legal-section h3 {
+            font-size: 1.2rem;
+        }
+
+        .legal-container {
+            padding: 0 15px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .legal-page {
+            padding: 20px 0;
+        }
+
+        .legal-header {
+            margin-bottom: 30px;
+        }
+
+        .legal-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .legal-section {
+            margin-bottom: 30px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="legal-page">
+    <div class="legal-container">
+        <div class="legal-header">
+            <h1>User Agreement</h1>
+            <p>Last updated: August 2025</p>
+        </div>
+
+        <div class="legal-content">
+            <div class="legal-section">
+                <h2>1. Acceptance of Terms</h2>
+                <p>By accessing and using MarketVibe ("the Platform"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>2. Description of Service</h2>
+                <p>MarketVibe is an e-commerce platform that connects buyers and sellers. The Platform provides:</p>
+                <ul>
+                    <li>Product listing and management for sellers</li>
+                    <li>Shopping cart and checkout functionality for buyers</li>
+                    <li>Payment processing and order management</li>
+                    <li>Communication tools between buyers and sellers</li>
+                    <li>Review and rating systems</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>3. User Accounts</h2>
+                <h3>3.1 Account Creation</h3>
+                <p>To use certain features of the Platform, you must create an account. You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate, current, and complete.</p>
+
+                <h3>3.2 Account Security</h3>
+                <p>You are responsible for safeguarding the password and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>4. Seller Obligations</h2>
+                <p>As a seller on MarketVibe, you agree to:</p>
+                <ul>
+                    <li>Provide accurate product descriptions and images</li>
+                    <li>Maintain adequate inventory levels</li>
+                    <li>Process orders promptly and ship items as described</li>
+                    <li>Provide customer service and handle returns appropriately</li>
+                    <li>Comply with all applicable laws and regulations</li>
+                    <li>Pay all applicable fees and commissions</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>5. Buyer Obligations</h2>
+                <p>As a buyer on MarketVibe, you agree to:</p>
+                <ul>
+                    <li>Provide accurate shipping and billing information</li>
+                    <li>Pay for items in a timely manner</li>
+                    <li>Review product descriptions carefully before purchasing</li>
+                    <li>Contact sellers for support before leaving negative reviews</li>
+                    <li>Return items in accordance with seller policies</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>6. Payment Terms</h2>
+                <p>All payments are processed through secure third-party payment processors. MarketVibe does not store your payment information. You agree to pay all charges incurred by your account, including applicable taxes and fees.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>7. Prohibited Activities</h2>
+                <p>You agree not to:</p>
+                <ul>
+                    <li>Violate any applicable laws or regulations</li>
+                    <li>Infringe on intellectual property rights</li>
+                    <li>Post false, misleading, or fraudulent information</li>
+                    <li>Engage in price manipulation or collusion</li>
+                    <li>Use the Platform for unauthorized commercial purposes</li>
+                    <li>Attempt to gain unauthorized access to the Platform</li>
+                    <li>Interfere with the proper functioning of the Platform</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>8. Intellectual Property</h2>
+                <p>The Platform and its original content, features, and functionality are owned by MarketVibe and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>9. Privacy Policy</h2>
+                <p>Your privacy is important to us. Please review our Privacy Policy, which also governs your use of the Platform, to understand our practices.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>10. Termination</h2>
+                <p>We may terminate or suspend your account and bar access to the Platform immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>11. Limitation of Liability</h2>
+                <p>In no event shall MarketVibe, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>12. Governing Law</h2>
+                <p>These Terms shall be interpreted and governed by the laws of the jurisdiction in which MarketVibe operates, without regard to its conflict of law provisions.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>13. Changes to Terms</h2>
+                <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>14. Contact Information</h2>
+                <p>If you have any questions about these Terms, please contact us at:</p>
+                <p><strong>Email:</strong> legal@marketvibe.com<br>
+                <strong>Address:</strong> MarketVibe Legal Department, 123 Commerce Street, Business City, BC 12345</p>
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+{% endblock %}

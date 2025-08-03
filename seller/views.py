@@ -3510,7 +3510,6 @@ def like_review(request, review_type, review_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
-@login_required
 def get_product_reviews(request, product_id):
     """Get product reviews for AJAX loading"""
     try:
@@ -3539,7 +3538,6 @@ def get_product_reviews(request, product_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
-@login_required
 def get_seller_reviews(request, seller_id):
     """Get seller reviews for AJAX loading"""
     try:

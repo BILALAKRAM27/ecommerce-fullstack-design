@@ -5183,51 +5183,77 @@
 
         function loadProductReviews() {
             const reviewsList = document.getElementById('reviewsList');
-            if (!reviewsList) return;
+            const mobileReviewsList = document.getElementById('mobileReviewsList');
+            if (!reviewsList && !mobileReviewsList) return;
             
-            reviewsList.innerHTML = '<div class="loading-reviews">Loading reviews...</div>';
+            const loadingHTML = '<div class="loading-reviews">Loading reviews...</div>';
+            if (reviewsList) reviewsList.innerHTML = loadingHTML;
+            if (mobileReviewsList) mobileReviewsList.innerHTML = loadingHTML;
             
             fetch(`{% url 'sellers:get_product_reviews' product.id %}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         displayProductReviews(data.reviews, data.average_rating, data.total_reviews);
                     } else {
-                        reviewsList.innerHTML = '<div class="no-reviews">Error loading reviews</div>';
+                        const errorHTML = '<div class="no-reviews">No reviews available</div>';
+                        if (reviewsList) reviewsList.innerHTML = errorHTML;
+                        if (mobileReviewsList) mobileReviewsList.innerHTML = errorHTML;
                     }
                 })
                 .catch(error => {
                     console.error('Error loading reviews:', error);
-                    reviewsList.innerHTML = '<div class="no-reviews">Error loading reviews</div>';
+                    const errorHTML = '<div class="no-reviews">No reviews available</div>';
+                    if (reviewsList) reviewsList.innerHTML = errorHTML;
+                    if (mobileReviewsList) mobileReviewsList.innerHTML = errorHTML;
                 });
         }
 
         function loadSellerReviews() {
             const sellerReviewsList = document.getElementById('sellerReviewsList');
-            if (!sellerReviewsList) return;
+            const mobileSellerReviewsList = document.getElementById('mobileSellerReviewsList');
+            if (!sellerReviewsList && !mobileSellerReviewsList) return;
             
-            sellerReviewsList.innerHTML = '<div class="loading-reviews">Loading seller reviews...</div>';
+            const loadingHTML = '<div class="loading-reviews">Loading seller reviews...</div>';
+            if (sellerReviewsList) sellerReviewsList.innerHTML = loadingHTML;
+            if (mobileSellerReviewsList) mobileSellerReviewsList.innerHTML = loadingHTML;
             
             fetch(`{% url 'sellers:get_seller_reviews' product.seller.id %}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         displaySellerReviews(data.reviews, data.average_rating, data.total_reviews);
                     } else {
-                        sellerReviewsList.innerHTML = '<div class="no-reviews">Error loading seller reviews</div>';
+                        const errorHTML = '<div class="no-reviews">No seller reviews available</div>';
+                        if (sellerReviewsList) sellerReviewsList.innerHTML = errorHTML;
+                        if (mobileSellerReviewsList) mobileSellerReviewsList.innerHTML = errorHTML;
                     }
                 })
                 .catch(error => {
                     console.error('Error loading seller reviews:', error);
-                    sellerReviewsList.innerHTML = '<div class="no-reviews">Error loading seller reviews</div>';
+                    const errorHTML = '<div class="no-reviews">No seller reviews available</div>';
+                    if (sellerReviewsList) sellerReviewsList.innerHTML = errorHTML;
+                    if (mobileSellerReviewsList) mobileSellerReviewsList.innerHTML = errorHTML;
                 });
         }
 
         function displayProductReviews(reviews, averageRating, totalReviews) {
             const reviewsList = document.getElementById('reviewsList');
+            const mobileReviewsList = document.getElementById('mobileReviewsList');
             const reviewsSummary = document.querySelector('.reviews-summary');
+            const mobileReviewsSummary = document.querySelector('.mobile-reviews-summary');
             
-            // Update summary
+            // Update summary for desktop
             if (reviewsSummary) {
                 const averageRatingElement = reviewsSummary.querySelector('.average-rating');
                 const totalReviewsElement = reviewsSummary.querySelector('.total-reviews');
@@ -5249,80 +5275,176 @@
                 }
             }
             
-            // Display reviews
-            if (reviews.length === 0) {
-                reviewsList.innerHTML = '<div class="no-reviews"><p>No reviews yet</p><p>Be the first to review this product!</p></div>';
-                return;
+            // Update summary for mobile
+            if (mobileReviewsSummary) {
+                const mobileAverageRatingElement = mobileReviewsSummary.querySelector('.mobile-average-rating');
+                const mobileTotalReviewsElement = mobileReviewsSummary.querySelector('.mobile-total-reviews');
+                const mobileStarsElement = mobileReviewsSummary.querySelector('.mobile-stars');
+                
+                if (mobileAverageRatingElement) mobileAverageRatingElement.textContent = averageRating.toFixed(1);
+                if (mobileTotalReviewsElement) mobileTotalReviewsElement.textContent = `${totalReviews} reviews`;
+                
+                // Update mobile stars
+                if (mobileStarsElement) {
+                    mobileStarsElement.innerHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        const star = document.createElement('span');
+                        const starClass = i <= Math.floor(averageRating) ? 'filled' : (i === Math.ceil(averageRating) && averageRating % 1 !== 0 ? 'half' : '');
+                        star.className = `mobile-star ${starClass}`;
+                        star.textContent = '⭐';
+                        mobileStarsElement.appendChild(star);
+                    }
+                }
             }
             
-            let reviewsHTML = '';
-            reviews.forEach(review => {
-                const starsHTML = generateStarsHTML(review.rating);
-                reviewsHTML += `
-                    <div class="review-item" data-review-id="${review.id}">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <span class="reviewer-name">${review.buyer_name}</span>
-                                <span class="review-date">${review.created_at}</span>
+            // Display reviews for desktop
+            if (reviewsList) {
+                if (reviews.length === 0) {
+                    reviewsList.innerHTML = '<div class="no-reviews"><p>No reviews yet</p><p>Be the first to review this product!</p></div>';
+                } else {
+                    let reviewsHTML = '';
+                    reviews.forEach(review => {
+                        const starsHTML = generateStarsHTML(review.rating);
+                        reviewsHTML += `
+                            <div class="review-item" data-review-id="${review.id}">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <span class="reviewer-name">${review.buyer_name}</span>
+                                        <span class="review-date">${review.created_at}</span>
+                                    </div>
+                                    <div class="review-rating">
+                                        ${starsHTML}
+                                    </div>
+                                </div>
+                                <div class="review-comment">${review.comment}</div>
+                                <div class="review-actions">
+                                    <button class="action-btn like-btn" onclick="likeReview('product', ${review.id}, true)" data-liked="false">
+                                        👍 Like (${review.likes_count})
+                                    </button>
+                                    <button class="action-btn dislike-btn" onclick="likeReview('product', ${review.id}, false)" data-disliked="false">
+                                        👎 Dislike (${review.dislikes_count})
+                                    </button>
+                                </div>
                             </div>
-                            <div class="review-rating">
-                                ${starsHTML}
-                            </div>
-                        </div>
-                        <div class="review-comment">${review.comment}</div>
-                        <div class="review-actions">
-                            <button class="action-btn like-btn" onclick="likeReview('product', ${review.id}, true)" data-liked="false">
-                                👍 Like (${review.likes_count})
-                            </button>
-                            <button class="action-btn dislike-btn" onclick="likeReview('product', ${review.id}, false)" data-disliked="false">
-                                👎 Dislike (${review.dislikes_count})
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
+                        `;
+                    });
+                    reviewsList.innerHTML = reviewsHTML;
+                }
+            }
             
-            reviewsList.innerHTML = reviewsHTML;
+            // Display reviews for mobile
+            if (mobileReviewsList) {
+                if (reviews.length === 0) {
+                    mobileReviewsList.innerHTML = '<div class="no-reviews"><p>No reviews yet</p><p>Be the first to review this product!</p></div>';
+                } else {
+                    let reviewsHTML = '';
+                    reviews.forEach(review => {
+                        const starsHTML = generateStarsHTML(review.rating);
+                        reviewsHTML += `
+                            <div class="review-item" data-review-id="${review.id}">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <span class="reviewer-name">${review.buyer_name}</span>
+                                        <span class="review-date">${review.created_at}</span>
+                                    </div>
+                                    <div class="review-rating">
+                                        ${starsHTML}
+                                    </div>
+                                </div>
+                                <div class="review-comment">${review.comment}</div>
+                                <div class="review-actions">
+                                    <button class="action-btn like-btn" onclick="likeReview('product', ${review.id}, true)" data-liked="false">
+                                        👍 Like (${review.likes_count})
+                                    </button>
+                                    <button class="action-btn dislike-btn" onclick="likeReview('product', ${review.id}, false)" data-disliked="false">
+                                        👎 Dislike (${review.dislikes_count})
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    mobileReviewsList.innerHTML = reviewsHTML;
+                }
+            }
         }
 
         function displaySellerReviews(reviews, averageRating, totalReviews) {
             const sellerReviewsList = document.getElementById('sellerReviewsList');
+            const mobileSellerReviewsList = document.getElementById('mobileSellerReviewsList');
             
-            if (reviews.length === 0) {
-                sellerReviewsList.innerHTML = '<div class="no-reviews"><p>No seller reviews yet</p><p>Be the first to review this seller!</p></div>';
-                return;
+            // Display seller reviews for desktop
+            if (sellerReviewsList) {
+                if (reviews.length === 0) {
+                    sellerReviewsList.innerHTML = '<div class="no-reviews"><p>No seller reviews yet</p><p>Be the first to review this seller!</p></div>';
+                } else {
+                    let reviewsHTML = '';
+                    reviews.forEach(review => {
+                        reviewsHTML += `
+                            <div class="review-item" data-review-id="${review.id}">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <span class="reviewer-name">${review.buyer_name}</span>
+                                        <span class="review-date">${review.created_at}</span>
+                                    </div>
+                                    <div class="review-rating">
+                                        <div class="stars">
+                                            ${generateStarsHTML(review.rating)}
+                                        </div>
+                                        <span class="rating-text">${review.rating}/5</span>
+                                    </div>
+                                </div>
+                                <div class="review-comment">${review.comment}</div>
+                                <div class="review-actions">
+                                    <button class="action-btn like-btn" onclick="likeReview('seller', ${review.id}, true)" data-liked="false">
+                                        👍 Like (${review.likes_count})
+                                    </button>
+                                    <button class="action-btn dislike-btn" onclick="likeReview('seller', ${review.id}, false)" data-disliked="false">
+                                        👎 Dislike (${review.dislikes_count})
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    sellerReviewsList.innerHTML = reviewsHTML;
+                }
             }
             
-            let reviewsHTML = '';
-            reviews.forEach(review => {
-                reviewsHTML += `
-                    <div class="review-item" data-review-id="${review.id}">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <span class="reviewer-name">${review.buyer_name}</span>
-                                <span class="review-date">${review.created_at}</span>
-                            </div>
-                            <div class="review-rating">
-                                <div class="stars">
-                                    ${generateStarsHTML(review.rating)}
+            // Display seller reviews for mobile
+            if (mobileSellerReviewsList) {
+                if (reviews.length === 0) {
+                    mobileSellerReviewsList.innerHTML = '<div class="no-reviews"><p>No seller reviews yet</p><p>Be the first to review this seller!</p></div>';
+                } else {
+                    let reviewsHTML = '';
+                    reviews.forEach(review => {
+                        reviewsHTML += `
+                            <div class="review-item" data-review-id="${review.id}">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <span class="reviewer-name">${review.buyer_name}</span>
+                                        <span class="review-date">${review.created_at}</span>
+                                    </div>
+                                    <div class="review-rating">
+                                        <div class="stars">
+                                            ${generateStarsHTML(review.rating)}
+                                        </div>
+                                        <span class="rating-text">${review.rating}/5</span>
+                                    </div>
                                 </div>
-                                <span class="rating-text">${review.rating}/5</span>
+                                <div class="review-comment">${review.comment}</div>
+                                <div class="review-actions">
+                                    <button class="action-btn like-btn" onclick="likeReview('seller', ${review.id}, true)" data-liked="false">
+                                        👍 Like (${review.likes_count})
+                                    </button>
+                                    <button class="action-btn dislike-btn" onclick="likeReview('seller', ${review.id}, false)" data-disliked="false">
+                                        👎 Dislike (${review.dislikes_count})
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="review-comment">${review.comment}</div>
-                        <div class="review-actions">
-                            <button class="action-btn like-btn" onclick="likeReview('seller', ${review.id}, true)" data-liked="false">
-                                👍 Like (${review.likes_count})
-                            </button>
-                            <button class="action-btn dislike-btn" onclick="likeReview('seller', ${review.id}, false)" data-disliked="false">
-                                👎 Dislike (${review.dislikes_count})
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            sellerReviewsList.innerHTML = reviewsHTML;
+                        `;
+                    });
+                    mobileSellerReviewsList.innerHTML = reviewsHTML;
+                }
+            }
         }
 
         function generateStarsHTML(rating) {
@@ -5335,8 +5457,10 @@
         }
 
         function setupReviewForms() {
-            // Product review form
+            // Product review forms (desktop and mobile)
             const productReviewForm = document.getElementById('productReviewForm');
+            const mobileProductReviewForm = document.getElementById('mobileProductReviewForm');
+            
             if (productReviewForm) {
                 productReviewForm.addEventListener('submit', function(e) {
                     e.preventDefault();
@@ -5344,10 +5468,26 @@
                 });
             }
             
-            // Seller review form
+            if (mobileProductReviewForm) {
+                mobileProductReviewForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitProductReview();
+                });
+            }
+            
+            // Seller review forms (desktop and mobile)
             const sellerReviewForm = document.getElementById('sellerReviewForm');
+            const mobileSellerReviewForm = document.getElementById('mobileSellerReviewForm');
+            
             if (sellerReviewForm) {
                 sellerReviewForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitSellerReview();
+                });
+            }
+            
+            if (mobileSellerReviewForm) {
+                mobileSellerReviewForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     submitSellerReview();
                 });
@@ -5357,15 +5497,29 @@
         function submitProductReview() {
             const form = document.getElementById('productReviewForm');
             const formData = new FormData(form);
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            
+            if (!csrfToken) {
+                alert('Please log in to submit a review');
+                return;
+            }
             
             fetch(`{% url 'sellers:submit_product_review' product.id %}`, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    'X-CSRFToken': csrfToken
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('Please log in to submit a review');
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     alert('Review submitted successfully!');
@@ -5377,22 +5531,40 @@
             })
             .catch(error => {
                 console.error('Error submitting review:', error);
-                alert('Error submitting review');
+                if (error.message.includes('log in')) {
+                    alert('Please log in to submit a review');
+                } else {
+                    alert('Error submitting review. Please try again.');
+                }
             });
         }
 
         function submitSellerReview() {
             const form = document.getElementById('sellerReviewForm');
             const formData = new FormData(form);
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            
+            if (!csrfToken) {
+                alert('Please log in to submit a seller review');
+                return;
+            }
             
             fetch(`{% url 'sellers:submit_seller_review' product.seller.id %}`, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    'X-CSRFToken': csrfToken
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('Please log in to submit a seller review');
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     alert('Seller review submitted successfully!');
@@ -5404,11 +5576,22 @@
             })
             .catch(error => {
                 console.error('Error submitting seller review:', error);
-                alert('Error submitting seller review');
+                if (error.message.includes('log in')) {
+                    alert('Please log in to submit a seller review');
+                } else {
+                    alert('Error submitting seller review. Please try again.');
+                }
             });
         }
 
         function likeReview(reviewType, reviewId, isLike) {
+            // Check if user is authenticated
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            if (!csrfToken) {
+                alert('Please log in to like/dislike reviews');
+                return;
+            }
+            
             const formData = new FormData();
             formData.append('is_like', isLike);
             
@@ -5416,15 +5599,23 @@
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    'X-CSRFToken': csrfToken
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('Please log in to like/dislike reviews');
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    // Update the like/dislike counts
-                    const reviewItem = document.querySelector(`[data-review-id="${reviewId}"]`);
-                    if (reviewItem) {
+                    // Update the like/dislike counts for both desktop and mobile
+                    const reviewItems = document.querySelectorAll(`[data-review-id="${reviewId}"]`);
+                    reviewItems.forEach(reviewItem => {
                         const likeBtn = reviewItem.querySelector('.like-btn');
                         const dislikeBtn = reviewItem.querySelector('.dislike-btn');
                         
@@ -5439,14 +5630,18 @@
                             dislikeBtn.classList.toggle('disliked');
                             likeBtn.classList.remove('liked');
                         }
-                    }
+                    });
                 } else {
                     alert('Error: ' + data.error);
                 }
             })
             .catch(error => {
                 console.error('Error liking review:', error);
-                alert('Error updating review');
+                if (error.message.includes('log in')) {
+                    alert('Please log in to like/dislike reviews');
+                } else {
+                    alert('Error updating review. Please try again.');
+                }
             });
         }
     </script>
@@ -5529,6 +5724,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-</script>
-{{ block.super }}
+    </script>
+    {{ block.super }}
 {% endblock %}

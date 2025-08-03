@@ -2391,7 +2391,7 @@
                     <ul>
                         <li><a href="{% url 'sellers:login' %}">Login</a></li>
                         <li><a href="{% url 'sellers:register' %}">Register</a></li>
-                        <li><a href="#">Settings</a></li>
+                        <li><a href="/support/">Support Center</a></li>
                         {% if user.is_authenticated and user_type == 'seller' %}
                         <li><a href="{% url 'sellers:orders_list' %}">My Orders</a></li>
                         {% elif user.is_authenticated and user_type == 'buyer' %}
@@ -2409,21 +2409,19 @@
                         <img class="fas fa-cube" src="{% static 'seller/assets/icon.png' %}"></img>
                         MarketVibe
                     </div>
-                    <p class="footer-description">
-                        Best information about the company gies here but now lorem ipsum is
-                    </p>
+                    
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.youtube.com/shorts/SXHMnicI6Pg"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.youtube.com/shorts/SXHMnicI6Pg"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.linkedin.com/in/bilal-akram-081b86268"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://www.instagram.com/bilalakram589?igsh=MXJqd3FnMmRncWFjYQ=="><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/shorts/SXHMnicI6Pg"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
                 
                 <div class="footer-bottom-right">
-                    <span class="footer-copyright">© 2025 Ecommerce.</span>
-                    <span class="footer-language">🇺🇸 English</span>
+                    <span class="footer-copyright">© 2025 MarketVibe by Bilal Akram.</span>
+                    <span class="footer-language">US English</span>
                     <div class="app-downloads">
                         <div class="app-btn">
                             <i class="fab fa-apple" style="margin-right: 5px;"></i>

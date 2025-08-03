@@ -225,7 +225,7 @@
         }
 
         .brand-hidden {
-            display: none;
+            display: none !important;
         }
 
         .brand-hidden.show {
@@ -1060,7 +1060,7 @@
                     <div class="sidebar-content">
                         <div id="brands-container">
                             {% for brand in brands %}
-                            <div class="checkbox-item {% if forloop.counter > 5 %}brand-hidden{% endif %}">
+                            <div class="checkbox-item {% if forloop.counter > 5 %}brand-hidden{% endif %}" {% if forloop.counter > 5 %}style="display: none;"{% endif %}>
                                 <input type="checkbox" id="brand_{{ brand.id }}" name="brand" value="{{ brand.id }}">
                                 <label for="brand_{{ brand.id }}">{{ brand.name }}</label>
                             </div>
@@ -1289,13 +1289,34 @@
             initializeProductAnimations();
             initializeWishlistState();
             
+            // Initialize price slider first
+            initializePriceSlider();
+            
             // Restore filter states from URL parameters
             restoreFilterStates();
             
             // Initialize see all functionality AFTER everything else
             setTimeout(() => {
                 initializeSeeAllFunctionality();
-            }, 100);
+            }, 200);
+            
+            // Add event listeners for price slider buttons
+            const applyPriceBtn = document.querySelector('.apply-btn');
+            const clearPriceBtn = document.querySelector('.price-clear-btn');
+            
+            if (applyPriceBtn) {
+                applyPriceBtn.addEventListener('click', function() {
+                    console.log('Apply price filter clicked');
+                    applyPriceFilter();
+                });
+            }
+            
+            if (clearPriceBtn) {
+                clearPriceBtn.addEventListener('click', function() {
+                    console.log('Clear price filter clicked');
+                    clearPriceFilter();
+                });
+            }
         });
 
         // Initialize see all functionality
@@ -1305,15 +1326,19 @@
             // Brands see all functionality
             const seeAllBrands = document.getElementById('see-all-brands');
             if (seeAllBrands) {
+                console.log('Found see all brands button');
                 seeAllBrands.addEventListener('click', function(e) {
                     e.preventDefault();
+                    console.log('See all brands clicked');
                     const seeAllLink = this;
                     const currentState = seeAllLink.getAttribute('data-state') || 'collapsed';
                     
                     if (currentState === 'collapsed') {
                         // Show all brands
                         const hiddenBrands = document.querySelectorAll('.brand-hidden');
+                        console.log('Showing', hiddenBrands.length, 'hidden brands');
                         hiddenBrands.forEach(brand => {
+                            brand.style.display = 'flex';
                             brand.classList.add('show');
                         });
                         seeAllLink.textContent = 'Show Less';
@@ -1321,8 +1346,10 @@
                     } else {
                         // Hide brands beyond first 5
                         const allBrands = document.querySelectorAll('#brands-container .checkbox-item');
+                        console.log('Hiding brands beyond first 5');
                         allBrands.forEach((brand, index) => {
                             if (index >= 5) {
+                                brand.style.display = 'none';
                                 brand.classList.remove('show');
                             }
                         });
@@ -1330,6 +1357,8 @@
                         seeAllLink.setAttribute('data-state', 'collapsed');
                     }
                 });
+            } else {
+                console.log('See all brands button not found');
             }
         }
 
@@ -1509,9 +1538,11 @@
                         
                         // Load child categories
                         loadChildCategories(parentId);
-                            
-                            // Apply filters immediately
+                        
+                        // Apply filters immediately
+                        setTimeout(() => {
                             applyFilters();
+                        }, 500); // Small delay to ensure child categories are loaded
                     } else {
                         // Remove selection styling
                         this.closest('.checkbox-item').classList.remove('parent-category-selected');
@@ -1519,9 +1550,9 @@
                         // Hide child categories and attributes
                         hideChildCategories();
                         hideCategoryAttributes();
-                            
-                            // Apply filters immediately
-                            applyFilters();
+                        
+                        // Apply filters immediately
+                        applyFilters();
                     }
                 });
             });
@@ -1545,7 +1576,7 @@
              showLoadingState(childContent, 'Loading subcategories...');
              childSection.style.display = 'block';
              
-             fetch('/ajax/get-category-children/', {
+             fetch('{% url "sellers:get_category_children" %}', {
                  method: 'POST',
                  headers: {
                      'Content-Type': 'application/json',
@@ -1571,6 +1602,7 @@
              .catch(error => {
                  console.error('Error loading child categories:', error);
                  showErrorMessage(childContent, 'Failed to load subcategories. Please try again.');
+                 console.log('Full error details:', error.message);
              });
          }
 
@@ -1618,7 +1650,9 @@
                             loadCategoryAttributes(childId);
                             
                             // Apply filter immediately
-                            applyFilters();
+                            setTimeout(() => {
+                                applyFilters();
+                            }, 500); // Small delay to ensure attributes are loaded
                         } else {
                             // Remove selection styling
                             this.closest('.checkbox-item').classList.remove('child-category-selected');
@@ -1671,7 +1705,7 @@
             showLoadingState(attributesContent, 'Loading category attributes...');
             attributesSection.style.display = 'block';
             
-                         fetch('/ajax/get-category-attributes/', {
+                         fetch('{% url "sellers:get_category_attributes" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1697,6 +1731,7 @@
             .catch(error => {
                 console.error('Error loading category attributes:', error);
                 showErrorMessage(attributesContent, 'Failed to load category attributes. Please try again.');
+                console.log('Full error details:', error.message);
             });
         }
 
@@ -1850,7 +1885,10 @@
 
         // Apply filters function with AJAX - no page reload
          function applyFilters() {
-             if (isLoading) return;
+             if (isLoading) {
+                 console.log('Already loading, skipping...');
+                 return;
+             }
              
              console.log('Applying filters...');
              isLoading = true;
@@ -1874,31 +1912,41 @@
              const searchInput = document.querySelector('input[name="search"]');
              if (searchInput && searchInput.value.trim()) {
                  formData.append('search', searchInput.value.trim());
+                 console.log('Search term:', searchInput.value.trim());
              }
              
              // Add selected parent category
              const selectedParent = document.querySelector('.parent-category-checkbox:checked');
              if (selectedParent) {
                  formData.append('parent_category', selectedParent.value);
+                 console.log('Parent category:', selectedParent.value);
              }
              
              // Add selected child category
              const selectedChild = document.querySelector('.child-category-checkbox:checked');
              if (selectedChild) {
                  formData.append('child_category', selectedChild.value);
+                 console.log('Child category:', selectedChild.value);
              }
              
              // Add other filters
              const selectedBrands = document.querySelectorAll('input[name="brand"]:checked');
              selectedBrands.forEach(brand => {
                  formData.append('brand', brand.value);
+                 console.log('Brand selected:', brand.value);
              });
              
              // Add price range
              const minPrice = document.querySelector('input[name="min_price"]');
              const maxPrice = document.querySelector('input[name="max_price"]');
-             if (minPrice && minPrice.value) formData.append('min_price', minPrice.value);
-             if (maxPrice && maxPrice.value) formData.append('max_price', maxPrice.value);
+             if (minPrice && minPrice.value) {
+                 formData.append('min_price', minPrice.value);
+                 console.log('Min price:', minPrice.value);
+             }
+             if (maxPrice && maxPrice.value) {
+                 formData.append('max_price', maxPrice.value);
+                 console.log('Max price:', maxPrice.value);
+             }
              
              // Add condition
              const selectedCondition = document.querySelector('input[name="condition"]:checked');
@@ -1953,7 +2001,7 @@
              console.log('Filter parameters:', params.toString());
              
             // Make AJAX request to get filtered products
-            fetch(`/ajax/get-filtered-products/?${params.toString()}`, {
+            fetch(`{% url "sellers:get_filtered_products" %}?${params.toString()}`, {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
@@ -1962,6 +2010,7 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log('AJAX response received:', data);
                 if (data.success) {
                     // Update products grid
                     updateProductsGrid(data.products);
@@ -1971,22 +2020,22 @@
                         productsCount.innerHTML = `Showing ${data.total_products} products`;
                     }
                     
-                                // Update URL without page reload, preserving view parameter
-            const newUrl = new URL(window.location);
-            
-            // Clear existing parameters and add new ones
-            newUrl.search = '';
-            for (let [key, value] of params) {
-                newUrl.searchParams.set(key, value);
-            }
-            
-            // Preserve view parameter if it exists
-            const currentView = new URLSearchParams(window.location.search).get('view');
-            if (currentView) {
-                newUrl.searchParams.set('view', currentView);
-            }
-            
-            window.history.replaceState({}, '', newUrl.toString());
+                    // Update URL without page reload, preserving view parameter
+                    const newUrl = new URL(window.location);
+                    
+                    // Clear existing parameters and add new ones
+                    newUrl.search = '';
+                    for (let [key, value] of params) {
+                        newUrl.searchParams.set(key, value);
+                    }
+                    
+                    // Preserve view parameter if it exists
+                    const currentView = new URLSearchParams(window.location.search).get('view');
+                    if (currentView) {
+                        newUrl.searchParams.set('view', currentView);
+                    }
+                    
+                    window.history.replaceState({}, '', newUrl.toString());
                     
                     console.log('Filters applied successfully');
                     
@@ -2146,45 +2195,51 @@
         // Toggle sidebar sections
         function initializeEventListeners() {
             // Sidebar collapse functionality
-        document.querySelectorAll('.sidebar-section h3').forEach(header => {
-            header.addEventListener('click', function() {
-                const section = this.parentNode;
-                section.classList.toggle('collapsed');
+            document.querySelectorAll('.sidebar-section h3').forEach(header => {
+                header.addEventListener('click', function() {
+                    const section = this.parentNode;
+                    section.classList.toggle('collapsed');
+                });
             });
-        });
 
-                         // Auto-apply filters when checkboxes change
-             document.querySelectorAll('input[name="brand"], input[name="condition"], input[name="rating"]').forEach(input => {
-                 input.addEventListener('change', function() {
-                     applyFilters();
-                 });
-             });
-             
-             // Auto-apply filters when sort dropdown changes
-             const sortSelect = document.querySelector('.sort-select');
-             if (sortSelect) {
-                 sortSelect.addEventListener('change', function() {
-                     applyFilters();
-                 });
-             }
-             
-             // Auto-apply filters when price inputs change
-             const priceInputs = document.querySelectorAll('input[name="min_price"], input[name="max_price"]');
-             priceInputs.forEach(input => {
-                 input.addEventListener('change', function() {
-                     applyFilters();
-                 });
-             });
+            // Auto-apply filters when checkboxes change
+            document.querySelectorAll('input[name="brand"], input[name="condition"], input[name="rating"]').forEach(input => {
+                input.addEventListener('change', function() {
+                    console.log('Filter changed:', this.name, this.value, this.checked);
+                    applyFilters();
+                });
+            });
+            
+            // Auto-apply filters when sort dropdown changes
+            const sortSelect = document.querySelector('.sort-select');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function() {
+                    console.log('Sort changed:', this.value);
+                    applyFilters();
+                });
+            }
+            
+            // Auto-apply filters when price inputs change
+            const priceInputs = document.querySelectorAll('input[name="min_price"], input[name="max_price"]');
+            priceInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    console.log('Price input changed:', this.name, this.value);
+                    applyFilters();
+                });
+            });
 
             // Newsletter form
-            document.querySelector('.newsletter-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const email = this.querySelector('.newsletter-input').value;
-                if (email) {
-                    alert('Thank you for subscribing!');
-                    this.reset();
-                }
-            });
+            const newsletterForm = document.querySelector('.newsletter-form');
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const email = this.querySelector('.newsletter-input').value;
+                    if (email) {
+                        alert('Thank you for subscribing!');
+                        this.reset();
+                    }
+                });
+            }
 
             // Price range slider functionality
             initializePriceSlider();
@@ -2542,6 +2597,7 @@
         let activeHandle = null;
 
         function initializePriceSlider() {
+            console.log('Initializing price slider...');
             const priceSlider = document.getElementById('price-slider');
             const minHandle = document.getElementById('min-handle');
             const maxHandle = document.getElementById('max-handle');
@@ -2551,7 +2607,12 @@
             const minPriceDisplay = document.getElementById('min-price-display');
             const maxPriceDisplay = document.getElementById('max-price-display');
 
-            if (!priceSlider || !minHandle || !maxHandle) return;
+            if (!priceSlider || !minHandle || !maxHandle) {
+                console.error('Price slider elements not found');
+                return;
+            }
+            
+            console.log('Price slider elements found, setting up...');
 
             // Set initial positions
             updateSliderHandles();
@@ -2566,53 +2627,53 @@
                 });
             });
 
-                         // Mouse events for slider background
-             priceSlider.addEventListener('mousedown', function(e) {
-                 if (e.target === priceSlider || e.target.classList.contains('price-slider-track')) {
-                     e.preventDefault();
-                     const rect = priceSlider.getBoundingClientRect();
-                     const percentage = ((e.clientX - rect.left) / rect.width) * 100;
-                     const sliderMax = 1000;
-                     const price = Math.round((percentage / 100) * sliderMax);
-                     
-                     // Determine which handle to move
-                     const minPercentage = (minPrice / sliderMax) * 100;
-                     const maxPercentage = (maxPrice / sliderMax) * 100;
-                     
-                     if (Math.abs(percentage - minPercentage) < Math.abs(percentage - maxPercentage)) {
-                         activeHandle = minHandle;
-                         minPrice = Math.max(0, Math.min(price, maxPrice - 10));
-                     } else {
-                         activeHandle = maxHandle;
-                         maxPrice = Math.max(price, minPrice + 10);
-                     }
-                     
-                     isDragging = true;
-                     activeHandle.style.cursor = 'grabbing';
-                     updateSliderHandles();
-                 }
-             });
+            // Mouse events for slider background
+            priceSlider.addEventListener('mousedown', function(e) {
+                if (e.target === priceSlider || e.target.classList.contains('price-slider-track')) {
+                    e.preventDefault();
+                    const rect = priceSlider.getBoundingClientRect();
+                    const percentage = ((e.clientX - rect.left) / rect.width) * 100;
+                    const sliderMax = 1000;
+                    const price = Math.round((percentage / 100) * sliderMax);
+                    
+                    // Determine which handle to move
+                    const minPercentage = (minPrice / sliderMax) * 100;
+                    const maxPercentage = (maxPrice / sliderMax) * 100;
+                    
+                    if (Math.abs(percentage - minPercentage) < Math.abs(percentage - maxPercentage)) {
+                        activeHandle = minHandle;
+                        minPrice = Math.max(0, Math.min(price, maxPrice - 10));
+                    } else {
+                        activeHandle = maxHandle;
+                        maxPrice = Math.max(price, minPrice + 10);
+                    }
+                    
+                    isDragging = true;
+                    activeHandle.style.cursor = 'grabbing';
+                    updateSliderHandles();
+                }
+            });
 
-                         // Global mouse events
-             document.addEventListener('mousemove', function(e) {
-                 if (isDragging && activeHandle) {
-                     e.preventDefault();
-                     const rect = priceSlider.getBoundingClientRect();
-                     let percentage = ((e.clientX - rect.left) / rect.width) * 100;
-                     percentage = Math.max(0, Math.min(100, percentage));
-                     
-                     const sliderMax = 1000;
-                     const price = Math.round((percentage / 100) * sliderMax);
-                     
-                     if (activeHandle === minHandle) {
-                         minPrice = Math.max(0, Math.min(price, maxPrice - 10));
-                     } else {
-                         maxPrice = Math.max(price, minPrice + 10);
-                     }
-                     
-                     updateSliderHandles();
-                 }
-             });
+            // Global mouse events
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging && activeHandle) {
+                    e.preventDefault();
+                    const rect = priceSlider.getBoundingClientRect();
+                    let percentage = ((e.clientX - rect.left) / rect.width) * 100;
+                    percentage = Math.max(0, Math.min(100, percentage));
+                    
+                    const sliderMax = 1000;
+                    const price = Math.round((percentage / 100) * sliderMax);
+                    
+                    if (activeHandle === minHandle) {
+                        minPrice = Math.max(0, Math.min(price, maxPrice - 10));
+                    } else {
+                        maxPrice = Math.max(price, minPrice + 10);
+                    }
+                    
+                    updateSliderHandles();
+                }
+            });
 
             document.addEventListener('mouseup', function() {
                 if (isDragging) {
@@ -2624,41 +2685,50 @@
                 }
             });
 
-                         // Input field events
-             minPriceInput.addEventListener('input', function() {
-                 const value = parseInt(this.value) || 0;
-                 minPrice = Math.max(0, Math.min(value, maxPrice - 10));
-                 updateSliderHandles();
-             });
+            // Input field events
+            if (minPriceInput) {
+                minPriceInput.addEventListener('input', function() {
+                    const value = parseInt(this.value) || 0;
+                    minPrice = Math.max(0, Math.min(value, maxPrice - 10));
+                    updateSliderHandles();
+                });
+            }
 
-             maxPriceInput.addEventListener('input', function() {
-                 const value = parseInt(this.value) || 1000;
-                 maxPrice = Math.max(value, minPrice + 10);
-                 updateSliderHandles();
-             });
+            if (maxPriceInput) {
+                maxPriceInput.addEventListener('input', function() {
+                    const value = parseInt(this.value) || 1000;
+                    maxPrice = Math.max(value, minPrice + 10);
+                    updateSliderHandles();
+                });
+            }
 
-                         function updateSliderHandles() {
-                 const sliderMax = 1000; // Maximum value for the slider
-                 const minPercentage = (minPrice / sliderMax) * 100;
-                 const maxPercentage = (maxPrice / sliderMax) * 100;
-                 
-                 minHandle.style.left = minPercentage + '%';
-                 maxHandle.style.left = maxPercentage + '%';
-                 
-                 priceSliderFill.style.left = minPercentage + '%';
-                 priceSliderFill.style.width = (maxPercentage - minPercentage) + '%';
-                 
-                 // Update displays
-                 minPriceDisplay.textContent = '$' + minPrice;
-                 maxPriceDisplay.textContent = '$' + maxPrice;
-                 
-                 // Update input fields
-                 minPriceInput.value = minPrice;
-                 maxPriceInput.value = maxPrice;
-             }
-             
-             // Make updateSliderHandles globally accessible
-             window.updateSliderHandles = updateSliderHandles;
+            function updateSliderHandles() {
+                console.log('Updating slider handles - min:', minPrice, 'max:', maxPrice);
+                const sliderMax = 1000; // Maximum value for the slider
+                const minPercentage = (minPrice / sliderMax) * 100;
+                const maxPercentage = (maxPrice / sliderMax) * 100;
+                
+                if (minHandle) minHandle.style.left = minPercentage + '%';
+                if (maxHandle) maxHandle.style.left = maxPercentage + '%';
+                
+                if (priceSliderFill) {
+                    priceSliderFill.style.left = minPercentage + '%';
+                    priceSliderFill.style.width = (maxPercentage - minPercentage) + '%';
+                }
+                
+                // Update displays
+                if (minPriceDisplay) minPriceDisplay.textContent = '$' + minPrice;
+                if (maxPriceDisplay) maxPriceDisplay.textContent = '$' + maxPrice;
+                
+                // Update input fields
+                if (minPriceInput) minPriceInput.value = minPrice;
+                if (maxPriceInput) maxPriceInput.value = maxPrice;
+                
+                console.log('Slider handles updated');
+            }
+            
+            // Make updateSliderHandles globally accessible
+            window.updateSliderHandles = updateSliderHandles;
         }
 
         // Apply price filter

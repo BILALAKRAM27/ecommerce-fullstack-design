@@ -587,32 +587,41 @@ def delete_product_view(request, product_id):
 @csrf_exempt
 def get_category_children(request):
     """Get child categories for a selected parent category"""
+    print(f"get_category_children called with method: {request.method}")
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             parent_id = data.get('parent_id')
+            print(f"Parent ID received: {parent_id}")
             
             if parent_id:
                 children = Category.objects.filter(parent_id=parent_id)
                 children_data = [{'id': child.id, 'name': child.name} for child in children]
+                print(f"Found {len(children_data)} children for parent {parent_id}")
                 return JsonResponse({'success': True, 'children': children_data})
             else:
+                print("No parent_id provided")
                 return JsonResponse({'success': False, 'error': 'Parent ID is required'})
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")
             return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
         except Exception as e:
+            print(f"Exception in get_category_children: {e}")
             return JsonResponse({'success': False, 'error': str(e)})
     
+    print("Invalid request method")
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 @csrf_exempt
 def get_category_attributes(request):
     """Get attributes for a selected category with existing options"""
+    print(f"get_category_attributes called with method: {request.method}")
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             category_id = data.get('category_id')
+            print(f"Category ID received: {category_id}")
             
             if category_id:
                 attributes = CategoryAttribute.objects.filter(category_id=category_id)
@@ -634,14 +643,19 @@ def get_category_attributes(request):
                     
                     attributes_data.append(attr_data)
                 
+                print(f"Found {len(attributes_data)} attributes for category {category_id}")
                 return JsonResponse({'success': True, 'attributes': attributes_data})
             else:
+                print("No category_id provided")
                 return JsonResponse({'success': False, 'error': 'Category ID is required'})
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")
             return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
         except Exception as e:
+            print(f"Exception in get_category_attributes: {e}")
             return JsonResponse({'success': False, 'error': str(e)})
     
+    print("Invalid request method")
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
@@ -3131,6 +3145,8 @@ def product_listing_view(request):
 @csrf_exempt
 def get_filtered_products(request):
     """AJAX endpoint to get filtered products without page reload"""
+    print(f"get_filtered_products called with method: {request.method}")
+    print(f"Request GET params: {request.GET}")
     try:
         # Get all products with related data
         products = Product.objects.select_related('seller', 'category', 'brand').prefetch_related('images').all()

@@ -1,13 +1,13 @@
-# MarketVibe - Multi-Vendor E-commerce Platform
+# MarketVibe - Advanced Multi-Vendor E-commerce Platform
 
-A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featuring advanced seller/buyer management, Stripe Connect payment processing, dynamic product catalog, gift box campaigns, smart search system, and robust order management system.
+A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featuring advanced seller/buyer management, Stripe Connect payment processing, dynamic product catalog, gift box campaigns, smart search system, quotes system, newsletter subscription, and robust order management system.
 
-## 🚀 Features
+## 🚀 Key Features
 
 ### 🔐 Authentication & User Management
 - **Dual User Types**: Separate registration and management for Buyers and Sellers
 - **Secure Login**: Email-based authentication with password validation
-- **Profile Management**: Complete profile management with image upload support (BLOB storage)
+- **Profile Management**: Complete profile management with BLOB image storage
 - **Account Deletion**: Secure account removal with complete data cleanup
 - **Session Management**: Secure login/logout functionality with proper session handling
 
@@ -21,6 +21,8 @@ A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featur
 - **Product Reviews**: Rate and review purchased products with like/dislike system
 - **Gift Box Orders**: Special gift box campaign ordering system
 - **Order Tracking**: Real-time order status tracking with delivery estimates
+- **Quote Requests**: Submit quote requests to sellers for custom products
+- **Newsletter Subscription**: Manage newsletter preferences and subscriptions
 
 ### 🏪 Seller Features
 - **Seller Registration**: Complete seller onboarding with shop details
@@ -34,6 +36,23 @@ A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featur
 - **Revenue Tracking**: Monitor sales, revenue, and payouts
 - **Gift Box Campaigns**: Create and manage special gift box campaigns
 - **Promotion System**: Advanced promotion management with multiple types
+- **Quote Response System**: Respond to buyer quote requests
+- **Review Management**: Handle product and seller reviews
+- **Data Export**: Export orders and products as CSV, Excel, and PDF
+
+### 🎯 Quotes System (NEW)
+- **Quote Requests**: Buyers can submit detailed quote requests with specifications
+- **Quote Responses**: Sellers can respond with competitive pricing and delivery estimates
+- **Quote Management**: Track quote status (Pending, Responded, Accepted, etc.)
+- **Automated Notifications**: Real-time notifications for quote status changes
+- **Quote Analytics**: Track quote performance and conversion rates
+
+### 📧 Newsletter Subscription System (NEW)
+- **Role-based Subscriptions**: Different subscription options for buyers and sellers
+- **Preference Management**: Users can customize newsletter preferences
+- **Duplicate Prevention**: Prevents multiple subscriptions from the same email
+- **Unsubscribe Functionality**: Easy unsubscribe and resubscribe process
+- **Admin Management**: Comprehensive admin interface for subscriber management
 
 ### 🔍 Smart Search System
 - **Real-time Search**: Dynamic product search with instant suggestions
@@ -88,10 +107,11 @@ A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featur
 - **Sales Reports**: Revenue analytics with charts and graphs
 - **Profile Management**: Edit seller profile and shop details
 - **Promotion Management**: Create and manage product promotions
-- **Data Export**: Export orders and products as CSV
+- **Data Export**: Export orders and products as CSV, Excel, and PDF
 - **Revenue Tracking**: Monitor earnings, payouts, and commission
 - **Gift Box Management**: Manage gift box campaigns and orders
 - **Notification System**: Real-time notifications for orders, stock, and payments
+- **Activity Tracking**: Complete activity logging for sellers
 
 ### 🎁 Gift Box Campaigns
 - **Campaign Creation**: Sellers can create special gift box campaigns
@@ -112,6 +132,8 @@ A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featur
 - **Security**: CSRF protection, form validation, and secure data handling
 - **Notification System**: Real-time notifications for buyers and sellers
 - **Activity Tracking**: Complete activity logging for sellers
+- **Export System**: Comprehensive data export (CSV, Excel, PDF)
+- **Review System**: Advanced review system with likes/dislikes
 
 ## 🛠️ Technology Stack
 
@@ -125,7 +147,7 @@ A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featur
 - **Styling**: Custom CSS with modern gradient designs
 - **AJAX**: Asynchronous data loading and updates
 - **Image Processing**: Base64 encoding for efficient storage
-- **Data Export**: CSV export functionality
+- **Data Export**: CSV, Excel, and PDF export functionality
 - **Environment**: Python 3.8+ with virtual environment support
 - **Additional Libraries**: 
   - pandas (2.3.0) for data processing
@@ -133,6 +155,7 @@ A comprehensive multi-vendor e-commerce platform built with Django 5.2.4, featur
   - reportlab (4.1.0) for PDF generation
   - matplotlib (3.10.3) for data visualization
   - numpy (1.26.4) for numerical operations
+  - django-widget-tweaks (1.5.0) for form enhancement
 
 ## 📁 Project Structure
 
@@ -148,68 +171,36 @@ MarketVibe/
 │   ├── __init__.py
 │   ├── admin.py                   # Buyer admin interface
 │   ├── apps.py                    # Buyer app configuration
-│   ├── models.py                  # Buyer, Cart, Order, Payment, GiftBoxOrder models
-│   ├── views.py                   # Buyer views and payment processing (2803 lines)
+│   ├── models.py                  # Buyer, Cart, Order, Payment, GiftBoxOrder models (313 lines)
+│   ├── views.py                   # Buyer views and payment processing (3136 lines)
 │   ├── forms.py                   # Buyer forms
-│   ├── urls.py                    # Buyer URL routing
+│   ├── urls.py                    # Buyer URL routing (59 lines)
 │   ├── utils_order.py             # Order processing utilities
 │   ├── utils.py                   # Utility functions
 │   ├── context_processors.py      # User sidebar data
 │   ├── tests.py                   # Buyer app tests
-│   ├── migrations/                # Database migrations
-│   │   ├── 0001_initial.py
-│   │   ├── 0002_initial.py
-│   │   ├── 0003_cart_coupon_code_alter_cartitem_quantity.py
-│   │   ├── 0004_remove_buyer_address_address.py
-│   │   ├── 0005_alter_order_options_order_notes_and_more.py
-│   │   ├── 0006_order_order_type.py
-│   │   ├── 0007_buyernotification.py
-│   │   ├── 0008_giftboxorder.py
-│   │   ├── 0009_giftboxorder_delivery_address.py
-│   │   ├── 0010_buyer_address_buyer_date_of_birth_buyer_updated_at_and_more.py
-│   │   ├── 0011_giftboxorder_expected_delivery_date_and_more.py
-│   │   ├── 0012_giftboxorder_order_type_giftboxorder_payment_status.py
-│   │   └── 0013_giftboxorder_promotion_order_promotion.py
-│   └── templates/buyer/           # Buyer templates
-│       ├── buyer_dashboard.html
-│       ├── buyer_profile.html
-│       ├── buyer_seller_profile_view.html
-│       ├── buyer_order_list.html
-│       ├── cart_page.html
-│       ├── checkout_page.html
-│       ├── contact_support.html
-│       ├── giftbox_marketplace.html
-│       ├── giftbox_orders.html
-│       ├── order_details.html
-│       ├── track_order.html
-│       ├── buy_giftbox.html
-│       ├── buyer_delete.html
-│       └── buyer_update.html
+│   ├── migrations/                # Database migrations (13 files)
+│   └── templates/buyer/           # Buyer templates (14 files)
+│       ├── buyer_dashboard.html   # Buyer dashboard (8257 lines)
+│       ├── buyer_profile.html     # Buyer profile management
+│       ├── cart_page.html         # Shopping cart (1592 lines)
+│       ├── checkout_page.html     # Checkout process (2030 lines)
+│       ├── giftbox_marketplace.html # Gift box browsing
+│       ├── buy_giftbox.html       # Gift box purchase
+│       ├── order_details.html     # Order details
+│       ├── track_order.html       # Order tracking
+│       └── [other templates...]
 ├── seller/                        # Seller app
 │   ├── __init__.py
-│   ├── admin.py                   # Seller admin interface
+│   ├── admin.py                   # Seller admin interface (262 lines)
 │   ├── apps.py                    # Seller app configuration
-│   ├── models.py                  # Seller, Product, Category, Promotion models (415 lines)
-│   ├── views.py                   # Seller views and dashboard (3672 lines)
-│   ├── forms.py                   # Seller and product forms (315 lines)
-│   ├── urls.py                    # Seller URL routing (103 lines)
+│   ├── models.py                  # Seller, Product, Category, Promotion models (533 lines)
+│   ├── views.py                   # Seller views and dashboard (4377 lines)
+│   ├── forms.py                   # Seller and product forms (429 lines)
+│   ├── urls.py                    # Seller URL routing (124 lines)
 │   ├── signals.py                 # Django signals for notifications (122 lines)
 │   ├── tests.py                   # Seller app tests
-│   ├── migrations/                # Database migrations
-│   │   ├── 0001_initial.py
-│   │   ├── 0002_seller_user.py
-│   │   ├── 0003_alter_seller_image.py
-│   │   ├── 0004_product_image_product_order_count.py
-│   │   ├── 0005_remove_productimage_image_url_product_unique_id_and_more.py
-│   │   ├── 0006_rename_is_primary_productimage_is_thumbnail_and_more.py
-│   │   ├── 0007_seller_stripe_account_id.py
-│   │   ├── 0008_seller_address.py
-│   │   ├── 0009_notification.py
-│   │   ├── 0010_activity.py
-│   │   ├── 0011_promotion.py
-│   │   ├── 0012_giftboxcampaign_sellergiftboxparticipation.py
-│   │   ├── 0013_alter_productreview_options_productreview_updated_at_and_more.py
-│   │   └── 0014_sellerreview_rating.py
+│   ├── migrations/                # Database migrations (15 files)
 │   ├── templatetags/              # Custom template tags
 │   │   └── b64filters.py         # Base64 image filters
 │   ├── management/                # Custom management commands
@@ -236,35 +227,37 @@ MarketVibe/
 │   │   │   └── index.css
 │   │   └── js/
 │   │       └── index.js
-│   └── templates/seller/          # Seller templates
-│       ├── index.html             # Main homepage with carousel
-│       ├── seller_dashboard.html
-│       ├── product_form.html
-│       ├── product_list.html
-│       ├── product_page.html
-│       ├── ecom_product_listing.html
-│       ├── giftbox_campaigns.html
-│       ├── giftbox_orders.html
-│       ├── fulfill_giftbox_order.html
-│       ├── hot_offers.html
-│       ├── orders_list.html
-│       ├── promotions_list.html
-│       ├── create_promotion.html
-│       ├── promotion_detail.html
-│       ├── products_list.html
-│       ├── seller_profile.html
-│       ├── login.html
-│       ├── register.html
-│       ├── about.html
-│       ├── find_store.html
-│       ├── partnership.html
-│       ├── information.html
-│       ├── money_refund.html
-│       ├── shipping.html
-│       └── contact_support.html
+│   └── templates/seller/          # Seller templates (40+ files)
+│       ├── index.html             # Main homepage with carousel (3348 lines)
+│       ├── seller_dashboard.html  # Seller dashboard (7791 lines)
+│       ├── product_form.html      # Product creation form (971 lines)
+│       ├── product_page.html      # Product detail page (5534 lines)
+│       ├── ecom_product_listing.html # Product listing (3123 lines)
+│       ├── giftbox_campaigns.html # Gift box campaigns
+│       ├── giftbox_orders.html    # Gift box orders (1202 lines)
+│       ├── fulfill_giftbox_order.html # Gift box fulfillment
+│       ├── quotes_inbox.html      # Quote requests (1255 lines)
+│       ├── respond_to_quote.html  # Quote response form (731 lines)
+│       ├── submit_quote_request.html # Quote request form (642 lines)
+│       ├── manage_newsletter_subscription.html # Newsletter management
+│       ├── promotions_list.html   # Promotion management
+│       ├── orders_list.html       # Order management (786 lines)
+│       ├── seller_profile.html    # Seller profile (1724 lines)
+│       ├── login.html             # Login page (712 lines)
+│       ├── register.html          # Registration page (795 lines)
+│       ├── about.html             # About page (426 lines)
+│       ├── find_store.html        # Store finder (582 lines)
+│       ├── partnership.html       # Partnership page
+│       ├── information.html       # Information page (794 lines)
+│       ├── money_refund.html      # Refund policy
+│       ├── shipping.html          # Shipping policy (366 lines)
+│       ├── privacy_policy.html    # Privacy policy (254 lines)
+│       ├── user_agreement.html    # User agreement (256 lines)
+│       └── [other templates...]
 ├── manage.py                      # Django management script
-├── requirements.txt               # Python dependencies
+├── requirements.txt               # Python dependencies (51 packages)
 ├── django_design_system.md       # Design system documentation
+├── QUOTES_NEWSLETTER_README.md   # Quotes and Newsletter documentation
 ├── db.sqlite3                    # SQLite database (3.3MB)
 ├── .gitignore                    # Git ignore rules
 ├── fix_promotions.py             # Promotion fix script
@@ -272,6 +265,7 @@ MarketVibe/
 ├── test_ajax.py                  # AJAX testing script
 ├── test_export_comprehensive.py  # Export testing script
 ├── test_export_functionality.py  # Export functionality tests
+├── test_quotes_newsletter.py     # Quotes and Newsletter tests
 └── test_total_spent.py          # Total spent calculation tests
 ```
 
@@ -447,6 +441,24 @@ EMAIL_HOST_PASSWORD = 'your_app_password'
 6. **Payment**: Choose Stripe or Cash on Delivery
 7. **Track Order**: Monitor delivery status in buyer dashboard
 
+### Quotes System Usage
+1. **Submit Quote Request**: 
+   - Go to `/quotes/submit/`
+   - Fill product specifications and budget
+2. **Seller Response**: 
+   - Sellers view requests in `/quotes/inbox/`
+   - Respond with pricing and delivery estimates
+3. **Buyer Review**: 
+   - View responses in `/quotes/my-requests/`
+   - Accept or reject offers
+4. **Order Conversion**: Accepted quotes convert to orders
+
+### Newsletter Subscription
+1. **Subscribe**: Use footer form or `/newsletter/subscribe/`
+2. **Manage Preferences**: Visit `/newsletter/manage/`
+3. **Customize Settings**: Choose content preferences
+4. **Unsubscribe**: Easy unsubscribe process
+
 ### Gift Box Campaigns
 1. **Seller Creates Campaign**: 
    - Go to `/giftbox-campaigns/`
@@ -492,6 +504,9 @@ python test_ajax.py
 python test_export_comprehensive.py
 python test_export_functionality.py
 
+# Test quotes and newsletter system
+python test_quotes_newsletter.py
+
 # Test total spent calculations
 python test_total_spent.py
 ```
@@ -506,6 +521,10 @@ python test_total_spent.py
 - [ ] Order management
 - [ ] Seller dashboard features
 - [ ] Gift box campaigns
+- [ ] Quotes system
+- [ ] Newsletter subscription
+- [ ] Review system
+- [ ] Export functionality
 - [ ] Responsive design (mobile/desktop)
 
 ## 📝 API Endpoints
@@ -602,6 +621,20 @@ python test_total_spent.py
 - `GET /products/<id>/reviews/` - Get product reviews
 - `GET /seller/<id>/reviews/` - Get seller reviews
 
+#### Quotes System (NEW)
+- `POST /quotes/submit/` - Submit quote request
+- `GET /quotes/inbox/` - Seller's quote inbox
+- `POST /quotes/<id>/respond/` - Respond to quote
+- `GET /quotes/my-requests/` - Buyer's quote requests
+- `GET /quotes/<id>/details/` - Quote details
+- `POST /quotes/response/<id>/accept/` - Accept quote response
+- `POST /quotes/response/<id>/reject/` - Reject quote response
+
+#### Newsletter System (NEW)
+- `POST /newsletter/subscribe/` - Subscribe to newsletter
+- `GET /newsletter/manage/` - Manage subscription preferences
+- `POST /newsletter/unsubscribe/` - Unsubscribe from newsletter
+
 #### AJAX Endpoints
 - `POST /ajax/get-category-children/` - Get subcategories
 - `POST /ajax/get-category-attributes/` - Get category attributes
@@ -627,6 +660,8 @@ python test_total_spent.py
 - `GET /information/` - Information page
 - `GET /money-refund/` - Money Refund policy
 - `GET /shipping/` - Shipping policy
+- `GET /privacy-policy/` - Privacy Policy
+- `GET /user-agreement/` - User Agreement
 
 ## 🔒 Security Features
 
@@ -688,7 +723,7 @@ python test_total_spent.py
 ### 📊 Interactive Dashboard
 - **Real-time Updates**: Live data updates
 - **Chart Visualization**: Interactive charts with Chart.js
-- **Data Export**: CSV export functionality
+- **Data Export**: CSV, Excel, and PDF export functionality
 - **Notification System**: Real-time alerts
 - **Activity Logging**: Complete activity tracking
 
@@ -740,7 +775,7 @@ python test_total_spent.py
 ### 📊 Dashboard Metrics
 - **Key Performance Indicators**: Important business metrics
 - **Real-time Charts**: Interactive data visualization
-- **Export Capabilities**: Data export functionality
+- **Export Capabilities**: Comprehensive export functionality
 - **Custom Reports**: Flexible reporting options
 - **Historical Data**: Long-term trend analysis
 
@@ -921,7 +956,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Note**: This is a development version. For production deployment, ensure proper security configurations, environment variables, and SSL certificates are set up. The Stripe webhook listener must be running in production for payment processing to work correctly.
 
-**Version**: 2.0.0  
+**Version**: 2.1.0  
 **Last Updated**: January 2025  
 **Django Version**: 5.2.4  
 **Python Version**: 3.8+  

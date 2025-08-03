@@ -876,7 +876,7 @@
         .service-title {
             font-size: 14px;
             font-weight: 600;
-            margin-bottom: 5px;
+            margin-top: 20px;
         }
 
         .service-subtitle {
@@ -2279,29 +2279,27 @@
                         <h3 class="services-header">Our extra services</h3>
                         <div class="services-grid">
                             <div class="service-card">
-                                <div class="service-image">Source from Industry Hubs</div>
+                                <div class="service-image"><img src="{% static 'seller/assets/industry_hub.jpeg' %}" alt="Source from Industry Hubs"></div>
                                 <div class="service-content">
                                     <div class="service-title">Source from Industry Hubs</div>
                                 </div>
                             </div>
                             <div class="service-card">
-                                <div class="service-image">Customize Your Products</div>
+                                <div class="service-image"><img src="{% static 'seller/assets/product.jpeg' %}" alt="Order wanted products"></div>
                                 <div class="service-content">
-                                    <div class="service-title">Customize Your Products</div>
+                                    <div class="service-title">Order wanted products</div>
                                 </div>
                             </div>
                             <div class="service-card">
-                                <div class="service-image">Fast, reliable shipping by ocean or air</div>
+                                <div class="service-image"><img src="{% static 'seller/assets/shipping.jpeg' %}" alt="Fast, reliable shipping"></div>
                                 <div class="service-content">
                                     <div class="service-title">Fast, reliable shipping</div>
-                                    <div class="service-subtitle">by ocean or air</div>
                                 </div>
                             </div>
                             <div class="service-card">
-                                <div class="service-image">Product monitoring and inspection</div>
+                                <div class="service-image"><img src="{% static 'seller/assets/monitoring.jpeg' %}" alt="Product monitoring"></div>
                                 <div class="service-content">
                                     <div class="service-title">Product monitoring</div>
-                                    <div class="service-subtitle">and inspection</div>
                                 </div>
                             </div>
                         </div>
@@ -2415,9 +2413,6 @@
                         <li><a href="{% url 'buyer:buyer_order_list' %}">My Orders</a></li>
                         {% else %}
                         <li><a href="{% url 'sellers:login' %}">Login</a></li>
-                        {% endif %}
-                        {% if user.is_authenticated %}
-                        <li><a href="{% url 'sellers:manage_newsletter_subscription' %}">Newsletter Settings</a></li>
                         {% endif %}
                     </ul>
                 </div>

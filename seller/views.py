@@ -208,7 +208,7 @@ def login_view(request):
     else:
         form = SellerLoginForm()
     
-    return render(request, 'seller/login.html', {'form': form, 'title': 'Login'})
+    return render(request, 'seller/login.html', {'form': form, 'title': 'Sign in'})
 
 
 # LOGOUT View

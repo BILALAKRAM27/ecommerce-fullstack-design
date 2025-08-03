@@ -3,428 +3,710 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <title>Sign In / Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.4/css/boxicons.min.css">
+    
+	<style>
+		:root {
+    --primary-color: #0275d8;
+    --secondary-color: #fd7e14;
+    --black: #000000;
+    --white: #ffffff;
+    --gray: #efefef;
+    --gray-2: #757575;
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    --facebook-color: #4267B2;
+    --google-color: #DB4437;
+    --twitter-color: #1DA1F2;
+    --insta-color: #E1306C;
+}
 
-        .login-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            animation: slideUp 0.6s ease-out;
-        }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap');
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+* {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+html,
+body {
+    height: 100vh;
+    overflow: hidden;
+}
 
-        .login-header h1 {
-            color: #333;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
+.container {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+}
 
-        .login-header p {
-            color: #666;
-            font-size: 0.9rem;
-        }
+/* MarketVibe Logo Styles */
+.marketvibe-logo {
+    position: absolute;
+    top: 20px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    z-index: 10;
+    transition: all 0.5s ease-in-out;
+}
 
-        .form-group {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
+.marketvibe-logo a {
+    text-decoration: none;
+    transition: all 0.5s ease-in-out;
+}
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #555;
-            font-weight: 500;
-        }
+.marketvibe-logo.buyer {
+    right: 30px;
+    color: var(--primary-color);
+}
 
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
+.marketvibe-logo.buyer a {
+    color: var(--primary-color);
+}
 
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+.marketvibe-logo.seller {
+    left: 30px;
+    color: var(--secondary-color);
+}
 
-        .form-group input.error {
-            border-color: #e74c3c;
-        }
+.marketvibe-logo.seller a {
+    color: var(--secondary-color);
+}
 
-        .error-message {
-            color: #e74c3c;
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            display: none;
-        }
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    height: 100vh;
+}
 
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
+.col {
+    width: 50%;
+}
 
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+.align-items-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
 
-        .login-btn:active {
-            transform: translateY(0);
-        }
+.form-wrapper {
+    width: 100%;
+    max-width: 28rem;
+}
 
-        .login-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
+.form {
+    padding: 1rem;
+    background-color: var(--white);
+    border-radius: 1.5rem;
+    width: 100%;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    transform: scale(0);
+    transition: .5s ease-in-out;
+    transition-delay: 1s;
+}
 
-        .loading {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
+.input-group {
+    position: relative;
+    width: 100%;
+    margin: 1rem 0;
+}
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+.input-group i {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    font-size: 1.4rem;
+    color: var(--gray-2);
+}
 
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
-        }
+.input-group input {
+    width: 100%;
+    padding: 1rem 3rem;
+    font-size: 1rem;
+    background-color: var(--gray);
+    border-radius: .5rem;
+    border: 0.125rem solid var(--white);
+    outline: none;
+}
 
-        .error-alert {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
-        }
+.input-group input:focus {
+    border: 0.125rem solid var(--primary-color);
+}
 
-        .register-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #666;
-        }
+.form button {
+    cursor: pointer;
+    width: 100%;
+    padding: .6rem 0;
+    border-radius: .5rem;
+    border: none;
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-size: 1.2rem;
+    outline: none;
+}
 
-        .register-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-        }
+.form p {
+    margin: 1rem 0;
+    font-size: .7rem;
+}
 
-        .register-link a:hover {
-            text-decoration: underline;
-        }
+.flex-col {
+    flex-direction: column;
+}
 
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #666;
-            font-size: 1.2rem;
-        }
+.social-list {
+    margin: 2rem 0;
+    padding: 1rem;
+    border-radius: 1.5rem;
+    width: 100%;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    transform: scale(0);
+    transition: .5s ease-in-out;
+    transition-delay: 1.2s;
+}
 
-        .password-field {
-            position: relative;
-        }
+.social-list>div {
+    color: var(--white);
+    margin: 0 .5rem;
+    padding: .7rem;
+    cursor: pointer;
+    border-radius: .5rem;
+    cursor: pointer;
+    transform: scale(0);
+    transition: .5s ease-in-out;
+}
 
-        .user-type {
-            margin-bottom: 1.5rem;
-            text-align: center;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 2px solid #e1e5e9;
-        }
+.social-list>div:nth-child(1) {
+    transition-delay: 1.4s;
+}
 
-        .user-type label {
-            margin-right: 2rem;
-            color: #555;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
+.social-list>div:nth-child(2) {
+    transition-delay: 1.6s;
+}
 
-        .user-type label:hover {
-            background: #e9ecef;
-        }
+.social-list>div:nth-child(3) {
+    transition-delay: 1.8s;
+}
 
-        .user-type input[type="radio"] {
-            width: auto;
-            margin-right: 0.5rem;
-            transform: scale(1.2);
-        }
+.social-list>div:nth-child(4) {
+    transition-delay: 2s;
+}
 
-        /* Django form error styling */
-        .errorlist {
-            color: #e74c3c;
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            list-style: none;
-            padding: 0;
-        }
+.social-list>div>i {
+    font-size: 1.5rem;
+    transition: .4s ease-in-out;
+}
 
-        .errorlist li {
-            margin-bottom: 0.25rem;
-        }
+.social-list>div:hover i {
+    transform: scale(1.5);
+}
 
-        /* Django messages styling */
-        .messages {
-            margin-bottom: 1rem;
-        }
+.facebook-bg {
+    background-color: var(--facebook-color);
+}
 
-        .message {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-        }
+.google-bg {
+    background-color: var(--google-color);
+}
 
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
+.twitter-bg {
+    background-color: var(--twitter-color);
+}
 
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
+.insta-bg {
+    background-color: var(--insta-color);
+}
 
-        .message.warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
+.pointer {
+    cursor: pointer;
+}
 
-        /* Custom form styling for Django forms */
-        .form-group p {
-            margin-bottom: 1rem;
-        }
+.container.sign-in .form.sign-in,
+.container.sign-in .social-list.sign-in,
+.container.sign-in .social-list.sign-in>div,
+.container.sign-up .form.sign-up,
+.container.sign-up .social-list.sign-up,
+.container.sign-up .social-list.sign-up>div {
+    transform: scale(1);
+}
 
-        .form-group p label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #555;
-            font-weight: 500;
-        }
+.content-row {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 6;
+    width: 100%;
+}
 
-        .form-group p input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
+.text {
+    margin: 4rem;
+    color: var(--white);
+    max-width: 90%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
 
-        .form-group p input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+.text h2 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin: 2rem 0;
+    transition: 1s ease-in-out;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
 
-        .form-group p ul.errorlist {
-            margin-top: 0.5rem;
-        }
+.text p {
+    font-weight: 600;
+    transition: 1s ease-in-out;
+    transition-delay: .2s;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-top: 1.5rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
 
-        /* Hide the hidden username field */
-        .form-group input[type="hidden"] {
-            display: none;
-        }
+.img img {
+    width: 30vw;
+    transition: 1s ease-in-out;
+    transition-delay: .4s;
+}
 
-        @media (max-width: 600px) {
-            .login-container {
-                margin: 0 20px;
-            }
-        }
-    </style>
+.text.sign-in h2,
+.text.sign-in p,
+.img.sign-in img {
+    transform: translateX(-250%);
+}
+
+.text.sign-up h2,
+.text.sign-up p,
+.img.sign-up img {
+    transform: translateX(250%);
+}
+
+.container.sign-in .text.sign-in h2,
+.container.sign-in .text.sign-in p,
+.container.sign-in .img.sign-in img,
+.container.sign-up .text.sign-up h2,
+.container.sign-up .text.sign-up p,
+.container.sign-up .img.sign-up img {
+    transform: translateX(0);
+}
+
+/* BACKGROUND */
+
+.container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 300vw;
+    transform: translate(35%, 0);
+    background-image: linear-gradient(-45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    transition: 1s ease-in-out;
+    z-index: 6;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border-bottom-right-radius: max(50vw, 50vh);
+    border-top-left-radius: max(50vw, 50vh);
+}
+
+.container.sign-in::before {
+    transform: translate(0, 0);
+    right: 50%;
+}
+
+.container.sign-up::before {
+    transform: translate(100%, 0);
+    right: 50%;
+}
+
+/* RESPONSIVE */
+
+@media only screen and (max-width: 425px) {
+
+    .container::before,
+    .container.sign-in::before,
+    .container.sign-up::before {
+        height: 100vh;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 0;
+        z-index: 0;
+        transform: none;
+        right: 0;
+    }
+
+    /* .container.sign-in .col.sign-up {
+        transform: translateY(100%);
+    } */
+
+    .container.sign-in .col.sign-in,
+    .container.sign-up .col.sign-up {
+        transform: translateY(0);
+    }
+
+    .content-row {
+        align-items: flex-start !important;
+    }
+
+    .content-row .col {
+        transform: translateY(0);
+        background-color: unset;
+    }
+
+    .col {
+        width: 100%;
+        position: absolute;
+        padding: 2rem;
+        background-color: var(--white);
+        border-top-left-radius: 2rem;
+        border-top-right-radius: 2rem;
+        transform: translateY(100%);
+        transition: 1s ease-in-out;
+    }
+
+    .row {
+        align-items: flex-end;
+        justify-content: flex-end;
+    }
+
+    .form,
+    .social-list {
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .text {
+        margin: 0;
+        max-width: 95%;
+        padding: 0 1rem;
+    }
+
+    .text p {
+        display: none;
+    }
+
+    .text h2 {
+        margin: .5rem;
+        font-size: 2rem;
+        line-height: 1.3;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+}
+
+/* Additional responsive adjustments for medium screens */
+@media only screen and (max-width: 768px) and (min-width: 426px) {
+    .text {
+        margin: 2rem;
+        max-width: 85%;
+    }
+    
+    .text h2 {
+        font-size: 2.8rem;
+        line-height: 1.2;
+    }
+    
+    .text p {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+}
+	</style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1>{{title}}</h1>
-            <p>Welcome back! Please sign in to your account.</p>
-        </div>
+    
+<div id="container" class="container">
+		<!-- MarketVibe Logo -->
+		<div class="marketvibe-logo buyer" id="marketvibeLogo"><a href="/">MarketVibe</a></div>
+		
+		<!-- FORM SECTION -->
+		<div class="row">
+			<!-- SELLER LOGIN -->
+			<div class="col align-items-center flex-col sign-up">
+				<div class="form-wrapper align-items-center">
+					<div class="form sign-up">
+						<div class="login-header">
+							<h1>Seller Login</h1>
+							<p>Welcome back! Please sign in to your seller account.</p>
+						</div>
 
-        <!-- Django Messages -->
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="message {{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+						<!-- Django Messages -->
+						{% if messages %}
+						<div class="messages">
+							{% for message in messages %}
+							<div class="message {{ message.tags }}">
+								{{ message }}
+							</div>
+							{% endfor %}
+						</div>
+						{% endif %}
 
-        <!-- Django Form Errors -->
-        {% if form.errors %}
-        <div class="error-alert" style="display: block;">
-            <span>Please correct the errors below:</span>
-            {{ form.non_field_errors }}
-        </div>
-        {% endif %}
+						<!-- Django Form Errors -->
+						{% if form.errors %}
+						<div class="error-alert" style="display: block;">
+							<span>Please correct the errors below:</span>
+							{{ form.non_field_errors }}
+						</div>
+						{% endif %}
 
-        <form method="post" id="loginForm">
-            {% csrf_token %}
-            
-            <!-- User Type Selection -->
-            <div class="user-type">
-                <label>
-                    <input type="radio" name="user_type" value="buyer" checked> Buyer
-                </label>
-                <label>
-                    <input type="radio" name="user_type" value="seller"> Seller
-                </label>
-            </div>
+						<form method="post" id="sellerLoginForm">
+							{% csrf_token %}
+							
+							<!-- Hidden user type for seller -->
+							<input type="hidden" name="user_type" value="seller">
 
-            <!-- Email Field -->
-            <div class="form-group">
-                <label for="{{ form.email.id_for_label }}">Email Address</label>
-                {{ form.email }}
-                {% if form.email.errors %}
-                <ul class="errorlist">
-                    {% for error in form.email.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
+							<!-- Email Field -->
+							<div class="input-group">
+								<i class='bx bx-mail-send'></i>
+								{{ form.email }}
+								{% if form.email.errors %}
+								<ul class="errorlist">
+									{% for error in form.email.errors %}
+									<li>{{ error }}</li>
+									{% endfor %}
+								</ul>
+								{% endif %}
+							</div>
 
-            <!-- Password Field -->
-            <div class="form-group">
-                <label for="{{ form.password.id_for_label }}">Password</label>
-                <div class="password-field">
-                    {{ form.password }}
-                    <button type="button" class="password-toggle" id="passwordToggle">👁️</button>
-                </div>
-                {% if form.password.errors %}
-                <ul class="errorlist">
-                    {% for error in form.password.errors %}
-                    <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
+							<!-- Password Field -->
+							<div class="input-group">
+								<i class='bx bxs-lock-alt'></i>
+								{{ form.password }}
+								{% if form.password.errors %}
+								<ul class="errorlist">
+									{% for error in form.password.errors %}
+									<li>{{ error }}</li>
+									{% endfor %}
+								</ul>
+								{% endif %}
+							</div>
 
-            <!-- Hidden username field (required by Django AuthenticationForm) -->
-            {{ form.username }}
+							<!-- Hidden username field (required by Django AuthenticationForm) -->
+							{{ form.username }}
 
-            <button type="submit" class="login-btn" id="loginBtn">
-                <span id="btnText">Sign In</span>
-                <div class="loading" id="loading"></div>
-            </button>
-        </form>
+							<button type="submit" class="login-btn" id="sellerLoginBtn" style="background-color:#fd7e14;">
+								<span id="sellerBtnText">Sign In as Seller</span>
+								<div class="loading" id="sellerLoading"></div>
+							</button>
+						</form>
 
-        <div class="register-link">
-            <p>Don't have an account? <a href="{% url 'sellers:register' %}">Sign up here</a></p>
-        </div>
-    </div>
+						<p>
+							<span>
+								Are you a buyer?
+							</span>
+							<b onclick="toggle()" class="pointer">
+								Sign in as buyer
+							</b>
+						</p>
+                        <span>Don't have an account? <a href="{% url 'sellers:register' %}" style="text-decoration:none;color:var(--black);"><strong>Sign up</strong></a></span>
+					</div>
+				</div>
+			
+			</div>
+			<!-- END SELLER LOGIN -->
+			<!-- BUYER LOGIN -->
+			<div class="col align-items-center flex-col sign-in">
+				<div class="form-wrapper align-items-center">
+					<div class="form sign-in">
+						<div class="login-header">
+							<h1>Buyer Login</h1>
+							<p>Welcome back! Please sign in to your buyer account.</p>
+						</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginForm = document.getElementById('loginForm');
-            const loginBtn = document.getElementById('loginBtn');
-            const btnText = document.getElementById('btnText');
-            const loading = document.getElementById('loading');
-            const passwordToggle = document.getElementById('passwordToggle');
-            const passwordField = document.querySelector('input[type="password"]');
+						<!-- Django Messages -->
+						{% if messages %}
+						<div class="messages">
+							{% for message in messages %}
+							<div class="message {{ message.tags }}">
+								{{ message }}
+							</div>
+							{% endfor %}
+						</div>
+						{% endif %}
 
-            // Password toggle functionality
-            if (passwordToggle && passwordField) {
-                passwordToggle.addEventListener('click', function() {
-                    const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-                    passwordField.setAttribute('type', type);
-                    passwordToggle.textContent = type === 'password' ? '👁️' : '🙈';
-                });
-            }
+						<!-- Django Form Errors -->
+						{% if form.errors %}
+						<div class="error-alert" style="display: block;">
+							<span>Please correct the errors below:</span>
+							{{ form.non_field_errors }}
+						</div>
+						{% endif %}
 
-            // Form submission
-            loginForm.addEventListener('submit', function(e) {
-                // Show loading state
-                loginBtn.disabled = true;
-                btnText.style.display = 'none';
-                loading.style.display = 'block';
-            });
+						<form method="post" id="buyerLoginForm">
+							{% csrf_token %}
+							
+							<!-- Hidden user type for buyer -->
+							<input type="hidden" name="user_type" value="buyer">
 
-            // Auto-focus email input
-            const emailInput = document.querySelector('input[type="email"]');
-            if (emailInput) {
-                emailInput.focus();
-            }
+							<!-- Email Field -->
+							<div class="input-group">
+								<i class='bx bx-mail-send'></i>
+								{{ form.email }}
+								{% if form.email.errors %}
+								<ul class="errorlist">
+									{% for error in form.email.errors %}
+									<li>{{ error }}</li>
+									{% endfor %}
+								</ul>
+								{% endif %}
+							</div>
+
+							<!-- Password Field -->
+							<div class="input-group">
+								<i class='bx bxs-lock-alt'></i>
+								{{ form.password }}
+								{% if form.password.errors %}
+								<ul class="errorlist">
+									{% for error in form.password.errors %}
+									<li>{{ error }}</li>
+									{% endfor %}
+								</ul>
+								{% endif %}
+							</div>
+
+							<!-- Hidden username field (required by Django AuthenticationForm) -->
+							{{ form.username }}
+
+							<button type="submit" class="login-btn" id="buyerLoginBtn">
+								<span id="buyerBtnText">Sign In as Buyer</span>
+								<div class="loading" id="buyerLoading"></div>
+							</button>
+						</form>
+
+						<p>
+						</p>
+						<p>
+							<span>
+								Are you a seller?
+							</span>
+							<b onclick="toggle()" class="pointer">
+								Sign in as seller
+							</b>
+						</p>
+                        <span>Don't have an account? <a href="{% url 'sellers:register' %}" style="text-decoration:none;color:var(--black);"><strong>Sign up</strong></a></span>
+					</div>
+                    
+				</div>
+				<div class="form-wrapper">
+		
+				</div>
+			</div>
+			<!-- END BUYER LOGIN -->
+		</div>
+		<!-- END FORM SECTION -->
+		<!-- CONTENT SECTION -->
+		<div class="row content-row">
+			<!-- BUYER LOGIN CONTENT -->
+			<div class="col align-items-center flex-col">
+				<div class="text sign-in">
+					<h2>
+						Welcome Back, Buyer!
+					</h2>
+					<p>
+						Enjoy a seamless shopping experience.
+						
+					</p>
+	
+				</div>
+				<div class="img sign-in">
+		
+				</div>
+			</div>
+			<!-- END BUYER LOGIN CONTENT -->
+			<!-- SELLER LOGIN CONTENT -->
+			<div class="col align-items-center flex-col">
+				<div class="img sign-up">
+				
+				</div>
+				<div class="text sign-up">
+					<h2>
+                        <p style = "color: #00000000; ">..</p>Welcome Back, Seller!
+					</h2>
+					<p>
+						Manage your store, track your orders, and grow your business on MarketVibe.
+					</p>
+	
+				</div>
+			</div>
+			<!-- END SELLER LOGIN CONTENT -->
+		</div>
+		<!-- END CONTENT SECTION -->
+	</div>
+	<script>
+		let container = document.getElementById('container')
+		let marketvibeLogo = document.getElementById('marketvibeLogo')
+
+toggle = () => {
+	container.classList.toggle('sign-in')
+	container.classList.toggle('sign-up')
+	
+	// Update MarketVibe logo positioning and color
+	if (container.classList.contains('sign-in')) {
+		// Buyer login state
+		marketvibeLogo.classList.remove('seller')
+		marketvibeLogo.classList.add('buyer')
+	} else {
+		// Seller login state
+		marketvibeLogo.classList.remove('buyer')
+		marketvibeLogo.classList.add('seller')
+	}
+}
+
+setTimeout(() => {
+	container.classList.add('sign-in')
+	// Ensure logo is in buyer state initially
+	marketvibeLogo.classList.remove('seller')
+	marketvibeLogo.classList.add('buyer')
+}, 200)
+
+// Add form submission handling for both forms
+document.addEventListener('DOMContentLoaded', function() {
+    const buyerLoginForm = document.getElementById('buyerLoginForm');
+    const sellerLoginForm = document.getElementById('sellerLoginForm');
+    const buyerLoginBtn = document.getElementById('buyerLoginBtn');
+    const sellerLoginBtn = document.getElementById('sellerLoginBtn');
+    const buyerBtnText = document.getElementById('buyerBtnText');
+    const sellerBtnText = document.getElementById('sellerBtnText');
+    const buyerLoading = document.getElementById('buyerLoading');
+    const sellerLoading = document.getElementById('sellerLoading');
+
+    // Buyer form submission
+    if (buyerLoginForm) {
+        buyerLoginForm.addEventListener('submit', function(e) {
+            buyerLoginBtn.disabled = true;
+            buyerBtnText.style.display = 'none';
+            buyerLoading.style.display = 'block';
         });
-    </script>
+    }
+
+    // Seller form submission
+    if (sellerLoginForm) {
+        sellerLoginForm.addEventListener('submit', function(e) {
+            sellerLoginBtn.disabled = true;
+            sellerBtnText.style.display = 'none';
+            sellerLoading.style.display = 'block';
+        });
+    }
+
+    // Auto-focus email input
+    const emailInputs = document.querySelectorAll('input[type="email"]');
+    if (emailInputs.length > 0) {
+        emailInputs[0].focus();
+    }
+});
+	</script>
 </body>
 </html>

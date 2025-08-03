@@ -745,7 +745,7 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            width: 300px;
+            width: 500px;
         }
 
         .quote-form h4 {
@@ -1616,11 +1616,19 @@
         </div>
         <nav style="flex:1; padding:24px 0 0 0; min-height:0;">
             <ul style="list-style:none; padding:0 0 0 0; margin:0;">
-                                        <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'sellers:index' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-home" style="color:#b0b4bb; font-size:20px;"></i> Home</a></li>
-                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-list" style="color:#b0b4bb; font-size:20px;"></i> Categories</li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'sellers:index' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-home" style="color:#b0b4bb; font-size:20px;"></i> Home</a></li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'sellers:product_listing' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fa fa-list-alt" style="color:#b0b4bb; font-size:20px;"></i> Categories</a></li>
+                {% if user.is_authenticated and user_type == 'buyer' %}
                 <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'buyer:cart_page' %}" style="color:#222; text-decoration:none; font-size:20px;"><i class="fas fa-heart" style="color:#b0b4bb; font-size:20px;"></i> Favorites</a></li>
                 <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'buyer:cart_page' %}" style="color:#222; text-decoration:none; font-size:20px;"><i class="fas fa-shopping-cart" style="color:#b0b4bb; font-size:20px;"></i> Cart</a></li>
-                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><i class="fas fa-box" style="color:#b0b4bb; font-size:20px;"></i> My orders</li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'buyer:buyer_dashboard' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fa fa-desktop" style="color:#b0b4bb; font-size:20px;"></i> Dashboard</a></li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'buyer:buyer_order_list' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-box" style="color:#b0b4bb; font-size:20px;"></i> My orders</a></li>
+                {% else %}
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'sellers:seller_dashboard' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fa fa-desktop"style="color:#b0b4bb; font-size:20px;"></i> Dashboard</a></li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'sellers:products_list' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-list" style="color:#b0b4bb; font-size:20px;"></i> Products</a></li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'sellers:orders_list' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-box" style="color:#b0b4bb; font-size:20px;"></i> Orders</a></li>
+                <li style="padding:12px 32px; display:flex; align-items:center; gap:16px; font-size:18px; color:#222;"><a href="{% url 'sellers:seller_quotes_inbox' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fa fa-quote-right" style="color:#b0b4bb; font-size:20px;"></i> Quotes</a></li>
+                {% endif %}
             </ul>
             <hr style="margin:18px 0; border:none; border-top:1px solid #ececec;">
             <ul style="list-style:none; padding:0; margin:0;">
@@ -1756,12 +1764,14 @@
                     {% else %}
                                             <span><a href="{% url 'sellers:login' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user"></i></a></span>
                     {% endif %}
+                    {% if user.is_authenticated and user_type == 'buyer' %}
                     <span><a href="{% url 'buyer:cart_page' %}"><i class="fas fa-heart"></i></a></span>
                     <span>
                         <a href="{% url 'buyer:cart_page' %}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
                             <i class="fas fa-shopping-cart"></i> Cart
                         </a>
                     </span>
+                    {% endif %}
                     <span> <div class="dropdown">
                         <button class="dropbtn">
                             <i class="fas fa-globe"></i>
@@ -1787,14 +1797,18 @@
                         <i class="fas fa-bars"></i>
                     </a>
                     <a href="{% url 'sellers:product_listing' %}" class="nav-item">All Categories</a>
-                    <a href="{% url 'sellers:hot_offers' %}" class="nav-item">Hot offers</a>
+                    
                     {% if user.is_authenticated %}
                         {% if user_type == 'buyer' %}
+                            <a href="{% url 'sellers:hot_offers' %}" class="nav-item">Hot offers</a>
                             <a href="{% url 'buyer:giftbox_marketplace' %}" class="nav-item">Gift boxes</a>
                             <a href="{% url 'sellers:buyer_quote_requests' %}" class="nav-item">My Quotes</a>
+                            
                         {% else %}
+                            <a href="{% url 'sellers:promotions_list' %}" class="nav-item">Hot Offers</a>
                             <a href="{% url 'sellers:giftbox_campaigns' %}" class="nav-item">Gift boxes</a>
                             <a href="{% url 'sellers:seller_quotes_inbox' %}" class="nav-item">Quotes Inbox</a>
+                            
                         {% endif %}
                     {% else %}
                         <a href="{% url 'sellers:giftbox_campaigns' %}" class="nav-item">Gift boxes</a>

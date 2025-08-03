@@ -3955,6 +3955,51 @@ def seller_quotes_inbox(request):
         # Get seller's responses
         seller_responses = QuoteResponse.objects.filter(seller=seller).order_by('-created_at')
         
+        # Check if this is an AJAX request
+        if request.GET.get('ajax') == '1':
+            # Return JSON data for AJAX requests
+            from django.template.loader import render_to_string
+            
+            # Get the last update timestamp from request
+            last_update = request.GET.get('last_update')
+            has_changes = False
+            
+            if last_update:
+                try:
+                    last_update_time = timezone.datetime.fromisoformat(last_update.replace('Z', '+00:00'))
+                    # Check for new quote requests since last update
+                    new_quotes = quote_requests.filter(created_at__gt=last_update_time)
+                    # Check for new responses since last update
+                    new_responses = seller_responses.filter(created_at__gt=last_update_time)
+                    # Check for status changes in existing responses
+                    updated_responses = seller_responses.filter(updated_at__gt=last_update_time)
+                    
+                    has_changes = new_quotes.exists() or new_responses.exists() or updated_responses.exists()
+                except (ValueError, TypeError):
+                    # If timestamp parsing fails, assume there might be changes
+                    has_changes = True
+            
+            # Render separate HTML for quotes and responses
+            quotes_html = render_to_string('seller/quotes_inbox_ajax.html', {
+                'quote_requests': quote_requests,
+                'seller_responses': None
+            }, request=request)
+            
+            responses_html = render_to_string('seller/quotes_inbox_ajax.html', {
+                'quote_requests': None,
+                'seller_responses': seller_responses
+            }, request=request)
+            
+            return JsonResponse({
+                'success': True,
+                'quotes_html': quotes_html,
+                'responses_html': responses_html,
+                'quote_requests_count': quote_requests.count(),
+                'seller_responses_count': seller_responses.count(),
+                'has_changes': has_changes,
+                'last_updated': timezone.now().isoformat()
+            })
+        
         context = {
             'quote_requests': quote_requests,
             'seller_responses': seller_responses,
@@ -4269,3 +4314,54 @@ def notify_seller_of_quote_rejection(quote_request, response):
         title=f'Quote Rejected: {quote_request.product_name}',
         message=f'Your quote response for {quote_request.product_name} was not selected by the buyer.'
     )
+
+@csrf_exempt
+def fetch_quote_responses(request, quote_id):
+    """API endpoint to fetch quote responses for dynamic updates"""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        quote_request = get_object_or_404(QuoteRequest, id=quote_id)
+        
+        # Check if user has permission to view this quote
+        if request.user.is_authenticated:
+            if hasattr(request.user, 'buyer'):
+                # Buyer can only view their own quotes
+                if quote_request.buyer != request.user.buyer:
+                    return JsonResponse({'error': 'Access denied'}, status=403)
+            elif hasattr(request.user, 'seller'):
+                # Seller can view quotes in their category
+                if quote_request.category not in request.user.seller.categories.all():
+                    return JsonResponse({'error': 'Access denied'}, status=403)
+        else:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
+        
+        responses = quote_request.responses.all().order_by('-created_at')
+        
+        response_data = []
+        for response in responses:
+            response_data.append({
+                'id': response.id,
+                'seller_name': response.seller.shop_name,
+                'price': f"${response.price}",
+                'total_price': f"${response.total_price}",
+                'delivery_estimate': response.delivery_estimate,
+                'notes': response.notes,
+                'created_at': response.created_at.isoformat(),
+                'is_accepted': response.is_accepted,
+                'is_rejected': response.is_rejected,
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'responses': response_data,
+            'count': len(response_data),
+            'quote_status': quote_request.status,
+            'last_updated': timezone.now().isoformat()
+        })
+        
+    except QuoteRequest.DoesNotExist:
+        return JsonResponse({'error': 'Quote request not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

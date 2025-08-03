@@ -107,15 +107,15 @@
                             </svg>
                             View Details
                         </a>
-                        {% if quote.status == 'accepted' %}
-                        <a href="{% url 'buyer:checkout_page' %}" class="quote-card__btn quote-card__btn--success">
+                        {% if quote.status == 'accepted' and quote.get_accepted_response %}
+                        <button onclick="proceedToQuoteCheckout({{ quote.get_accepted_response.id }})" class="quote-card__btn quote-card__btn--success">
                             <svg class="quote-card__btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
                                 <line x1="3" y1="6" x2="21" y2="6"/>
                                 <path d="M16 10a4 4 0 01-8 0"/>
                             </svg>
                             Proceed to Checkout
-                        </a>
+                        </button>
                         {% endif %}
                     </div>
                 </div>
@@ -667,4 +667,72 @@
     }
 }
 </style>
+
+<!-- Add CSRF token for AJAX requests -->
+{% csrf_token %}
+
+<!-- Add SweetAlert2 for better user feedback -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Quote Checkout JavaScript -->
+<script>
+function proceedToQuoteCheckout(responseId) {
+    // Show loading state
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<svg class="quote-card__btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>Processing...';
+    button.disabled = true;
+    
+    // Accept the quote response to set up session data
+    fetch(`/quotes/response/${responseId}/accept/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message and redirect to checkout
+            Swal.fire({
+                icon: 'success',
+                title: 'Quote Accepted!',
+                text: data.message,
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then(() => {
+                window.location.href = data.redirect_url;
+            });
+        } else {
+            // Show error message
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message,
+                confirmButtonText: 'OK'
+            });
+            // Reset button
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while processing the quote.',
+            confirmButtonText: 'OK'
+        });
+        // Reset button
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+</script>
+
 {% endblock %}

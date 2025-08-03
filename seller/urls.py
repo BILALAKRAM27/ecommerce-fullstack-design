@@ -110,6 +110,7 @@ urlpatterns += [
     path('quotes/<int:quote_id>/details/', views.quote_details, name='quote_details'),
     path('quotes/response/<int:response_id>/accept/', views.accept_quote_response, name='accept_quote_response'),
     path('quotes/response/<int:response_id>/reject/', views.reject_quote_response, name='reject_quote_response'),
+    path('api/quote-responses/<int:quote_id>/', views.fetch_quote_responses, name='fetch_quote_responses'),
     
     # ========== NEWSLETTER SUBSCRIPTION URLs ==========
     path('newsletter/subscribe/', views.subscribe_newsletter, name='subscribe_newsletter'),

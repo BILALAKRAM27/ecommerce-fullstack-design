@@ -4,136 +4,196 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+<div class="quote-respond">
+    <div class="quote-respond__container">
+        <div class="quote-respond__content">
             <!-- Quote Request Details -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-quote-left me-2"></i>Quote Request Details
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-primary">{{ quote_request.product_name }}</h6>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-user me-1"></i>Requested by: {{ quote_request.buyer.name }}
-                            </p>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-tags me-1"></i>Category: {{ quote_request.category.name }}
-                            </p>
-                            <p class="text-muted mb-2">
-                                <i class="fas fa-sort-numeric-up me-1"></i>Quantity: {{ quote_request.quantity }} {{ quote_request.get_unit_display }}
-                            </p>
+            <div class="quote-respond__details-card">
+                <div class="quote-respond__card-header quote-respond__card-header--info">
+                    <div class="quote-respond__header-content">
+                        <div class="quote-respond__icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
                         </div>
-                        <div class="col-md-6">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Urgency:</span>
-                                <span class="badge bg-{{ quote_request.urgency }}">{{ quote_request.get_urgency_display }}</span>
+                        <h2 class="quote-respond__title">Quote Request Details</h2>
+                    </div>
+                </div>
+                <div class="quote-respond__card-body">
+                    <div class="quote-respond__details-grid">
+                        <div class="quote-respond__details-section">
+                            <h3 class="quote-respond__product-name">{{ quote_request.product_name }}</h3>
+                            <div class="quote-respond__detail-item">
+                                <span class="quote-respond__detail-label">Requested by:</span>
+                                <span class="quote-respond__detail-value">{{ quote_request.buyer.name }}</span>
+                            </div>
+                            <div class="quote-respond__detail-item">
+                                <span class="quote-respond__detail-label">Category:</span>
+                                <span class="quote-respond__detail-value">{{ quote_request.category.name }}</span>
+                            </div>
+                            <div class="quote-respond__detail-item">
+                                <span class="quote-respond__detail-label">Quantity:</span>
+                                <span class="quote-respond__detail-value">{{ quote_request.quantity }} {{ quote_request.get_unit_display }}</span>
+                            </div>
+                        </div>
+                        <div class="quote-respond__details-section">
+                            <div class="quote-respond__meta-item">
+                                <span class="quote-respond__meta-label">Urgency:</span>
+                                <span class="quote-respond__badge quote-respond__badge--{{ quote_request.urgency }}">
+                                    {{ quote_request.get_urgency_display }}
+                                </span>
                             </div>
                             {% if quote_request.budget_range %}
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Budget:</span>
-                                <span class="fw-bold">{{ quote_request.budget_range }}</span>
+                            <div class="quote-respond__meta-item">
+                                <span class="quote-respond__meta-label">Budget:</span>
+                                <span class="quote-respond__meta-value quote-respond__meta-value--budget">{{ quote_request.budget_range }}</span>
                             </div>
                             {% endif %}
                             {% if quote_request.delivery_deadline %}
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Deadline:</span>
-                                <span class="fw-bold text-danger">{{ quote_request.delivery_deadline|date:"M d, Y" }}</span>
+                            <div class="quote-respond__meta-item">
+                                <span class="quote-respond__meta-label">Deadline:</span>
+                                <span class="quote-respond__meta-value quote-respond__meta-value--deadline">{{ quote_request.delivery_deadline|date:"M d, Y" }}</span>
                             </div>
                             {% endif %}
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Posted:</span>
-                                <span class="text-muted">{{ quote_request.created_at|date:"M d, Y" }}</span>
+                            <div class="quote-respond__meta-item">
+                                <span class="quote-respond__meta-label">Posted:</span>
+                                <span class="quote-respond__meta-value">{{ quote_request.created_at|date:"M d, Y" }}</span>
                             </div>
                         </div>
                     </div>
                     
-                    <hr>
+                    <div class="quote-respond__separator"></div>
                     
-                    <div class="mb-3">
-                        <h6 class="text-muted">Description:</h6>
-                        <p class="mb-0">{{ quote_request.description }}</p>
+                    <div class="quote-respond__description">
+                        <h4 class="quote-respond__description-title">Description:</h4>
+                        <p class="quote-respond__description-text">{{ quote_request.description }}</p>
                     </div>
                 </div>
             </div>
             
             <!-- Response Form -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-reply me-2"></i>Submit Your Quote
-                    </h5>
+            <div class="quote-respond__form-card">
+                <div class="quote-respond__card-header quote-respond__card-header--primary">
+                    <div class="quote-respond__header-content">
+                        <div class="quote-respond__icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <h2 class="quote-respond__title">Submit Your Quote</h2>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="quote-respond__card-body">
                     {% if existing_response %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            You have already responded to this quote request. You can update your response below.
+                        <div class="quote-respond__alert quote-respond__alert--info">
+                            <div class="quote-respond__alert-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 16v-4"/>
+                                    <path d="M12 8h.01"/>
+                                </svg>
+                            </div>
+                            <p class="quote-respond__alert-text">
+                                You have already responded to this quote request. You can update your response below.
+                            </p>
                         </div>
                     {% endif %}
                     
-                    <form method="POST">
+                    <form method="POST" class="quote-respond__form">
                         {% csrf_token %}
                         
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.price.id_for_label }}" class="form-label">
-                                    <i class="fas fa-dollar-sign me-1"></i>Price per Unit *
+                        <div class="quote-respond__form-grid">
+                            <div class="quote-respond__form-group">
+                                <label for="{{ form.price.id_for_label }}" class="quote-respond__label quote-respond__label--required">
+                                    <div class="quote-respond__label-content">
+                                        <svg class="quote-respond__label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="12" y1="1" x2="12" y2="23"/>
+                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                        </svg>
+                                        Price per Unit
+                                    </div>
                                 </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                <div class="quote-respond__input-group">
+                                    <span class="quote-respond__input-prefix">$</span>
                                     {{ form.price }}
                                 </div>
                                 {% if form.price.errors %}
-                                    <div class="text-danger small">{{ form.price.errors.0 }}</div>
+                                    <div class="quote-respond__error">{{ form.price.errors.0 }}</div>
                                 {% endif %}
-                                <small class="text-muted">Enter your best price per unit</small>
+                                <div class="quote-respond__help-text">Enter your best price per unit</div>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.delivery_estimate.id_for_label }}" class="form-label">
-                                    <i class="fas fa-truck me-1"></i>Delivery Estimate *
+                            <div class="quote-respond__form-group">
+                                <label for="{{ form.delivery_estimate.id_for_label }}" class="quote-respond__label quote-respond__label--required">
+                                    <div class="quote-respond__label-content">
+                                        <svg class="quote-respond__label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="1" y="3" width="15" height="13"/>
+                                            <polygon points="16,8 20,8 23,11 23,16 16,16"/>
+                                            <circle cx="5.5" cy="18.5" r="2.5"/>
+                                            <circle cx="18.5" cy="18.5" r="2.5"/>
+                                        </svg>
+                                        Delivery Estimate
+                                    </div>
                                 </label>
                                 {{ form.delivery_estimate }}
                                 {% if form.delivery_estimate.errors %}
-                                    <div class="text-danger small">{{ form.delivery_estimate.errors.0 }}</div>
+                                    <div class="quote-respond__error">{{ form.delivery_estimate.errors.0 }}</div>
                                 {% endif %}
-                                <small class="text-muted">e.g., 3-5 business days</small>
+                                <div class="quote-respond__help-text">e.g., 3-5 business days</div>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="{{ form.notes.id_for_label }}" class="form-label">
-                                <i class="fas fa-sticky-note me-1"></i>Additional Notes
+                        <div class="quote-respond__form-group">
+                            <label for="{{ form.notes.id_for_label }}" class="quote-respond__label">
+                                <div class="quote-respond__label-content">
+                                    <svg class="quote-respond__label-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14,2 14,8 20,8"/>
+                                        <line x1="16" y1="13" x2="8" y2="13"/>
+                                        <line x1="16" y1="17" x2="8" y2="17"/>
+                                        <polyline points="10,9 9,9 8,9"/>
+                                    </svg>
+                                    Additional Notes
+                                </div>
                             </label>
                             {{ form.notes }}
                             {% if form.notes.errors %}
-                                <div class="text-danger small">{{ form.notes.errors.0 }}</div>
+                                <div class="quote-respond__error">{{ form.notes.errors.0 }}</div>
                             {% endif %}
-                            <small class="text-muted">Any additional terms, conditions, or information for the buyer</small>
+                            <div class="quote-respond__help-text">Any additional terms, conditions, or information for the buyer</div>
                         </div>
                         
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Important:</strong>
-                            <ul class="mb-0 mt-2">
-                                <li>Make sure your price is competitive but profitable</li>
-                                <li>Be realistic about delivery times</li>
-                                <li>Provide clear terms and conditions in your notes</li>
-                                <li>You can only submit one response per quote request</li>
-                            </ul>
+                        <div class="quote-respond__alert quote-respond__alert--warning">
+                            <div class="quote-respond__alert-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
+                            <div class="quote-respond__alert-content">
+                                <h5 class="quote-respond__alert-title">Important Guidelines:</h5>
+                                <ul class="quote-respond__alert-list">
+                                    <li>Make sure your price is competitive but profitable</li>
+                                    <li>Be realistic about delivery times</li>
+                                    <li>Provide clear terms and conditions in your notes</li>
+                                    <li>You can only submit one response per quote request</li>
+                                </ul>
+                            </div>
                         </div>
                         
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'sellers:seller_quotes_inbox' %}" class="btn btn-secondary me-md-2">
-                                <i class="fas fa-arrow-left me-1"></i>Back to Inbox
+                        <div class="quote-respond__button-group">
+                            <a href="{% url 'sellers:seller_quotes_inbox' %}" class="quote-respond__button quote-respond__button--secondary">
+                                <svg class="quote-respond__button-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15,18 9,12 15,6"/>
+                                </svg>
+                                Back to Inbox
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-1"></i>
+                            <button type="submit" class="quote-respond__button quote-respond__button--primary">
+                                <svg class="quote-respond__button-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+                                </svg>
                                 {% if existing_response %}Update Response{% else %}Submit Quote{% endif %}
                             </button>
                         </div>
@@ -142,26 +202,33 @@
             </div>
             
             <!-- Pricing Tips -->
-            <div class="card shadow-sm mt-4">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>Pricing Tips
-                    </h6>
+            <div class="quote-respond__tips-card">
+                <div class="quote-respond__card-header quote-respond__card-header--light">
+                    <div class="quote-respond__header-content">
+                        <div class="quote-respond__icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                        </div>
+                        <h2 class="quote-respond__title">Pricing Tips</h2>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-success">Do's:</h6>
-                            <ul class="small">
+                <div class="quote-respond__card-body">
+                    <div class="quote-respond__tips-grid">
+                        <div class="quote-respond__tips-section">
+                            <h4 class="quote-respond__tips-title quote-respond__tips-title--success">Do's:</h4>
+                            <ul class="quote-respond__tips-list">
                                 <li>Research market prices for similar products</li>
                                 <li>Include all costs (materials, labor, shipping)</li>
                                 <li>Offer volume discounts if applicable</li>
                                 <li>Be transparent about delivery times</li>
                             </ul>
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="text-danger">Don'ts:</h6>
-                            <ul class="small">
+                        <div class="quote-respond__tips-section">
+                            <h4 class="quote-respond__tips-title quote-respond__tips-title--danger">Don'ts:</h4>
+                            <ul class="quote-respond__tips-list">
                                 <li>Don't underprice just to win the quote</li>
                                 <li>Don't promise unrealistic delivery times</li>
                                 <li>Don't hide additional costs</li>
@@ -176,68 +243,489 @@
 </div>
 
 <style>
-.card {
-    border-radius: 12px;
+/* Quote Respond Page Styles */
+.quote-respond {
+    min-height: 100vh;
+    background: white;
+    padding: 2rem 0;
+}
+
+.quote-respond__container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.quote-respond__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Card Styles */
+.quote-respond__details-card,
+.quote-respond__form-card,
+.quote-respond__tips-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-}
-
-.card-header {
-    border-bottom: none;
-    border-radius: 12px 12px 0 0 !important;
-}
-
-.form-control, .form-select {
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
     transition: all 0.3s ease;
 }
 
-.form-control:focus, .form-select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-.btn {
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-}
-
-.btn-primary:hover {
+.quote-respond__details-card:hover,
+.quote-respond__form-card:hover,
+.quote-respond__tips-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
-.badge.bg-low { background-color: #28a745; }
-.badge.bg-medium { background-color: #ffc107; color: #212529; }
-.badge.bg-high { background-color: #fd7e14; }
-.badge.bg-urgent { background-color: #dc3545; }
+.quote-respond__card-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f0f2f5;
+}
 
-.alert {
+.quote-respond__card-header--info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.quote-respond__card-header--primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.quote-respond__card-header--light {
+    background: linear-gradient(135deg, #f8f9ff 0%, #e9ecef 100%);
+    color: #495057;
+}
+
+.quote-respond__header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.quote-respond__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
-    border: none;
+    backdrop-filter: blur(10px);
 }
 
-.alert-info {
+.quote-respond__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.quote-respond__card-body {
+    padding: 2rem;
+}
+
+/* Details Section */
+.quote-respond__details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.quote-respond__product-name {
+    color: #4285f4;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+}
+
+.quote-respond__detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.quote-respond__detail-item:last-child {
+    border-bottom: none;
+}
+
+.quote-respond__detail-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.quote-respond__detail-value {
+    color: #212529;
+    font-weight: 600;
+}
+
+.quote-respond__meta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.quote-respond__meta-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.quote-respond__meta-value {
+    font-weight: 600;
+    color: #212529;
+}
+
+.quote-respond__meta-value--budget {
+    color: #28a745;
+}
+
+.quote-respond__meta-value--deadline {
+    color: #dc3545;
+}
+
+.quote-respond__badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.quote-respond__badge--low {
+    background: #d4edda;
+    color: #155724;
+}
+
+.quote-respond__badge--medium {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.quote-respond__badge--high {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.quote-respond__badge--urgent {
+    background: #f5c6cb;
+    color: #721c24;
+}
+
+.quote-respond__separator {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+    margin: 1.5rem 0;
+}
+
+.quote-respond__description-title {
+    color: #495057;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+}
+
+.quote-respond__description-text {
+    color: #6c757d;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Form Styles */
+.quote-respond__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.quote-respond__form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.quote-respond__form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.quote-respond__label {
+    font-weight: 600;
+    color: #212529;
+}
+
+.quote-respond__label--required::after {
+    content: " *";
+    color: #dc3545;
+}
+
+.quote-respond__label-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quote-respond__label-icon {
+    color: #6c757d;
+}
+
+.quote-respond__input-group {
+    position: relative;
+    display: flex;
+}
+
+.quote-respond__input-prefix {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 0 0 12px;
+    font-weight: 600;
+}
+
+.quote-respond__form input,
+.quote-respond__form textarea,
+.quote-respond__form select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    font-family: inherit;
+}
+
+.quote-respond__input-group input {
+    border-radius: 0 12px 12px 0;
+    border-left: none;
+}
+
+.quote-respond__form input:focus,
+.quote-respond__form textarea:focus,
+.quote-respond__form select:focus {
+    outline: none;
+    border-color: #4285f4;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.quote-respond__form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.quote-respond__help-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.quote-respond__error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Alert Styles */
+.quote-respond__alert {
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.quote-respond__alert--info {
     background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
     color: #1565c0;
 }
 
-.alert-warning {
+.quote-respond__alert--warning {
     background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
     color: #856404;
 }
 
-.input-group-text {
+.quote-respond__alert-icon {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.quote-respond__alert-content {
+    flex: 1;
+}
+
+.quote-respond__alert-text {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.quote-respond__alert-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.quote-respond__alert-list {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.quote-respond__alert-list li {
+    margin-bottom: 0.25rem;
+}
+
+/* Button Styles */
+.quote-respond__button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.quote-respond__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+}
+
+.quote-respond__button--primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border: none;
+}
+
+.quote-respond__button--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.quote-respond__button--secondary {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+}
+
+.quote-respond__button--secondary:hover {
+    background: #e9ecef;
+    color: #495057;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.quote-respond__button-icon {
+    flex-shrink: 0;
+}
+
+/* Tips Section */
+.quote-respond__tips-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.quote-respond__tips-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+}
+
+.quote-respond__tips-title--success {
+    color: #28a745;
+}
+
+.quote-respond__tips-title--danger {
+    color: #dc3545;
+}
+
+.quote-respond__tips-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #6c757d;
+}
+
+.quote-respond__tips-list li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .quote-respond {
+        padding: 1rem 0;
+    }
+    
+    .quote-respond__container {
+        padding: 0 0.75rem;
+    }
+    
+    .quote-respond__content {
+        gap: 1.5rem;
+    }
+    
+    .quote-respond__card-body {
+        padding: 1.5rem;
+    }
+    
+    .quote-respond__card-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .quote-respond__details-grid,
+    .quote-respond__form-grid,
+    .quote-respond__tips-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .quote-respond__detail-item,
+    .quote-respond__meta-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .quote-respond__button-group {
+        flex-direction: column;
+    }
+    
+    .quote-respond__button {
+        justify-content: center;
+    }
+    
+    .quote-respond__title {
+        font-size: 1.125rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .quote-respond__card-body {
+        padding: 1rem;
+    }
+    
+    .quote-respond__card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .quote-respond__icon {
+        width: 32px;
+        height: 32px;
+    }
 }
 </style>
-{% endblock %} 
+
+{% endblock %}

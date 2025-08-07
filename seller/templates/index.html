@@ -1954,12 +1954,12 @@
                                 <!-- Slide 2: Furniture -->
                                 <div class="marketvibe-carousel-slide" data-slide="1" style="background: linear-gradient(135deg, #eebd89, #D13ABD);">
                                     <div class="hero-content">
-                                        <h2>Premium<br>Furniture Collection</h2>
+                                        <h2>Premium<br>Home Interior</h2>
                                         <button class="hero-btn">Learn more</button>
                                     </div>
                                     <div class="hero-image">
-                                        {% if furniture_products %}
-                                            {% for product in furniture_products|slice:":3" %}
+                                        {% if home_interior_products %}
+                                            {% for product in home_interior_products|slice:":3" %}
                                                 <div class="hero-product-image">
                                                     {% if product.thumbnail_image %}
                                                         <img src="data:image/jpeg;base64,{{ product.thumbnail_image.image|b64encode }}" alt="{{ product.name }}" />
@@ -2196,11 +2196,11 @@
                     {% if furniture_products %}
                     <section class="category-section">
                         <div class="category-header">
-                            <h3 class="category-title">Furniture and Home</h3>
+                            <h3 class="category-title">Home Interior</h3>
                             <button class="source-btn">Source now</button>
                         </div>
                         <div class="category-grid">
-                            {% for product in furniture_products %}
+                            {% for product in home_interior_products %}
                             <a href="{% url 'sellers:product_page' product.id %}" style="text-decoration:none; color:inherit;">
                             <div class="category-item-card">
                                 <div class="item-image">
@@ -2258,6 +2258,7 @@
                             <h3>An easy way to send<br>requests to all suppliers</h3>
                             <p>Get competitive quotes from multiple suppliers for your specific requirements. Submit your request and receive personalized offers.</p>
                         </div>
+                        {% if user.is_authenticated and user_type == 'buyer' %}
                         <div class="quote-form">
                             <h4>Send quote to suppliers</h4>
                             <form id="quickQuoteForm" data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
@@ -2287,12 +2288,12 @@
                                 </button>
                             </form>
                         </div>
+                        {% endif %}
                     </section>
 
                     <!-- Recommended Items -->
-                    {% if recommended_items %}
                     <section class="recommended-section">
-                        <h3 class="recommended-header">Recommended items</h3>
+                        <h3 class="recommended-header">Most Recommended Products</h3>
                         <div class="recommended-grid">
                             {% for product in recommended_items|slice:":5" %}
                             <a href="{% url 'sellers:product_page' product.id %}" style="text-decoration:none; color:inherit;">
@@ -2305,12 +2306,15 @@
                                     {% endif %}
                                 </div>
                                 <div class="recommended-price">${{ product.calculated_final_price|default:0 }}</div>
-                                <div class="recommended-title">{{ product.name|truncatechars:30 }}</div>
+                                <div class="recommended-title">{% if product.name|length > 18 %}{{ product.name|slice:":18" }}...{% else %}{{ product.name }}{% endif %}</div>
+                                <div class="recommended-meta">
+                                    <span title="Order Count">🛒 {{ product.order_count }}</span>
+                                    <span title="Review Count">⭐ {{ product.review_count }}</span>
+                                </div>
                             </div>
                             </a>
                             {% endfor %}
                         </div>
-                        
                         {% if recommended_items|length > 5 %}
                         <div class="recommended-grid">
                             {% for product in recommended_items|slice:"5:10" %}
@@ -2324,14 +2328,17 @@
                                     {% endif %}
                                 </div>
                                 <div class="recommended-price">${{ product.calculated_final_price|default:0 }}</div>
-                                <div class="recommended-title">{{ product.name|truncatechars:30 }}</div>
+                                <div class="recommended-title">{% if product.name|length > 18 %}{{ product.name|slice:":18" }}...{% else %}{{ product.name }}{% endif %}</div>
+                                <div class="recommended-meta">
+                                    <span title="Order Count">🛒 {{ product.order_count }}</span>
+                                    <span title="Review Count">⭐ {{ product.review_count }}</span>
+                                </div>
                             </div>
                             </a>
                             {% endfor %}
                         </div>
                         {% endif %}
                     </section>
-                    {% endif %}
 
                     <!-- Services Section -->
                     <section class="services-section">

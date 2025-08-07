@@ -16,9 +16,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
-STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
-STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+STRIPE_SECRET_KEY = "sk_test_51RoXfp3PxAdNHdnLxLX3E6OntcVUuqM7H3wqrTAXhTRnzUrgdLSx3gm9o4CkVktB0DoOI6GeGeG5Mlnk8Snh432a00ASeBP6r3"
+STRIPE_PUBLISHABLE_KEY = "pk_test_51RoXfp3PxAdNHdnLa4a0Ivx27TUUKLFgEa1cnDUy1eOUPUn1mtmKOyKcRMWQU8wnThnriSgmELqBi0O4zbXdVSry00D1UQyRWC"
+STRIPE_WEBHOOK_SECRET = "whsec_effd80c1dac237a662e872a226b2d4ba9fbbb5298aa31d27888a68b47913b4a8"
 STRIPE_CONNECT_CLIENT_ID = os.getenv('STRIPE_CONNECT_CLIENT_ID')  # if using Express onboarding
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

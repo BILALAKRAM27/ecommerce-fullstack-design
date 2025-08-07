@@ -69,12 +69,15 @@ def index_view(request):
     clothing = Category.objects.filter(name__icontains='clothing')
     clothing_subs = Category.objects.filter(parent__in=clothing)
     furniture = Category.objects.filter(name__icontains='furniture')
+    home_interior = Category.objects.filter(name__icontains='home interior')
+    home_interior_subs = Category.objects.filter(parent__in=home_interior)
     furniture_subs = Category.objects.filter(parent__in=furniture)
     sports = Category.objects.filter(name__icontains='sport')
     sports_subs = Category.objects.filter(parent__in=sports)
     electronics_cats = list(electronics) + list(electronics_subs)
     clothing_cats = list(clothing) + list(clothing_subs)
     furniture_cats = list(furniture) + list(furniture_subs)
+    home_interior_cats = list(home_interior) + list(home_interior_subs)
     sports_cats = list(sports) + list(sports_subs)
     
     # Fetch top 6 trending products for each section based on order_count and rating
@@ -102,6 +105,12 @@ def index_view(request):
         popularity_score=F('order_count') + (F('rating_avg') * 10)
     ).order_by('-popularity_score', '-order_count', '-rating_avg')[:6]
     
+    home_interior_products = Product.objects.filter(
+        category__in=home_interior_cats
+    ).annotate(
+        popularity_score=F('order_count') + (F('rating_avg') * 10)
+    ).order_by('-popularity_score', '-order_count', '-rating_avg')[:6]
+    
     # Get active promotions for homepage
     active_promotions = get_active_promotions_for_homepage()
     
@@ -113,12 +122,11 @@ def index_view(request):
     # Get all parent categories for sidebar
     parent_categories = Category.objects.filter(parent__isnull=True).order_by('name')
     
-    # Get recommended items based on highest order count and rating
+    # Get recommended items based on highest order count, review count, and rating (no order_count filter)
     recommended_items = Product.objects.annotate(
-        recommendation_score=F('order_count') + (F('rating_avg') * 10)
-    ).filter(
-        order_count__gt=0  # Only products that have been ordered
-    ).order_by('-recommendation_score', '-order_count', '-rating_avg')[:10]
+        review_count=Count('reviews'),
+        recommendation_score=F('order_count') + (F('review_count') * 5) + (F('rating_avg') * 10)
+    ).order_by('-recommendation_score', '-order_count', '-review_count', '-rating_avg')[:10]
     
     context = {
         'user': user,
@@ -130,9 +138,11 @@ def index_view(request):
         'electronics_categories': electronics_cats,
         'clothing_categories': clothing_cats,
         'furniture_categories': furniture_cats,
+        'home_interior_categories': home_interior_cats,
         'electronics_products': electronics_products,
         'clothing_products': clothing_products,
         'furniture_products': furniture_products,
+        'home_interior_products': home_interior_products,
         'sports_products': sports_products,
         'recommended_items': recommended_items,
         'active_promotions': active_promotions,
@@ -710,7 +720,7 @@ def stripe_onboard(request):
     account_link = stripe.AccountLink.create(
         account=seller.stripe_account_id,
         refresh_url=request.build_absolute_uri('/seller/stripe/refresh/'),
-        return_url=request.build_absolute_uri('/seller/dashboard/'),
+        return_url=request.build_absolute_uri('/dashboard/'),
         type="account_onboarding",
     )
     return redirect(account_link.url)

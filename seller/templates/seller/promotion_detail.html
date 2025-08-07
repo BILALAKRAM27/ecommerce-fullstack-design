@@ -598,20 +598,20 @@
 <div class="promotion-detail-container">
   <!-- Alert Messages -->
   {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">
-        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {% if message.tags == 'success' %}
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          {% elif message.tags == 'error' %}
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          {% else %}
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-          {% endif %}
-        </svg>
-        {{ message }}
-      </div>
-    {% endfor %}
+    <div class="messages" id="django-messages">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" data-message-id="{{ message.tags }}">
+          <span class="message-id">{{ message.tags }}</span>
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(function() {
+        var msg = document.getElementById('django-messages');
+        if (msg) { msg.style.display = 'none'; }
+      }, 7000);
+    </script>
   {% endif %}
 
   <!-- Promotion Header -->

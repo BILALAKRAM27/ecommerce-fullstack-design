@@ -177,6 +177,22 @@
 
                 <form method="post">
                     {% csrf_token %}
+                    {% if messages %}
+                    <div class="messages" id="django-messages">
+                      {% for message in messages %}
+                      <div class="message {{ message.tags }}" data-message-id="{{ message.tags }}">
+                        <span class="message-id">{{ message.tags }}</span>
+                        {{ message }}
+                      </div>
+                      {% endfor %}
+                    </div>
+                    <script>
+                      setTimeout(function() {
+                        var msg = document.getElementById('django-messages');
+                        if (msg) { msg.style.display = 'none'; }
+                      }, 7000);
+                    </script>
+                    {% endif %}
                     <div class="actions">
                         <a href="{% url 'sellers:product_detail' product.id %}" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-danger">Yes, Delete Product</button>

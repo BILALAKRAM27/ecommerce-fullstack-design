@@ -171,7 +171,7 @@ def create_seller_view(request):
                     created_at=timezone.now()
                 )
                 
-                messages.success(request, 'Seller account created successfully!')
+                messages.success(request, 'Seller account created successfully!', extra_tags='seller_create_success')
             else:
                 # Create the Buyer profile
                 buyer = Buyer.objects.create(
@@ -182,7 +182,7 @@ def create_seller_view(request):
                     created_at=timezone.now()
                 )
                 
-                messages.success(request, 'Buyer account created successfully!')
+                messages.success(request, 'Buyer account created successfully!', extra_tags='buyer_create_success')
             
             return redirect('sellers:login')
     else:
@@ -202,7 +202,7 @@ def login_view(request):
             # Log the user in
             login(request, user)
             
-            messages.success(request, f'Welcome back, {user.username}!')
+            messages.success(request, f'Welcome back, {user.username}!', extra_tags='login_success')
             
             if user_type == 'seller':
                 return redirect('sellers:seller_profile')
@@ -212,7 +212,7 @@ def login_view(request):
                     buyer = Buyer.objects.get(email=user.email)
                     return redirect('buyer:buyer_profile')  # You'll need to create this view
                 except Buyer.DoesNotExist:
-                    messages.error(request, 'This email is not registered as a buyer.')
+                    messages.error(request, 'This email is not registered as a buyer.', extra_tags='login_buyer_not_found')
                     logout(request)
                     return redirect('sellers:login')
     else:
@@ -225,7 +225,7 @@ def login_view(request):
 @login_required
 def logout_view(request):
     logout(request)
-    messages.success(request, 'You have been successfully logged out.')
+    messages.success(request, 'You have been successfully logged out.', extra_tags='logout_success')
     return redirect('sellers:login')
 
 
@@ -250,11 +250,11 @@ def seller_profile_view(request):
                 seller.image = image_file.read()
             
             seller.save()
-            messages.success(request, 'Profile updated successfully!')
+            messages.success(request, 'Profile updated successfully!', extra_tags='profile_update_success')
             return redirect('sellers:seller_profile')
             
         except Exception as e:
-            messages.error(request, f'Error updating profile: {str(e)}')
+            messages.error(request, f'Error updating profile: {str(e)}', extra_tags='profile_update_error')
     
     context = {
         'seller': seller,
@@ -277,7 +277,7 @@ def update_seller_view(request):
             seller = form.save()  # Let the form handle image upload
             seller.updated_at = timezone.now()
             seller.save()
-            messages.success(request, 'Seller profile updated successfully.')
+            messages.success(request, 'Seller profile updated successfully.', extra_tags='seller_update_success')
             return redirect('sellers:seller_profile')
     else:
         form = SellerUpdateForm(instance=seller)
@@ -299,7 +299,7 @@ def delete_seller_view(request):
         if user:
             user.delete()
         
-        messages.success(request, 'Your seller account has been deleted.')
+        messages.success(request, 'Your seller account has been deleted.', extra_tags='seller_delete_success')
         return redirect('sellers:login')
     return render(request, 'seller/seller_delete.html')
 
@@ -349,7 +349,7 @@ def create_product_view(request):
                 for img in product.images.all():
                     img.is_thumbnail = (str(img.id) == existing_thumbnail_id)
                     img.save()
-            messages.success(request, 'Product created successfully!')
+            messages.success(request, 'Product created successfully!', extra_tags='product_create_success')
             return redirect('seller:products_list')
     else:
         form = DynamicProductForm()
@@ -432,7 +432,7 @@ def update_product_view(request, product_id):
                 if is_ajax:
                     return JsonResponse({'success': False, 'error': 'Form validation failed'})
                 else:
-                    messages.error(request, 'Form validation failed!')
+                    messages.error(request, 'Form validation failed!', extra_tags='product_update_form_invalid')
                     return redirect('sellers:product_page', product_id=product.id)
             
             # --- Image upload logic (exact working code from repo) ---
@@ -480,14 +480,14 @@ def update_product_view(request, product_id):
                     }
                 })
             else:
-                messages.success(request, 'Product updated successfully!')
+                messages.success(request, 'Product updated successfully!', extra_tags='product_update_success')
                 return redirect('sellers:product_page', product_id=product.id)
                 
         except Exception as e:
             if is_ajax:
                 return JsonResponse({'success': False, 'error': str(e)})
             else:
-                messages.error(request, f'Error updating product: {str(e)}')
+                messages.error(request, f'Error updating product: {str(e)}', extra_tags='product_update_error')
                 return redirect('sellers:product_page', product_id=product.id)
     
     # For GET requests, render the form (non-AJAX)
@@ -582,7 +582,7 @@ def delete_product_view(request, product_id):
     
     if request.method == 'POST':
         product.delete()
-        messages.success(request, 'Product deleted successfully!')
+        messages.success(request, 'Product deleted successfully!', extra_tags='product_delete_success')
         return redirect('seller:products_list')
     
     context = {
@@ -1124,7 +1124,7 @@ def seller_add_product(request):
             for image in images:
                 ProductImage.objects.create(product=product, image=image)
             
-            messages.success(request, 'Product added successfully!')
+            messages.success(request, 'Product added successfully!', extra_tags='product_create_success')
             return redirect('seller:products_list')
     else:
         form = ProductForm()
@@ -1154,7 +1154,7 @@ def seller_edit_product(request, product_id):
             for image in images:
                 ProductImage.objects.create(product=product, image=image)
             
-            messages.success(request, 'Product updated successfully!')
+            messages.success(request, 'Product updated successfully!', extra_tags='product_update_success')
             return redirect('seller:products_list')
     else:
         form = ProductForm(instance=product)
@@ -1174,7 +1174,7 @@ def seller_delete_product(request, product_id):
     
     if request.method == 'POST':
         product.delete()
-        messages.success(request, 'Product deleted successfully!')
+        messages.success(request, 'Product deleted successfully!', extra_tags='product_delete_success')
         return redirect('seller:products_list')
     
     context = {
@@ -1256,7 +1256,7 @@ def seller_edit_profile(request):
         form = SellerUpdateForm(request.POST, request.FILES, instance=seller)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Profile updated successfully!')
+            messages.success(request, 'Profile updated successfully!', extra_tags='profile_edit_success')
             return redirect('seller:dashboard')
     else:
         form = SellerUpdateForm(instance=seller)
@@ -1290,7 +1290,7 @@ def promotion_create(request):
         
         # Validate required fields
         if not name or not promotion_type or not discount_value or not valid_from_str or not valid_until_str:
-            return JsonResponse({'success': False, 'error': 'All required fields must be filled'})
+            return JsonResponse({'success': False, 'error': 'All required fields must be filled'}, status=400, extra_tags='promotion_create_required_error')
         
         # Parse dates
         try:
@@ -1304,19 +1304,19 @@ def promotion_create(request):
                 valid_until = timezone.make_aware(valid_until)
                 
         except ValueError as e:
-            return JsonResponse({'success': False, 'error': f'Invalid date format: {str(e)}'})
+            return JsonResponse({'success': False, 'error': f'Invalid date format: {str(e)}'}, status=400, extra_tags='promotion_create_date_format_error')
         
         # Validate discount value
         try:
             discount_value = float(discount_value)
             if discount_value <= 0:
-                return JsonResponse({'success': False, 'error': 'Discount value must be greater than 0'})
+                return JsonResponse({'success': False, 'error': 'Discount value must be greater than 0'}, status=400, extra_tags='promotion_create_discount_value_error')
         except ValueError:
-            return JsonResponse({'success': False, 'error': 'Invalid discount value'})
+            return JsonResponse({'success': False, 'error': 'Invalid discount value'}, status=400, extra_tags='promotion_create_discount_invalid_error')
         
         # Validate dates
         if valid_until <= valid_from:
-            return JsonResponse({'success': False, 'error': 'Valid Until date must be after Valid From date'})
+            return JsonResponse({'success': False, 'error': 'Valid Until date must be after Valid From date'}, status=400, extra_tags='promotion_create_date_logic_error')
         
         # Create the promotion
         promotion = Promotion.objects.create(
@@ -1349,11 +1349,12 @@ def promotion_create(request):
         
         return JsonResponse({
             'success': True, 
-            'message': f'Promotion "{name}" created successfully!'
-        })
+            'message': f'Promotion "{name}" created successfully!',
+            'promotion_id': promotion.id
+        }, status=201, extra_tags='promotion_create_success')
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        return JsonResponse({'success': False, 'error': str(e)}, status=500, extra_tags='promotion_create_error')
 
 @login_required
 def seller_create_promotion(request):
@@ -1379,7 +1380,7 @@ def seller_create_promotion(request):
             
             # Validate required fields
             if not name or not promotion_type or not discount_value or not valid_from_str or not valid_until_str:
-                messages.error(request, 'All required fields must be filled.')
+                messages.error(request, 'All required fields must be filled.', extra_tags='promotion_create_required_error')
                 return redirect('sellers:create_promotion')
             
             # Parse dates
@@ -1400,22 +1401,22 @@ def seller_create_promotion(request):
                     valid_from = now
                     
             except ValueError as e:
-                messages.error(request, f'Invalid date format: {str(e)}')
+                messages.error(request, f'Invalid date format: {str(e)}', extra_tags='promotion_create_date_format_error')
                 return redirect('sellers:create_promotion')
             
             # Validate discount value
             try:
                 discount_value = float(discount_value)
                 if discount_value <= 0:
-                    messages.error(request, 'Discount value must be greater than 0.')
+                    messages.error(request, 'Discount value must be greater than 0.', extra_tags='promotion_create_discount_value_error')
                     return redirect('sellers:create_promotion')
             except ValueError:
-                messages.error(request, 'Invalid discount value.')
+                messages.error(request, 'Invalid discount value.', extra_tags='promotion_create_discount_invalid_error')
                 return redirect('sellers:create_promotion')
             
             # Validate dates
             if valid_until <= valid_from:
-                messages.error(request, 'Valid Until date must be after Valid From date.')
+                messages.error(request, 'Valid Until date must be after Valid From date.', extra_tags='promotion_create_date_logic_error')
                 return redirect('sellers:create_promotion')
             
             # Create the promotion
@@ -1450,11 +1451,11 @@ def seller_create_promotion(request):
                 description=f'Created promotion "{name}" with {discount_value} discount'
             )
             
-            messages.success(request, f'Promotion "{name}" created successfully!')
+            messages.success(request, f'Promotion "{name}" created successfully!', extra_tags='promotion_create_success')
             return redirect('sellers:promotions_list')
             
         except Exception as e:
-            messages.error(request, f'Error creating promotion: {str(e)}')
+            messages.error(request, f'Error creating promotion: {str(e)}', extra_tags='promotion_create_error')
             return redirect('sellers:create_promotion')
     
     products = Product.objects.filter(seller=seller)
@@ -3941,7 +3942,7 @@ def submit_quote_request(request):
                 # Notify relevant sellers
                 notify_sellers_of_quote_request(quote_request)
                 
-                messages.success(request, 'Quote request submitted successfully! Sellers will be notified.')
+                messages.success(request, 'Quote request submitted successfully! Sellers will be notified.', extra_tags='quote_submit_success')
                 return JsonResponse({'success': True, 'message': 'Quote request submitted successfully!'})
             except Buyer.DoesNotExist:
                 return JsonResponse({'success': False, 'message': 'Buyer profile not found.'}, status=400)
@@ -4063,7 +4064,7 @@ def respond_to_quote(request, quote_id):
                 # Notify buyer
                 notify_buyer_of_quote_response(quote_request, response)
                 
-                messages.success(request, 'Quote response submitted successfully!')
+                messages.success(request, 'Quote response submitted successfully!', extra_tags='quote_response_success')
                 return redirect('sellers:seller_quotes_inbox')
         else:
             form = QuoteResponseForm(instance=existing_response)
@@ -4209,7 +4210,7 @@ def reject_quote_response(request, response_id):
         response.save()
         
         # Notify seller
-        notify_seller_of_quote_rejection(quote_request, response)
+        notify_seller_of_quote_rejection(response.quote_request, response)
         
         return JsonResponse({'success': True, 'message': 'Quote rejected.'})
     except Buyer.DoesNotExist:

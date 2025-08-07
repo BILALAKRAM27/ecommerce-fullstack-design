@@ -189,6 +189,22 @@
 
     <!-- Stores Grid/List -->
     <main class="container mx-auto px-6 pb-16">
+        {% if messages %}
+<div class="messages" id="django-messages">
+  {% for message in messages %}
+  <div class="message {{ message.tags }}" data-message-id="{{ message.tags }}">
+    <span class="message-id">{{ message.tags }}</span>
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+<script>
+  setTimeout(function() {
+    var msg = document.getElementById('django-messages');
+    if (msg) { msg.style.display = 'none'; }
+  }, 7000);
+</script>
+{% endif %}
         <div id="storesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Stores will be loaded dynamically -->
         </div>

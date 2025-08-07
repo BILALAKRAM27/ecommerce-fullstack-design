@@ -357,6 +357,23 @@
     <p class="buyerorder-subtitle">Track and manage all your orders - regular products and gift boxes</p>
   </header>
 
+  {% if messages %}
+<div class="messages" id="django-messages">
+  {% for message in messages %}
+  <div class="message {{ message.tags }}" data-message-id="{{ message.tags }}">
+    <span class="message-id">{{ message.tags }}</span>
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+<script>
+  setTimeout(function() {
+    var msg = document.getElementById('django-messages');
+    if (msg) { msg.style.display = 'none'; }
+  }, 7000);
+</script>
+{% endif %}
+
   {% if orders %}
     <section class="buyerorder-grid">
       {% for order in orders %}

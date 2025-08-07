@@ -12,6 +12,22 @@
 </head>
 <body>
   <h2>Are you sure you want to delete your seller account?</h2>
+  {% if messages %}
+<div class="messages" id="django-messages">
+  {% for message in messages %}
+  <div class="message {{ message.tags }}" data-message-id="{{ message.tags }}">
+    <span class="message-id">{{ message.tags }}</span>
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+<script>
+  setTimeout(function() {
+    var msg = document.getElementById('django-messages');
+    if (msg) { msg.style.display = 'none'; }
+  }, 7000);
+</script>
+{% endif %}
   <form method="POST">
     {% csrf_token %}
     <button type="submit">Yes, Delete</button>

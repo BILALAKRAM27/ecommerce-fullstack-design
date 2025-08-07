@@ -791,7 +791,6 @@ body.modal-open {
   font-weight: 600;
   opacity: 0.8;
 }
-
 /* Top Products Card */
 .top-products-card {
   background: rgba(255, 255, 255, 0.95);
@@ -1589,7 +1588,6 @@ body.modal-open {
   flex-wrap: wrap;
   gap: 20px;
 }
-
 .orders-header::before {
   content: '';
   position: absolute;
@@ -2387,7 +2385,6 @@ body.modal-open {
   color: #1e40af;
   border-color: rgba(59, 130, 246, 0.2);
 }
-
 .notification-warning {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   color: #92400e;
@@ -3185,7 +3182,6 @@ body.modal-open {
     align-items: center;
     justify-content: center;
 }
-
 @keyframes modalFadeIn {
     from {
         opacity: 0;
@@ -3984,7 +3980,6 @@ body.modal-open {
   color: #059669;
   font-size: 0.875rem;
 }
-
 .status-badge.status-active {
   background-color: #d1fae5;
   color: #065f46;
@@ -4691,7 +4686,6 @@ body.modal-open {
           </div>
         </div>
       </div>
-
       <!-- Gift Boxes Tab -->
       <div class="tab-content" style="margin-top: 20px;" id="giftboxes">
         <div class="giftboxes-dashboard-card">
@@ -5473,7 +5467,6 @@ document.querySelectorAll('.modal').forEach(modal => {
     }
   });
 });
-
 // Form validation and submission
 class FormValidator {
   constructor(form) {
@@ -6275,7 +6268,6 @@ function showEmptyActivityState() {
     activityList.appendChild(emptyState);
   }
 }
-
 function showEmptyNotificationsState() {
   const notificationsList = document.querySelector('.notifications-list');
   if (notificationsList) {
@@ -6708,10 +6700,6 @@ function updateDashboardStats(stats) {
 
 
 
-// Removed test function - implementing logic directly in form submission
-
-
-
 // Utility Functions
 function getCSRFToken() {
   const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
@@ -7061,7 +7049,6 @@ function initCategoryPerformanceChart() {
     console.error('Error initializing category performance chart:', error);
   }
 }
-
 // Initialize all charts
 function initAllCharts() {
   console.log('Initializing all charts...');
@@ -7786,6 +7773,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-  
-  
-  

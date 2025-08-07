@@ -1075,6 +1075,25 @@ input:checked + .toggle-slider:before {
     border-width: 2px;
   }
 }
+
+/* Custom style for login success notification only */
+.seller-profile-page .alert[data-message-id*="login_success"] {
+  background: linear-gradient(135deg, #e0fce6 0%, #bbf7d0 100%) !important;
+  border-color: #10b981 !important;
+  color: #166534 !important;
+  font-weight: 600;
+  box-shadow: 0 4px 16px 0 rgba(16,185,129,0.08);
+  max-width: 400px !important;
+}
+.seller-profile-page .alert[data-message-id*="login_success"] .message-id {
+  background: #bbf7d0;
+  color: #166534;
+  font-size: 0.85em;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 0.1em 0.7em;
+  margin-right: 0.5em;
+}
 </style>
 {% endblock %}
 
@@ -1083,18 +1102,20 @@ input:checked + .toggle-slider:before {
   <div class="profile-container">
   <!-- Alert Messages -->
   {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">
-        <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {% if message.tags == 'success' %}
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          {% else %}
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          {% endif %}
-        </svg>
-        {{ message }}
-      </div>
-    {% endfor %}
+    <div class="messages" id="django-messages">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" data-message-id="{{ message.tags }}">
+          <span class="message-id">{{ message.tags }}</span>
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(function() {
+        var msg = document.getElementById('django-messages');
+        if (msg) { msg.style.display = 'none'; }
+      }, 7000);
+    </script>
   {% endif %}
 
   <!-- Profile Header -->
@@ -1157,6 +1178,7 @@ input:checked + .toggle-slider:before {
       </div>
       
       <div class="profile-actions">
+        {% if not seller.stripe_account_id %}
         <a href="{% url 'stripe_onboard' %}" class="btn btn-secondary" style="width: 160px;" >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
      stroke-linecap="round" stroke-linejoin="round">
@@ -1165,6 +1187,7 @@ input:checked + .toggle-slider:before {
   <polyline points="16 3 21 3 21 8" />
   <line x1="21" y1="3" x2="16" y2="8" />
 </svg>Onboarding</a>
+{% endif %}
         <a href="{% url 'sellers:seller_dashboard' %}" class="btn btn-secondary"style="width: 160px;" >
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"></path>

@@ -999,6 +999,14 @@
                 padding: 15px;
             }
         }
+
+        .grid-view .product-rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-bottom: 8px;
+        }
     </style>
     {% endblock %}
 
@@ -1234,7 +1242,7 @@
                         <div class="no-products">
                             <h3>No products found</h3>
                             <p>Try adjusting your filters or search terms</p>
-                            <button class="clear-filters-btn" onclick="clearFilters()">Clear All Filters</button>
+                            <button class="clear-filters-btn" onclick="clearAllFilters()">Clear All Filters</button>
                             </div>
                     {% endif %}
                 </div>
@@ -1272,6 +1280,22 @@
             </main>
         </div>
     </div>
+    {% if messages %}
+    <div class="messages" id="django-messages">
+      {% for message in messages %}
+      <div class="message {{ message.tags }}" data-message-id="{{ message.tags }}">
+        <span class="message-id">{{ message.tags }}</span>
+        {{ message }}
+      </div>
+      {% endfor %}
+      {% endif %}
+    </div>
+    <script>
+      setTimeout(function() {
+        var msg = document.getElementById('django-messages');
+        if (msg) { msg.style.display = 'none'; }
+      }, 7000);
+    </script>
     {% endblock %}
      {% block extra_js %} 
     <script>

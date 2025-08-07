@@ -63,10 +63,10 @@ def buyer_profile_view(request):
             form = BuyerUpdateForm(request.POST, request.FILES, instance=buyer)
             if form.is_valid():
                 buyer = form.save()
-                messages.success(request, 'Buyer profile updated successfully.')
+                messages.success(request, 'Buyer profile updated successfully.', extra_tags='buyer_profile_update_success')
                 return redirect('buyer:buyer_profile')
             else:
-                messages.error(request, f'Please fix the errors below: {form.errors}')
+                messages.error(request, f'Please fix the errors below: {form.errors}', extra_tags='buyer_profile_update_form_error')
         else:
             form = BuyerUpdateForm(instance=buyer)
         
@@ -105,7 +105,7 @@ def buyer_profile_view(request):
         }
         return render(request, 'buyer/buyer_profile.html', context)
     except Buyer.DoesNotExist:
-        messages.error(request, 'Buyer profile not found.')
+        messages.error(request, 'Buyer profile not found.', extra_tags='buyer_profile_not_found_error')
         return redirect('sellers:login')
 
 
@@ -118,13 +118,13 @@ def update_buyer_view(request):
             form = BuyerUpdateForm(request.POST, request.FILES, instance=buyer)
             if form.is_valid():
                 buyer = form.save()
-                messages.success(request, 'Buyer profile updated successfully.')
+                messages.success(request, 'Buyer profile updated successfully.', extra_tags='buyer_update_success')
                 return redirect('buyer:buyer_profile')
         else:
             form = BuyerUpdateForm(instance=buyer)
         return render(request, 'buyer/buyer_update.html', {'form': form})
     except Buyer.DoesNotExist:
-        messages.error(request, 'Buyer profile not found.')
+        messages.error(request, 'Buyer profile not found.', extra_tags='buyer_update_not_found_error')
         return redirect('sellers:login')
 
 
@@ -136,11 +136,11 @@ def delete_buyer_view(request):
         if request.method == 'POST':
             # Delete the buyer profile
             buyer.delete()
-            messages.success(request, 'Your buyer account has been deleted.')
+            messages.success(request, 'Your buyer account has been deleted.', extra_tags='buyer_delete_success')
             return redirect('sellers:login')
         return render(request, 'buyer/buyer_delete.html')
     except Buyer.DoesNotExist:
-        messages.error(request, 'Buyer profile not found.')
+        messages.error(request, 'Buyer profile not found.', extra_tags='buyer_delete_not_found_error')
         return redirect('sellers:login')
 
 
@@ -786,7 +786,7 @@ def checkout_view(request):
             print(f"DEBUG: Seller {seller_id} not found, clearing session")
             if 'giftbox_data' in request.session:
                 del request.session['giftbox_data']
-            messages.error(request, 'The seller for this gift box is no longer available.')
+            messages.error(request, 'The seller for this gift box is no longer available.', extra_tags='giftbox_checkout_seller_not_found_error')
             return redirect('buyer:cart_page')
         campaign = get_object_or_404(GiftBoxCampaign, id=campaign_id) if campaign_id else None
         
@@ -862,7 +862,7 @@ def checkout_view(request):
             print(f"DEBUG: Seller {seller_id} not found, clearing session")
             if 'promotion_data' in request.session:
                 del request.session['promotion_data']
-            messages.error(request, 'The seller for this promotion is no longer available.')
+            messages.error(request, 'The seller for this promotion is no longer available.', extra_tags='promotion_checkout_seller_not_found_error')
             return redirect('buyer:cart_page')
         
         # Get the actual promotion object to access its products
@@ -949,7 +949,7 @@ def checkout_view(request):
             print(f"DEBUG: Seller {seller_id} not found, clearing session")
             if 'quote_data' in request.session:
                 del request.session['quote_data']
-            messages.error(request, 'The seller for this quote is no longer available.')
+            messages.error(request, 'The seller for this quote is no longer available.', extra_tags='quote_checkout_seller_not_found_error')
             return redirect('buyer:cart_page')
         
         # Create quote seller group
@@ -1014,7 +1014,7 @@ def checkout_view(request):
         # Check if cart has items
         if not cart_items.exists():
             print(f"DEBUG: Cart is empty, redirecting to cart page")
-            messages.error(request, 'Your cart is empty. Please add items before checkout.')
+            messages.error(request, 'Your cart is empty. Please add items before checkout.', extra_tags='cart_empty_error')
             return redirect('buyer:cart_page')
         
         print(f"DEBUG: Cart has {cart_items.count()} items")
@@ -2120,7 +2120,7 @@ def promotion_checkout_view(request):
     print(f"Promotion checkout - ID: {promotion_id}, Total: {total}")
     
     if not promotion_id:
-        messages.error(request, 'No promotion specified')
+        messages.error(request, 'No promotion specified', extra_tags='promotion_checkout_no_promotion_error')
         return redirect('buyer:cart_page')
     
     try:
@@ -2133,7 +2133,7 @@ def promotion_checkout_view(request):
         # Check if promotion is active
         if not promotion.is_active:
             print(f"Promotion {promotion_id} is not active")
-            messages.error(request, 'This promotion is not active')
+            messages.error(request, 'This promotion is not active', extra_tags='promotion_checkout_inactive_error')
             return redirect('buyer:cart_page')
         
         print(f"Promotion {promotion_id} is active, proceeding to date validation")
@@ -2161,7 +2161,7 @@ def promotion_checkout_view(request):
             print(f"DEBUG: valid_until: {promotion.valid_until}")
             print(f"DEBUG: now < valid_from: {now < promotion.valid_from}")
             print(f"DEBUG: now > valid_until: {now > promotion.valid_until}")
-            messages.error(request, 'This promotion has expired or is not yet active')
+            messages.error(request, 'This promotion has expired or is not yet active', extra_tags='promotion_checkout_expired_error')
             return redirect('buyer:cart_page')
         
         print(f"Promotion {promotion_id} passed date validation, proceeding to session storage")
@@ -2188,14 +2188,14 @@ def promotion_checkout_view(request):
         
     except Promotion.DoesNotExist:
         print(f"Promotion not found: {promotion_id}")
-        messages.error(request, 'Promotion not found')
+        messages.error(request, 'Promotion not found', extra_tags='promotion_checkout_not_found_error')
         return redirect('buyer:cart_page')
     except Exception as e:
         print(f"Error in promotion checkout: {str(e)}")
         print(f"Exception type: {type(e).__name__}")
         import traceback
         print(f"Traceback: {traceback.format_exc()}")
-        messages.error(request, f'Error processing promotion: {str(e)}')
+        messages.error(request, f'Error processing promotion: {str(e)}', extra_tags='promotion_checkout_processing_error')
         return redirect('buyer:cart_page')
 
 @login_required
@@ -2249,11 +2249,11 @@ def buy_giftbox_view(request, seller_id, campaign_id):
     
         # Verify the campaign is active and not expired
         if not campaign.is_active or campaign.end_date < today:
-            messages.error(request, 'This gift box campaign is no longer active.')
-        return redirect('buyer:giftbox_marketplace')
+            messages.error(request, 'This gift box campaign is no longer active.', extra_tags='giftbox_campaign_inactive_error')
+            return redirect('buyer:giftbox_marketplace')
     
     except SellerGiftBoxParticipation.DoesNotExist:
-        messages.error(request, 'This seller is not participating in the selected gift box campaign.')
+        messages.error(request, 'This seller is not participating in the selected gift box campaign.', extra_tags='giftbox_campaign_seller_not_participating_error')
         return redirect('buyer:giftbox_marketplace')
     
     if request.method == 'POST':
@@ -2320,7 +2320,7 @@ def order_details_view(request, order_id):
             order = GiftBoxOrder.objects.get(id=order_id, buyer=buyer)
             order_type = 'giftbox'
         except GiftBoxOrder.DoesNotExist:
-            messages.error(request, 'Order not found.')
+            messages.error(request, 'Order not found.', extra_tags='order_details_not_found_error')
             return redirect('buyer:buyer_order_list')
     
     context = {
@@ -2343,7 +2343,7 @@ def track_order_view(request, order_id):
             order = GiftBoxOrder.objects.get(id=order_id, buyer=buyer)
             order_type = 'giftbox'
         except GiftBoxOrder.DoesNotExist:
-            messages.error(request, 'Order not found.')
+            messages.error(request, 'Order not found.', extra_tags='track_order_not_found_error')
             return redirect('buyer:buyer_order_list')
     
     context = {

@@ -140,6 +140,23 @@
             <p>Last updated:  August 2025</p>
         </div>
 
+        {% if messages %}
+<div class="messages" id="django-messages">
+  {% for message in messages %}
+  <div class="message {{ message.tags }}" data-message-id="{{ message.tags }}">
+    <span class="message-id">{{ message.tags }}</span>
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+<script>
+  setTimeout(function() {
+    var msg = document.getElementById('django-messages');
+    if (msg) { msg.style.display = 'none'; }
+  }, 7000);
+</script>
+{% endif %}
+
         <div class="legal-content">
             <div class="legal-section">
                 <h2>1. Information We Collect</h2>

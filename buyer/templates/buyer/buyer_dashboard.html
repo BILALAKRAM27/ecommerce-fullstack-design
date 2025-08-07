@@ -795,7 +795,6 @@ body.modal-open {
   color: var(--primary-blue);
   border-bottom-color: var(--primary-blue);
 }
-
 .tab-button:hover {
   color: var(--text-primary);
   background-color: var(--neutral-100);
@@ -930,7 +929,7 @@ body.modal-open {
   padding: 20px;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
 }
 
 .chart-container canvas {
@@ -1593,7 +1592,6 @@ body.modal-open {
   color: #64748b;
   font-weight: 500;
 }
-
 .products-actions {
   display: flex;
   align-items: center;
@@ -2390,7 +2388,6 @@ body.modal-open {
   margin: 0;
   line-height: 1.5;
 }
-
 /* Activity Dashboard Card */
 .activity-dashboard-card {
   background: rgba(255, 255, 255, 0.95);
@@ -3015,7 +3012,6 @@ body.modal-open {
     padding: 20px 24px;
   }
 }
-
 @media (max-width: 480px) {
   .revenue-metrics-grid {
     gap: 12px;
@@ -3816,7 +3812,6 @@ body.modal-open {
     color: white;
     box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
-
 .modal-footer .btn-danger:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
@@ -4560,6 +4555,76 @@ body.modal-open {
   .stat-icon {
     width: 40px;
     height: 40px;
+  }
+}
+
+/* Django Messages Styles */
+.messages {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.message {
+  padding: 15px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  opacity: 0;
+  animation: slideIn 0.5s forwards;
+}
+
+.message-id {
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 5px;
+}
+
+.message.success {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #065f46;
+}
+
+.message.info {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #1e40af;
+}
+
+.message.warning {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #92400e;
+}
+
+.message.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #991b1b;
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>
@@ -5417,7 +5482,7 @@ body.modal-open {
             <h3 class="favorites-title">
               <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="favorites-icon">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-            </svg>
+              </svg>
               Favorite Sellers
             </h3>
             <div class="favorites-subtitle">Sellers you've purchased from the most</div>
@@ -6037,7 +6102,6 @@ function closeUpdateModal() {
         currentProductId = null;
     }
 }
-
 // Delete modal functions
 function openDeleteModal(productId, productName) {
     currentDeleteProductId = productId;
@@ -6816,7 +6880,6 @@ function handleFinalCategoryChange() {
     if (attributesSection) attributesSection.style.display = 'none';
   }
 }
-
 // Load child categories
 function loadChildCategories(parentId) {
   const childCategorySelect = document.getElementById('child_category');
@@ -7613,7 +7676,6 @@ function showFallbackContent() {
     testDiv.style.display = 'block';
   }
 }
-
 // Test Chart.js functionality
 function testChart() {
   console.log('Testing Chart.js...');

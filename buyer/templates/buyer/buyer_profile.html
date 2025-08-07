@@ -1115,6 +1115,58 @@
             outline: 2px solid var(--primary-blue);
             outline-offset: 2px;
         }
+
+        /* Notification badge and message styles */
+        .messages {
+          margin-bottom: 1.5rem;
+        }
+        .messages .message {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.25rem;
+          border-radius: 6px;
+          margin-bottom: 0.5rem;
+          font-size: 1rem;
+          font-weight: 500;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          background: #f0fdf4;
+          border: 1px solid #bbf7d0;
+          color: #166534;
+          word-break: break-word;
+        }
+        .messages .message[data-message-id*="success"] {
+          background: #f0fdf4;
+          border-color: #bbf7d0;
+          color: #166534;
+        }
+        .messages .message[data-message-id*="error"] {
+          background: #fef2f2;
+          border-color: #fecaca;
+          color: #991b1b;
+        }
+        .messages .message[data-message-id*="warning"] {
+          background: #fefce8;
+          border-color: #fde68a;
+          color: #92400e;
+        }
+        .messages .message-id {
+          font-size: 0.85em;
+          font-weight: 600;
+          border-radius: 4px;
+          padding: 0.1em 0.7em;
+          margin-right: 0.5em;
+          background: #bbf7d0;
+          color: #166534;
+        }
+        .messages .message[data-message-id*="error"] .message-id {
+          background: #fecaca;
+          color: #991b1b;
+        }
+        .messages .message[data-message-id*="warning"] .message-id {
+          background: #fde68a;
+          color: #92400e;
+        }
     </style>
 {% endblock %}
 
@@ -1123,18 +1175,20 @@
     <div class="buyer-profile-page">
         <!-- Alert Messages -->
         {% if messages %}
-            {% for message in messages %}
-                <div class="buyer-alert buyer-alert-{{ message.tags }}">
-                    <svg class="buyer-alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {% if message.tags == 'success' %}
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        {% else %}
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        {% endif %}
-                    </svg>
-                    {{ message }}
-                </div>
-            {% endfor %}
+        <div class="messages" id="django-messages">
+          {% for message in messages %}
+          <div class="message {{ message.tags }}" data-message-id="{{ message.tags }}" style="word-break: break-word; white-space: pre-line; display: flex; align-items: center; gap: 0.5rem;">
+            <span class="message-id" style="font-size: 0.8em; color: #888; background: #f3f4f6; border-radius: 4px; padding: 0.1em 0.5em; margin-right: 0.5em;">{{ message.tags|cut:" success"|cut:" error"|cut:" warning" }}</span>
+            <span style="flex:1;">{{ message }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <script>
+          setTimeout(function() {
+            var msg = document.getElementById('django-messages');
+            if (msg) { msg.style.display = 'none'; }
+          }, 7000);
+        </script>
         {% endif %}
 
         <!-- Profile Header -->
@@ -1360,9 +1414,8 @@
                          
                          <a href="{% url 'buyer:buyer_dashboard' %}" class="buyer-btn buyer-btn-secondary" style="text-align: center;">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"></path>
+                              </svg>
                             Dashboard
                         </a>
 
@@ -1436,10 +1489,7 @@
                             <span class="buyer-stat-label">Email Verified</span>
                             <span class="buyer-stat-value" style="color: var(--success-green);">✓ Verified</span>
                         </div>
-                        <div class="buyer-stat-item">
-                            <span class="buyer-stat-label">Privacy Settings</span>
-                            <a href="#" class="buyer-btn buyer-btn-ghost" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; min-height: auto;">Manage</a>
-                        </div>
+                        
                     </div>
                 </div>
             </aside>

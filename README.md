@@ -858,25 +858,13 @@ python test_total_spent.py
 - **Documentation**: Include docstrings and comments
 - **Git**: Use conventional commit messages
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-**MIT License Features:**
-- ✅ Commercial use allowed
-- ✅ Modification permitted
-- ✅ Distribution allowed
-- ✅ Private use allowed
-- ✅ No liability
-- ✅ No warranty
-
 ## 👨‍💻 Author
 
 **Bilal Akram**
 - **GitHub**: [@BILALAKRAM27](https://github.com/BILALAKRAM27)
-- **Email**: bilalakram190204@gmail.com
-- **LinkedIn**: [Bilal Akram](https://linkedin.com/in/bilal-akram)
-- **Portfolio**: [Personal Website](https://bilalakram.dev)
+- **Email**: 190204ba@gmail.com
+- **LinkedIn**: [Bilal Akram](www.linkedin.com/in/bilal-akram-081b86268)
+- **Portfolio**: [Personal Website](https://bilalakram27.github.io/Portfolio/)
 
 **About the Developer:**
 - Full-stack web developer with expertise in Django and modern web technologies
@@ -957,7 +945,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Note**: This is a development version. For production deployment, ensure proper security configurations, environment variables, and SSL certificates are set up. The Stripe webhook listener must be running in production for payment processing to work correctly.
 
 **Version**: 2.1.0  
-**Last Updated**: January 2025  
+**Last Updated**: August 2025  
 **Django Version**: 5.2.4  
 **Python Version**: 3.8+  
-**License**: MIT License 
